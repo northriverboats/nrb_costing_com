@@ -51,6 +51,16 @@ class BoatModels:
   sheet2: str
   folder: str
 
+# need to add error checking
+def load_boat_models() -> List[BoatModels]:
+  xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
+  sheet = xlsx.active
+  dimensions = sheet.dimensions
+  cells = sheet['A2': dimensions.split(':')[1]]
+  boats: List[BoatModels] = [BoatModels(cell[0].value, cell[1].value, cell[2].value) for cell in cells]
+  xlsx.close()
+  return boats
+
 
 @click.command()
 def main() -> None:
