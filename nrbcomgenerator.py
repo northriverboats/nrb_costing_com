@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """
 NRB COMMERCIAL COSTING SHEET GENERATOR
+
+DEBUG to log file
+ERROR to log file and screen
+CRITICAL to log file, screen and email
 """
 
 import click
@@ -8,8 +12,9 @@ import logging
 import logging.handlers
 import os
 import sys
+import traceback
+
 from dotenv import load_dotenv
-from functools import wraps
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -37,27 +42,17 @@ logger.addHandler(consoleHandler)
 logger.addHandler(fileHandler)
 logger.addHandler(smtpHandler)
 
-def exception(logger):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except:
-                issue = "exception in "+func.__name__+"\n"
-                issue = issue+"=============\n"
-                # logger.exception(issue)
-                logger.critical(issue, exc_info=True)
 
-                raise
-        return wrapper
-    return decorator
-
-
-@exception(logger)
-def main():
-  logger.critical("Situation is critical. Come to office immediately.")
-  pass
+@click.command()
+def main() -> None:
+  try:
+    pass
+  except Exception as e:
+    logger.critical(traceback.format_exc())
+    raise
+  finally:
+    # program terminates normally
+    sys.exit()
 
 if __name__ == "__main__":
   main()
