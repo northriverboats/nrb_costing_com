@@ -10,11 +10,13 @@ CRITICAL to log file, screen and email
 import click
 import logging
 import logging.handlers
+import openpyxl
 import os
 import sys
 import traceback
-
+from dataclasses import dataclass
 from dotenv import load_dotenv
+from typing import List
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -41,6 +43,13 @@ smtpHandler.setFormatter(formatter)
 logger.addHandler(consoleHandler)
 logger.addHandler(fileHandler)
 logger.addHandler(smtpHandler)
+
+
+@dataclass
+class BoatModels:
+  sheet1: str
+  sheet2: str
+  folder: str
 
 
 @click.command()
