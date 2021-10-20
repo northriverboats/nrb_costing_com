@@ -53,7 +53,11 @@ class BoatModels:
 
 # need to add error checking
 def load_boat_models() -> List[BoatModels]:
-  xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
+  try:
+    xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
+  except FileNotFoundError:
+    return list()
+
   sheet = xlsx.active
   dimensions = sheet.dimensions
   cells = sheet['A2': dimensions.split(':')[1]]
