@@ -66,9 +66,9 @@ fileHandler.setLevel(logging.INFO)
 fileHandler.setFormatter(formatter)
 
 smtpHandler = logging.handlers.SMTPHandler(
-              mailhost = str(MAIL_SERVER),
-              fromaddr = str(MAIL_FROM),
-              toaddrs = str(MAIL_TO),
+              mailhost = MAIL_SERVER,
+              fromaddr = MAIL_FROM,
+              toaddrs = MAIL_TO,
               subject = "alert!"
             )
 smtpHandler.setLevel(logging.CRITICAL)
@@ -103,7 +103,7 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
   end_cell: str = dimensions.split(':')[1]
   range = 'A2:' + end_cell
   cells = sheet[range]
-  boats: List[BoatModels] = [BoatModels(cell[0].value, cell[1].value, cell[2].value) for cell in cells]
+  boats: List[BoatModels] = [[v.value for v in cell] for cell in cells]
   xlsx.close()
   return boats
 
