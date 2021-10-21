@@ -18,6 +18,12 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from typing import List
 
+"""
+==================== ENALBE LOGGING
+DEBUG + = to rotating log files in current directory
+INFO + = to stdout
+CRITICAL + = to email
+"""
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -51,7 +57,6 @@ class BoatModels:
   sheet2: str
   folder: str
 
-# need to add error checking
 def load_boat_models() -> List[BoatModels]:
   try:
     xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
