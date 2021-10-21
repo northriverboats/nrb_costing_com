@@ -16,7 +16,36 @@ import sys
 import traceback
 from dataclasses import dataclass
 from dotenv import load_dotenv
-from typing import List
+from pathlib import Path
+from typing import List, Union
+
+
+"""
+==================== LOAD UP ENVIRONMENTAL CONSTANTS
+"""
+def resource_path(relative_path: Union[str, Path]) -> Path:
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = Path(sys._MEIPASS)
+    except AttributeError:
+        base_path = Path.cwd()
+
+    return base_path / relative_path
+
+env_path = resource_path('.env')
+load_dotenv(dotenv_path=env_path)
+
+DATABASE=os.environ.get('DATABASE')
+COSTING_FOLDER=os.environ.get('COSTING_FOLDER')
+BOATS_FOLDER=os.environ.get('BOATS_FOLDER')
+RESOURCES_FOLDER=os.environ.get('RESOURCES_FOLDER')
+SHEETS_FOLDER=os.environ.get('SHEETS_FOLDER')
+MASTER_FILE=os.environ.get('MASTER_FILE')
+TEMPLATE_FILE=os.environ.get('TEMPLATE_FILE')
+MAIL_FROM=os.environ.get('MAIL_FROM')
+MAIL_TO=os.environ.get('MAIL_TO')
+MAIL_SERVER=os.environ.get('MAIL_SERVER')
+
 
 """
 ==================== ENALBE LOGGING
