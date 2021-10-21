@@ -6,7 +6,6 @@ DEBUG to log file
 ERROR to log file and screen
 CRITICAL to log file, screen and email
 """
-
 import click
 import logging
 import logging.handlers
@@ -17,16 +16,16 @@ import traceback
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 
 """
-==================== LOAD UP ENVIRONMENTAL CONSTANTS
+==================== Low Level Utilities
 """
 def resource_path(relative_path: Union[str, Path]) -> Path:
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        base_path = Path(sys._MEIPASS)
+        base_path = Path(sys._MEIPASS)  # type: ignore
     except AttributeError:
         base_path = Path.cwd()
 
@@ -35,16 +34,16 @@ def resource_path(relative_path: Union[str, Path]) -> Path:
 env_path = resource_path('.env')
 load_dotenv(dotenv_path=env_path)
 
-DATABASE=os.environ.get('DATABASE')
-COSTING_FOLDER=os.environ.get('COSTING_FOLDER')
-BOATS_FOLDER=os.environ.get('BOATS_FOLDER')
-RESOURCES_FOLDER=os.environ.get('RESOURCES_FOLDER')
-SHEETS_FOLDER=os.environ.get('SHEETS_FOLDER')
-MASTER_FILE=os.environ.get('MASTER_FILE')
-TEMPLATE_FILE=os.environ.get('TEMPLATE_FILE')
-MAIL_FROM=os.environ.get('MAIL_FROM')
-MAIL_TO=os.environ.get('MAIL_TO')
-MAIL_SERVER=os.environ.get('MAIL_SERVER')
+DATABASE: str = str(os.environ.get('DATABASE'))
+COSTING_FOLDER: str = str(os.environ.get('COSTING_FOLDER'))
+SHEETS_FOLDER: str = str(os.environ.get('SHEETS_FOLDER'))
+TEMPLATE_FILE: str = str(os.environ.get('TEMPLATE_FILE'))
+MASTER_FILE: str = str(os.environ.get('MASTER_FILE'))
+BOATS_FOLDER: str = str(os.environ.get('BOATS_FOLDER'))
+RESOURCES_FOLDER: str = str(os.environ.get('RESOURCES_FOLDER'))
+MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER"))
+MAIL_FROM: str = str(os.environ.get("MAIL_FROM"))
+MAIL_TO: str = str(os.environ.get("MAIL_TO"))
 
 
 """
@@ -67,9 +66,9 @@ fileHandler.setLevel(logging.INFO)
 fileHandler.setFormatter(formatter)
 
 smtpHandler = logging.handlers.SMTPHandler(
-              mailhost = os.environ.get("MAIL_SERVER"),
-              fromaddr = os.environ.get("MAIL_FROM"),
-              toaddrs = os.environ.get("MAIL_TO"),
+              mailhost = str(MAIL_SERVER),
+              fromaddr = str(MAIL_FROM),
+              toaddrs = str(MAIL_TO),
               subject = "alert!"
             )
 smtpHandler.setLevel(logging.CRITICAL)
@@ -93,18 +92,27 @@ class BoatModels:
 """
 ==================== Low Level Functions
 """
-def load_boat_models() -> List[BoatModels]:
+def load_boat_models(master_file: Path) -> List[BoatModels]:
   try:
-    xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
+    xlsx = openpyxl.load_workbook(master_file.as_posix())
   except FileNotFoundError:
     return list()
 
-  sheet = xlsx.active
-  dimensions = sheet.dimensions
-  cells = sheet['A2': dimensions.split(':')[1]]
+  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+  dimensions: str = sheet.dimensions  # type: ignore
+  end_cell: str = dimensions.split(':')[1]
+  range = 'A2:' + end_cell
+  cells = sheet[range]
   boats: List[BoatModels] = [BoatModels(cell[0].value, cell[1].value, cell[2].value) for cell in cells]
   xlsx.close()
   return boats
+
+def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
+  """get list of spreadsheets in folder"""
+  if isinstance(base, str):
+    base = Path(base)
+  # print(base)
+  return [sheet for sheet in base.glob('[!~]*.xlsx')]
 
 
 """
@@ -118,7 +126,10 @@ def load_boat_models() -> List[BoatModels]:
 @click.command()
 def main() -> None:
   try:
-    pass
+    models: List[BoatModels] = load_boat_models(Path(MASTER_FILE))
+    boats: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
+    resources: List[Path] = find_excel_files_in_dir(Path(RESOURCES_FOLDER))
+    print(f'Models: {len(models)}   Boats: {len(boats)}   Resources: {len(resources)}')
   except Exception as e:
     logger.critical(traceback.format_exc())
     raise
