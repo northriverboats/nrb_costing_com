@@ -80,12 +80,19 @@ logger.addHandler(fileHandler)
 logger.addHandler(smtpHandler)
 
 
+"""
+==================== Dataclasses
+"""
 @dataclass
 class BoatModels:
   sheet1: str
   sheet2: str
   folder: str
 
+
+"""
+==================== Low Level Functions
+"""
 def load_boat_models() -> List[BoatModels]:
   try:
     xlsx = openpyxl.load_workbook(os.environ.get("MASTER_FILE"))
@@ -100,6 +107,14 @@ def load_boat_models() -> List[BoatModels]:
   return boats
 
 
+"""
+==================== High Level Functions
+"""
+
+
+"""
+==================== Main Entry Point
+"""
 @click.command()
 def main() -> None:
   try:
