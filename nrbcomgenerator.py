@@ -7,6 +7,7 @@ ERROR to log file and screen
 CRITICAL to log file, screen and email
 """
 import click
+import datetime
 import logging
 import logging.handlers
 import openpyxl
@@ -16,7 +17,7 @@ import traceback
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, cast
 
 
 """
@@ -88,14 +89,24 @@ class BoatModels:
   sheet2: str
   folder: str
 
+@dataclass
+class Resources:
+  oempart: str
+  description: str
+  unitprice: float
+  oem: str
+  vendorpart: str
+  vendor: str
+  updated: datetime.datetime
+
 
 """
 ==================== Low Level Functions
 """
 def load_boat_models(master_file: Path) -> List[BoatModels]:
   try:
-    xlsx = openpyxl.load_workbook(master_file.as_posix())
-  except FileNotFoundError:
+    xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
+  except (FileNotFoundError, PermissionError):
     return list()
 
   sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -103,15 +114,31 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
   end_cell: str = dimensions.split(':')[1]
   range = 'A2:' + end_cell
   cells = sheet[range]
-  boats: List[BoatModels] = [[v.value for v in cell] for cell in cells]
+  boats: List[BoatModels] = [cast(BoatModels,[v.value for v in cell]) for cell in cells if cell[0].value]
   xlsx.close()
   return boats
+
+def load_resource(resource_file: Path) -> List[Resources]:
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  except (FileNotFoundError, PermissionError):
+    return list()
+
+  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+  dimensions: str = sheet.dimensions  # type: ignore
+  end_cell: str = dimensions.split(':')[1]
+  range = 'A2:' + end_cell
+  cells = sheet[range]
+  resources: List[Resources] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  xlsx.close()
+  return resources
+
+
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
   """get list of spreadsheets in folder"""
   if isinstance(base, str):
     base = Path(base)
-  # print(base)
   return [sheet for sheet in base.glob('[!~]*.xlsx')]
 
 
