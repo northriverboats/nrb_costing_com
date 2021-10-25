@@ -196,6 +196,21 @@ def load_hourly_rates(resource_file: Path) -> List[Hourly_Rates]:
   xlsx.close()
   return hourly_rates
 
+def load_mark_ups(resource_file: Path) -> List[Mark_Ups]:
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  except (FileNotFoundError, PermissionError):
+    return list()
+
+  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+  dimensions: str = sheet.dimensions  # type: ignore
+  end_cell: str = dimensions.split(':')[1]
+  range = 'A2:' + end_cell
+  cells = sheet[range]
+  mark_ups: List[Mark_Ups] = [cast(Mark_Ups ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  xlsx.close()
+  return mark_ups
+
 
 """
 ==================== High Level Functions
@@ -214,6 +229,7 @@ def main() -> None:
     resources: List[Resources] = load_resources(resource_files)
     consumables: List[Consumables] = load_consumables(Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
     hourly_rates = load_hourly_rates(Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
+    mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))
     click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
     click.echo(f'Resources {len(resources)}')
     click.echo(pprint.pformat(resources, width=210))
