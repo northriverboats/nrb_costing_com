@@ -12,6 +12,7 @@ import logging
 import logging.handlers
 import openpyxl
 import os
+import pprint
 import sys
 import traceback
 from dataclasses import dataclass
@@ -133,7 +134,15 @@ def load_resource(resource_file: Path) -> List[Resources]:
   xlsx.close()
   return resources
 
-
+def load_resources(resource_files: List[Path]) -> List[Resources]:
+  """Load all resource files"""
+  resources: List[Resources] = list()
+  for resource_file in resource_files:
+    click.echo('.', nl=False)
+    resources += load_resource(resource_file)
+  click.echo('')
+  return resources
+    
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
   """get list of spreadsheets in folder"""
@@ -154,9 +163,12 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
 def main() -> None:
   try:
     models: List[BoatModels] = load_boat_models(Path(MASTER_FILE))
-    boats: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
-    resources: List[Path] = find_excel_files_in_dir(Path(RESOURCES_FOLDER))
-    print(f'Models: {len(models)}   Boats: {len(boats)}   Resources: {len(resources)}')
+    boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
+    resource_files: List[Path] = find_excel_files_in_dir(Path(RESOURCES_FOLDER))
+    resources: List[Resources] = load_resources(resource_files)
+    click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
+    click.echo(f'Resources {len(resources)}')
+    click.echo(pprint.pformat(resources, width=210))
   except Exception as e:
     logger.critical(traceback.format_exc())
     raise
