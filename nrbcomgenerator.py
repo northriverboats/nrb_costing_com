@@ -100,6 +100,23 @@ class Resources:
   vendor: str
   updated: datetime.datetime
 
+@dataclass
+class Consumables:
+  dept: str
+  percent: float
+
+@dataclass
+class Hourly_Rates:
+  dept: str
+  rate: float
+
+@dataclass
+class Mark_Ups:
+  policy: str
+  markup_1: float
+  markup_2: float
+  discount: float
+
 
 """
 ==================== Low Level Functions
