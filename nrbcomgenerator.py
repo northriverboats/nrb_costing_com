@@ -177,9 +177,24 @@ def load_consumables(resource_file: Path) -> List[Consumables]:
   end_cell: str = dimensions.split(':')[1]
   range = 'A1:' + end_cell
   cells = sheet[range]
-  consumables: List[Consumables] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  consumables: List[Consumables] = [cast(Consumables ,[v.value for v in cell]) for cell in cells if cell[0].value]
   xlsx.close()
   return consumables
+
+def load_hourly_rates(resource_file: Path) -> List[Hourly_Rates]:
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  except (FileNotFoundError, PermissionError):
+    return list()
+
+  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+  dimensions: str = sheet.dimensions  # type: ignore
+  end_cell: str = dimensions.split(':')[1]
+  range = 'A1:' + end_cell
+  cells = sheet[range]
+  hourly_rates: List[Hourly_Rates] = [cast(Hourly_Rates ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  xlsx.close()
+  return hourly_rates
 
 
 """
@@ -198,6 +213,7 @@ def main() -> None:
     resource_files: List[Path] = [sheet for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER)) if sheet.name.startswith('BOM ')]
     resources: List[Resources] = load_resources(resource_files)
     consumables: List[Consumables] = load_consumables(Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
+    hourly_rates = load_hourly_rates(Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
     click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
     click.echo(f'Resources {len(resources)}')
     click.echo(pprint.pformat(resources, width=210))
