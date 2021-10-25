@@ -164,7 +164,7 @@ def main() -> None:
   try:
     models: List[BoatModels] = load_boat_models(Path(MASTER_FILE))
     boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
-    resource_files: List[Path] = find_excel_files_in_dir(Path(RESOURCES_FOLDER))
+    resource_files: List[Path] = [sheet for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER)) if sheet.name.startswith('BOM ')]
     resources: List[Resources] = load_resources(resource_files)
     click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
     click.echo(f'Resources {len(resources)}')
