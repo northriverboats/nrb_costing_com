@@ -159,13 +159,27 @@ def load_resources(resource_files: List[Path]) -> List[Resources]:
     resources += load_resource(resource_file)
   click.echo('')
   return resources
-    
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
   """get list of spreadsheets in folder"""
   if isinstance(base, str):
     base = Path(base)
   return [sheet for sheet in base.glob('[!~]*.xlsx')]
+
+def load_consumables(resource_file: Path) -> List[Consumables]:
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  except (FileNotFoundError, PermissionError):
+    return list()
+
+  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+  dimensions: str = sheet.dimensions  # type: ignore
+  end_cell: str = dimensions.split(':')[1]
+  range = 'A1:' + end_cell
+  cells = sheet[range]
+  consumables: List[Consumables] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  xlsx.close()
+  return consumables
 
 
 """
@@ -183,6 +197,7 @@ def main() -> None:
     boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
     resource_files: List[Path] = [sheet for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER)) if sheet.name.startswith('BOM ')]
     resources: List[Resources] = load_resources(resource_files)
+    consumables: List[Consumables] = load_consumables(Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
     click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
     click.echo(f'Resources {len(resources)}')
     click.echo(pprint.pformat(resources, width=210))
