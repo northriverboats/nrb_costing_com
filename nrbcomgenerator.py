@@ -82,6 +82,12 @@ logger.addHandler(smtpHandler)
 
 
 """
+==================== Custom Errors
+"""
+
+
+
+"""
 ==================== Dataclasses
 """
 @dataclass
@@ -124,31 +130,34 @@ class Mark_Ups:
 def load_boat_models(master_file: Path) -> List[BoatModels]:
   try:
     xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
+
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    range = 'A2:' + end_cell
+    cells = sheet[range]
+    boats: List[BoatModels] = [cast(BoatModels,[v.value for v in cell]) for cell in cells if cell[0].value]
   except (FileNotFoundError, PermissionError):
     return list()
-
-  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-  dimensions: str = sheet.dimensions  # type: ignore
-  end_cell: str = dimensions.split(':')[1]
-  range = 'A2:' + end_cell
-  cells = sheet[range]
-  boats: List[BoatModels] = [cast(BoatModels,[v.value for v in cell]) for cell in cells if cell[0].value]
-  xlsx.close()
+  finally:
+    if xlsx:
+      xlsx.close()    
   return boats
 
 def load_resource(resource_file: Path) -> List[Resources]:
   try:
     xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    range = 'A2:' + end_cell
+    cells = sheet[range]
+    resources: List[Resources] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
   except (FileNotFoundError, PermissionError):
     return list()
-
-  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-  dimensions: str = sheet.dimensions  # type: ignore
-  end_cell: str = dimensions.split(':')[1]
-  range = 'A2:' + end_cell
-  cells = sheet[range]
-  resources: List[Resources] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
-  xlsx.close()
+  finally:
+    if xlsx:
+      xlsx.close()
   return resources
 
 def load_resources(resource_files: List[Path]) -> List[Resources]:
@@ -169,48 +178,62 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
 def load_consumables(resource_file: Path) -> List[Consumables]:
   try:
     xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    range = 'A1:' + end_cell
+    cells = sheet[range]
+    consumables: List[Consumables] = [cast(Consumables ,[v.value for v in cell]) for cell in cells if cell[0].value]
   except (FileNotFoundError, PermissionError):
     return list()
-
-  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-  dimensions: str = sheet.dimensions  # type: ignore
-  end_cell: str = dimensions.split(':')[1]
-  range = 'A1:' + end_cell
-  cells = sheet[range]
-  consumables: List[Consumables] = [cast(Consumables ,[v.value for v in cell]) for cell in cells if cell[0].value]
-  xlsx.close()
+  else:
+    if xlsx:
+      xlsx.close()
   return consumables
 
 def load_hourly_rates(resource_file: Path) -> List[Hourly_Rates]:
   try:
     xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    range = 'A1:' + end_cell
+    cells = sheet[range]
+    hourly_rates: List[Hourly_Rates] = [cast(Hourly_Rates ,[v.value for v in cell]) for cell in cells if cell[0].value]
   except (FileNotFoundError, PermissionError):
     return list()
-
-  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-  dimensions: str = sheet.dimensions  # type: ignore
-  end_cell: str = dimensions.split(':')[1]
-  range = 'A1:' + end_cell
-  cells = sheet[range]
-  hourly_rates: List[Hourly_Rates] = [cast(Hourly_Rates ,[v.value for v in cell]) for cell in cells if cell[0].value]
-  xlsx.close()
+  else:
+    if xlsx:
+      xlsx.close()
   return hourly_rates
 
 def load_mark_ups(resource_file: Path) -> List[Mark_Ups]:
   try:
     xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    range:str = 'A2:' + end_cell
+    cells = sheet[range]
+    mark_ups: List[Mark_Ups] = [cast(Mark_Ups ,[v.value for v in cell]) for cell in cells if cell[0].value]
   except (FileNotFoundError, PermissionError):
     return list()
-
-  sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-  dimensions: str = sheet.dimensions  # type: ignore
-  end_cell: str = dimensions.split(':')[1]
-  range = 'A2:' + end_cell
-  cells = sheet[range]
-  mark_ups: List[Mark_Ups] = [cast(Mark_Ups ,[v.value for v in cell]) for cell in cells if cell[0].value]
-  xlsx.close()
+  else:
+    if xlsx:    
+      xlsx.close()
   return mark_ups
 
+def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
+  dimensions: str = sheet.dimensions  # type: ignore
+  range: str = 'M1:' + ''.join([c for c in dimensions.split(':')[1] if c not in "0123456789"]) + "1"
+  cells = sheet[range]
+  sizes = [cell.value for cell in cells[0] if cell.value]
+  if "ANY" in sizes:
+    sizes = ["ANY"] + [size for size in sizes if size != "ANY"]
+  return sizes
 
 """
 ==================== High Level Functions
