@@ -6,24 +6,24 @@ DEBUG to log file
 ERROR to log file and screen
 CRITICAL to log file, screen and email
 """
-import click
 import datetime
 import logging
 import logging.handlers
-import openpyxl
 import os
 import pprint
 import sys
 import traceback
 from dataclasses import dataclass
-from dotenv import load_dotenv
 from pathlib import Path
 from typing import List, Optional, Union, cast
 
+import click
+from dotenv import load_dotenv # importerror 
+import openpyxl
 
-"""
-==================== Low Level Utilities
-"""
+#
+# ==================== Low Level Utilities
+#
 def resource_path(relative_path: Union[str, Path]) -> Path:
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -48,12 +48,13 @@ MAIL_FROM: str = str(os.environ.get("MAIL_FROM"))
 MAIL_TO: str = str(os.environ.get("MAIL_TO"))
 
 
-"""
-==================== ENALBE LOGGING
-DEBUG + = to rotating log files in current directory
-INFO + = to stdout
-CRITICAL + = to email
-"""
+#
+# ==================== ENALBE LOGGING
+#
+# DEBUG + = to rotating log files in current directory
+# INFO + = to stdout
+# CRITICAL + = to email
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -63,16 +64,21 @@ consoleHandler = logging.StreamHandler(sys.stdout)
 consoleHandler.setLevel(logging.DEBUG)
 consoleHandler.setFormatter(formatter)
 
-fileHandler = logging.handlers.RotatingFileHandler(filename="error.log",maxBytes=1024000, backupCount=10, mode="a")
+fileHandler = logging.handlers.RotatingFileHandler(
+    filename="error.log",
+    maxBytes=1024000,
+    backupCount=10,
+    mode="a"
+)
 fileHandler.setLevel(logging.INFO)
 fileHandler.setFormatter(formatter)
 
 smtpHandler = logging.handlers.SMTPHandler(
-              mailhost = MAIL_SERVER,
-              fromaddr = MAIL_FROM,
-              toaddrs = MAIL_TO,
-              subject = "alert!"
-            )
+    mailhost=MAIL_SERVER,
+    fromaddr=MAIL_FROM,
+    toaddrs=MAIL_TO,
+    subject="alert!"
+)
 smtpHandler.setLevel(logging.CRITICAL)
 smtpHandler.setFormatter(formatter)
 
@@ -81,52 +87,72 @@ logger.addHandler(fileHandler)
 logger.addHandler(smtpHandler)
 
 
-"""
-==================== Custom Errors
-"""
+#
+# ==================== Custom Errors
+#
+class NRBError(Exception):
+    """ base class for all NRB errors """
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+        super().__init__(self)
+
+    def __str__(self):
+        if self.message:
+            return 'NRB Error, {0} '.format(self.message)
+        return 'NRB Error has been raised'
 
 
 
-"""
-==================== Dataclasses
-"""
+
+
+#
+# ==================== Dataclasses
+#
 @dataclass
 class BoatModels:
-  sheet1: str
-  sheet2: str
-  folder: str
+    """Info on which sheets make a boat costing sheet"""
+    sheet1: str
+    sheet2: str
+    folder: str
 
 @dataclass
 class Resources:
-  oempart: str
-  description: str
-  unitprice: float
-  oem: str
-  vendorpart: str
-  vendor: str
-  updated: datetime.datetime
+    """ """
+    oempart: str
+    description: str
+    unitprice: float
+    oem: str
+    vendorpart: str
+    vendor: str
+    updated: datetime.datetime
 
 @dataclass
 class Consumables:
-  dept: str
-  percent: float
+    """ """
+    dept: str
+    percent: float
 
 @dataclass
 class Hourly_Rates:
-  dept: str
-  rate: float
+    """ """
+    dept: str
+    rate: float
 
 @dataclass
 class Mark_Ups:
-  policy: str
-  markup_1: float
-  markup_2: float
-  discount: float
+    """ """
+    policy: str
+    markup_1: float
+    markup_2: float
+    discount: float
 
 
-"""
-==================== Low Level Functions
-"""
+# 
+# ==================== Low Level Functions
+#
 def load_boat_models(master_file: Path) -> List[BoatModels]:
   try:
     xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
@@ -141,7 +167,7 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
     return list()
   finally:
     if xlsx:
-      xlsx.close()    
+      xlsx.close()
   return boats
 
 def load_resource(resource_file: Path) -> List[Resources]:
@@ -222,7 +248,7 @@ def load_mark_ups(resource_file: Path) -> List[Mark_Ups]:
   except (FileNotFoundError, PermissionError):
     return list()
   else:
-    if xlsx:    
+    if xlsx:
       xlsx.close()
   return mark_ups
 
