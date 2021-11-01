@@ -15,7 +15,7 @@ import sys
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
@@ -169,75 +169,69 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
     return boats
 
 def load_resource(resource_file: Path) -> List[Resources]:
-    """Read resource sheet"""
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A2:' + end_cell
-        cells = sheet[rnge]
-        resources: List[Resources] = [
-            cast(Resources, [v.value for v in cell]) for cell in cells if cell[0].value]
-    except (FileNotFoundError, PermissionError):
-        return list()
-    finally:
-        if xlsx:
-            xlsx.close()
-    return resources
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    rnge = 'A2:' + end_cell
+    cells = sheet[rnge]
+    resources: List[Resources] = [cast(Resources ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  except (FileNotFoundError, PermissionError):
+    return list()
+  finally:
+    if xlsx:
+      xlsx.close()
+  return resources
 
 def load_resources(resource_files: List[Path]) -> List[Resources]:
-    """Load all resource files"""
-    resources: List[Resources] = list()
-    for resource_file in resource_files:
-        click.echo('.', nl=False)
-        resources += load_resource(resource_file)
-    click.echo('')
-    return resources
+  """Load all resource files"""
+  resources: List[Resources] = list()
+  for resource_file in resource_files:
+    click.echo('.', nl=False)
+    resources += load_resource(resource_file)
+  click.echo('')
+  return resources
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
-    """get list of spreadsheets in folder"""
-    if isinstance(base, str):
-        base = Path(base)
-    return base.glob('[!~]*.xlsx')
+  """get list of spreadsheets in folder"""
+  if isinstance(base, str):
+    base = Path(base)
+  return [sheet for sheet in base.glob('[!~]*.xlsx')]
 
 def load_consumables(resource_file: Path) -> List[Consumables]:
-    """Read consuables sheet"""
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
 
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A1:' + end_cell
-        cells = sheet[rnge]
-        consumables: List[Consumables] = [
-            cast(Consumables, [v.value for v in cell]) for cell in cells if cell[0].value]
-    except (FileNotFoundError, PermissionError):
-        return list()
-    else:
-        if xlsx:
-            xlsx.close()
-    return consumables
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    rnge = 'A1:' + end_cell
+    cells = sheet[rnge]
+    consumables: List[Consumables] = [cast(Consumables ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  except (FileNotFoundError, PermissionError):
+    return list()
+  else:
+    if xlsx:
+      xlsx.close()
+  return consumables
 
 def load_hourly_rates(resource_file: Path) -> List[HourlyRates]:
-    """Read hourly rates sheet"""
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+  try:
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
 
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A1:' + end_cell
-        cells = sheet[rnge]
-        hourly_rates: List[HourlyRates] = [
-            cast(HourlyRates, [v.value for v in cell]) for cell in cells if cell[0].value]
-    except (FileNotFoundError, PermissionError):
-        return list()
-    else:
-        if xlsx:
-            xlsx.close()
-    return hourly_rates
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    dimensions: str = sheet.dimensions  # type: ignore
+    end_cell: str = dimensions.split(':')[1]
+    rnge = 'A1:' + end_cell
+    cells = sheet[rnge]
+    hourly_rates: List[HourlyRates] = [cast(HourlyRates ,[v.value for v in cell]) for cell in cells if cell[0].value]
+  except (FileNotFoundError, PermissionError):
+    return list()
+  else:
+    if xlsx:
+      xlsx.close()
+  return hourly_rates
 
 def load_mark_ups(resource_file: Path) -> List[MarkUps]:
     """read makrkup file into object """
@@ -281,18 +275,12 @@ def main() -> None:
     try:
         models: List[BoatModels] = load_boat_models(Path(MASTER_FILE))
         boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
-        resource_files: List[Path] = [
-            sheet for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
-            if sheet.name.startswith('BOM ')]
+        resource_files: List[Path] = [sheet for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER)) if sheet.name.startswith('BOM ')]
         resources: List[Resources] = load_resources(resource_files)
-        consumables: List[Consumables] = load_consumables(  # pylint: disable=unused-variable
-            Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
-        hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
-            Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
-        mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
-        click.echo(
-            f'Models: {len(models)}   Boat Files: {len(boat_files)}   '
-            f'Resource Files: {len(resource_files)}   ', nl=False)
+        consumables: List[Consumables] = load_consumables(Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
+        hourly_rates = load_hourly_rates(Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
+        mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))
+        click.echo(f'Models: {len(models)}   Boat Files: {len(boat_files)}   Resource Files: {len(resource_files)}   ', nl=False)
         click.echo(f'Resources {len(resources)}')
         click.echo(pprint.pformat(resources, width=210))
     except Exception:
@@ -303,4 +291,4 @@ def main() -> None:
         sys.exit()
 
 if __name__ == "__main__":
-    main()
+  main()
