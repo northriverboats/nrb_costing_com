@@ -161,11 +161,9 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
         cells = sheet[rnge]
         boats: List[BoatModels] = [
             cast(BoatModels, [v.value for v in cell]) for cell in cells if cell[0].value]
+        xlsx.close()
     except (FileNotFoundError, PermissionError):
         return list()
-    finally:
-        if xlsx:
-            xlsx.close()
     return boats
 
 def load_resource(resource_file: Path) -> List[Resources]:
@@ -199,7 +197,8 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
     """get list of spreadsheets in folder"""
     if isinstance(base, str):
         base = Path(base)
-    return base.glob('[!~]*.xlsx')
+    sheets = [sheets for sheets in base.glob('[!~]*.xlsx')]
+    return sheets
 
 def load_consumables(resource_file: Path) -> List[Consumables]:
     """Read consuables sheet"""
@@ -290,10 +289,10 @@ def main() -> None:
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
         mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
-        click.echo(
-            f'Models: {len(models)}   Boat Files: {len(boat_files)}   '
-            f'Resource Files: {len(resource_files)}   ', nl=False)
-        click.echo(f'Resources {len(resources)}')
+        click.echo(f'Models: {len(models)}')
+        click.echo(f'Boat Files: {len(boat_files)}')
+        click.echo(f'Resource Files: {len(resource_files)}')
+        click.echo(f'Resources: {len(resources)}')
         click.echo(pprint.pformat(resources, width=210))
     except Exception:
         logger.critical(traceback.format_exc())
