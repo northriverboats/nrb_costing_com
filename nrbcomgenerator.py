@@ -289,10 +289,10 @@ def main() -> None:
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
         mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
-        click.echo(f'Models: {len(models)}')
-        click.echo(f'Boat Files: {len(boat_files)}')
-        click.echo(f'Resource Files: {len(resource_files)}')
-        click.echo(f'Resources: {len(resources)}')
+        click.echo(f'Models: {len(models)}   ', nl=False)
+        click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
+        click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
+        click.echo(f'Resources: {len(resources)}   ')
         click.echo(pprint.pformat(resources, width=210))
     except Exception:
         logger.critical(traceback.format_exc())
