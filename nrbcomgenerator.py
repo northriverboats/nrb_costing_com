@@ -238,8 +238,7 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
     """get list of spreadsheets in folder"""
     if isinstance(base, str):
         base = Path(base)
-    sheets = [sheets for sheets in base.glob('[!~]*.xlsx')]
-    return sheets
+    return [sheets for sheets in base.glob('[!~]*.xlsx')]  # pylint: disable=unnecessary-comprehension
 
 def load_consumables(resource_file: Path) -> List[Consumables]:
     """Read consuables sheet"""
