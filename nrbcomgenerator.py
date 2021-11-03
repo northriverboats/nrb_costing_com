@@ -115,16 +115,16 @@ class BoatModels:
     sheet2: str
     folder: str
 
-@dataclass
+@dataclass(order=True)
 class Resources:
     """Parts Information """
     oempart: str
-    description: str
-    unitprice: float
-    oem: str
-    vendorpart: str
-    vendor: str
-    updated: datetime.datetime
+    description: str = field(compare=False)
+    unitprice: float = field(compare=False)
+    oem: str = field(compare=False)
+    vendorpart: str = field(compare=False)
+    vendor: str = field(compare=False)
+    updated: datetime.datetime = field(compare=False)
 
 @dataclass
 class Consumables:
