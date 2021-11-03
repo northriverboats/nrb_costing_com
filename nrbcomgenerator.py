@@ -182,6 +182,14 @@ def make_bom_part(row) -> BomPart:
     part: Optional[str] = None if row[5].value is None else row[5].value
     return BomPart(part, qty, smallest, biggest, percent)
 
+def section_add_part(section: BomSection, part: BomPart) -> None:
+    """Insert new part or add qty to existing part"""
+    try:
+        index = section.parts.index(part)
+        section.parts[index].qty += part.qty
+    except ValueError:
+        section.parts.append(part)
+
 def load_boat_models(master_file: Path) -> List[BoatModels]:
     """Build master list of sheets to combine to create costing sheets"""
     try:
