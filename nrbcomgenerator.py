@@ -120,6 +120,7 @@ class Resource:
     """BOM Part Information """
     oempart: str
     description: str = field(compare=False)
+    uom: str = field(compare=False)
     unitprice: float = field(compare=False)
     oem: str = field(compare=False)
     vendorpart: str = field(compare=False)
@@ -128,6 +129,7 @@ class Resource:
 
 @dataclass
 class Resources:
+    """Searchable list of BOM Resource Parts"""
     parts: List[Resource]
 
 @dataclass
