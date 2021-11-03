@@ -116,8 +116,8 @@ class BoatModels:
     folder: str
 
 @dataclass(order=True)
-class Resources:
-    """Parts Information """
+class Resource:
+    """BOM Part Information """
     oempart: str
     description: str = field(compare=False)
     unitprice: float = field(compare=False)
@@ -125,6 +125,10 @@ class Resources:
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
     updated: datetime.datetime = field(compare=False)
+
+@dataclass
+class Resources:
+    parts: List[Resource]
 
 @dataclass
 class Consumables:
