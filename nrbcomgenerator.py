@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
