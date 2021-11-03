@@ -190,10 +190,10 @@ def make_bom_part(row) -> BomPart:
 
 def section_add_part(section: BomSection, part: BomPart) -> None:
     """Insert new part or add qty to existing part"""
-    try:
-        index = section.parts.index(part)
-        section.parts[index].qty += part.qty
-    except ValueError:
+    found = [item for item in section.parts if item.part == part.part]
+    if found:
+        found[0].qty += part.qty
+    else:
         section.parts.append(part)
 
 def load_boat_models(master_file: Path) -> List[BoatModels]:
