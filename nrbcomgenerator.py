@@ -13,10 +13,8 @@ import os
 import pprint
 import sys
 import traceback
-from dataclasses import dataclass
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Union, cast
 from typing import List, Optional, Union, cast
 
 import click
@@ -29,7 +27,8 @@ import openpyxl  # pylint: disable=import-error
 def resource_path(relative_path: Union[str, Path]) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
     try:
-        base_path = Path(sys._MEIPASS)  # type: ignore pylint: disable=protected-access
+        # pylint: disable=protected-access
+        base_path = Path(sys._MEIPASS)  # type: ignore
     except AttributeError:
         base_path = Path.cwd()
 
