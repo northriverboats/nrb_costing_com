@@ -172,6 +172,16 @@ class BomSheet:
 #
 # ==================== Low Level Functions
 #
+
+def make_bom_part(row) -> BomPart:
+    """Create bom part from row in spreadsheet"""
+    qty: float = float(row[0].value)
+    smallest: Optional[float] = None if row[1].value is None else float(row[1].value)
+    biggest: Optional[float] = None if row[2].value is None else float(row[2].value)
+    percent: Optional[float] = None if row[3].value is None else float(row[3].value)
+    part: Optional[str] = None if row[5].value is None else row[5].value
+    return BomPart(part, qty, smallest, biggest, percent)
+
 def load_boat_models(master_file: Path) -> List[BoatModels]:
     """Build master list of sheets to combine to create costing sheets"""
     try:
