@@ -146,6 +146,28 @@ class MarkUps:
     markup_2: float
     discount: float
 
+@dataclass(order=True)
+class BomPart:
+    """Part Information from Section of a BOM Parts Sheet"""
+    part: Optional[str]
+    qty: float = field(compare=False)
+    smallest: Optional[float] = field(compare=False)
+    biggest: Optional[float] = field(compare=False)
+    percent: Optional[float] = field(compare=False)  # FT field
+
+@dataclass(order=True)
+class BomSection:
+    """Group of BOM Parts"""
+    name: str
+    parts: List[BomPart] = field(compare=False)
+
+@dataclass(order=True)
+class BomSheet:
+    """BOM sheet"""
+    name: str
+    smallest: float = field(compare=False)
+    biggest: float = field(compare=False)
+    sections: List[BomSection] = field(compare=False)
 
 #
 # ==================== Low Level Functions
