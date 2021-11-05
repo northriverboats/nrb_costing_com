@@ -109,7 +109,7 @@ class NRBError(Exception):
 # ==================== Dataclasses
 #
 @dataclass
-class BoatModels:
+class BoatModel:
     """Information on which sheets make a boat costing sheet"""
     sheet1: str
     sheet2: str
@@ -196,16 +196,16 @@ def section_add_part(section: BomSection, part: BomPart) -> None:
     else:
         section.parts.append(part)
 
-def load_boat_models(master_file: Path) -> List[BoatModels]:
+def load_boat_models(master_file: Path) -> List[BoatModel]:
     """Build master list of sheets to combine to create costing sheets"""
     try:
         xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        boats: List[BoatModels] = list()
+        boats: List[BoatModel] = list()
         for row in sheet.iter_rows(min_row=2, max_col=3):
             if not isinstance(row[0].value, str):
                 continue
-            boat: BoatModels = BoatModels(
+            boat: BoatModel = BoatModel(
                 row[0].value,
                 row[1].value,
                 row[2].value)
