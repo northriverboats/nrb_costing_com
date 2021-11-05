@@ -176,7 +176,7 @@ class BomSection:
     parts: List[BomPart] = field(compare=False)
 
 @dataclass(order=True)
-class BomSheet:
+class Bom:
     """BOM sheet"""
     name: str
     smallest: float = field(compare=False)
@@ -334,7 +334,9 @@ def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
 
 
 # ==================== High Level Functions
-
+def load_boms(bom_folder: Path) -> List[Bom]:
+    boms: List[Bom] = list()
+    return boms
 
 # ==================== Main Entry Point
 
@@ -350,12 +352,15 @@ def main() -> None:
         hourly_rates: List[HourlyRate] = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
         mark_ups: List[MarkUp] = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
+        boms: List[Bom] = load_boms(Path(BOATS_FOLDER))
+
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resources: {len(resources)}   ', nl=False)
         click.echo(f'Consumables: {len(consumables)}   ', nl=False)
         click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
-        click.echo(f'Mark Ups: {len(mark_ups)}   ')
+        click.echo(f'Mark Ups: {len(mark_ups)}   ', nl=False)
+        click.echo(f'BOMs: {len(boms)}   ')
         click.echo()
         # click.echo(pprint.pformat(resources, width=210))
     except Exception:
