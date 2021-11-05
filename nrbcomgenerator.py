@@ -342,7 +342,10 @@ def main() -> None:
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
-        click.echo(f'Resources: {len(resources)}   ')
+        click.echo(f'Resources: {len(resources)}   ', nl=False)
+        click.echo(f'Consumables: {len(consumables)}   ', nl=False)
+        click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
+        click.echo(f'Mark Ups: {len(mark_ups)}   ')
         click.echo()
         # click.echo(pprint.pformat(resources, width=210))
     except Exception:
