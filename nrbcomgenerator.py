@@ -128,11 +128,6 @@ class Resource:
     updated: datetime.datetime = field(compare=False)
 
 @dataclass
-class Resources:
-    """Searchable list of BOM Resource Parts"""
-    parts: List[Resource]
-
-@dataclass
 class Consumables:
     """Consumables rate by department"""
     dept: str
@@ -215,7 +210,7 @@ def load_boat_models(master_file: Path) -> List[BoatModel]:
         pass
     return boats
 
-def load_resource(resource_file: Path) -> List[Resource]:
+def load_resource_file(resource_file: Path) -> List[Resource]:
     """Read resource sheet"""
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
@@ -244,13 +239,13 @@ def load_resource(resource_file: Path) -> List[Resource]:
         pass
     return resources
 
-def load_resources(resource_files: List[Path]) -> Resources:
+def load_resources(resource_files: List[Path]) -> List[Resource]:
     """Load all resource files"""
     resources: List[Resource] = list()
     for resource_file in resource_files:
-        resources += load_resource(resource_file)
+        resources += load_resource_file(resource_file)
     click.echo('')
-    return Resources(resources)
+    return resources
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
     """get list of spreadsheets in folder"""
@@ -342,7 +337,7 @@ def main() -> None:
             sheet
             for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
             if sheet.name.startswith('BOM ')]
-        resources: Resources = load_resources(resource_files)
+        resources: List[Resource] = load_resources(resource_files)
         consumables: List[Consumables] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
