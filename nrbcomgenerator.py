@@ -128,7 +128,7 @@ class Resource:
     updated: datetime.datetime = field(compare=False)
 
 @dataclass
-class Consumables:
+class Consumable:
     """Consumables rate by department"""
     dept: str
     percent: float
@@ -220,10 +220,8 @@ def load_resource_file(resource_file: Path) -> List[Resource]:
         resources: List[Resource] = list()
 
         for row in sheet.iter_rows(min_row=2, max_col=8):
-            part = row[0].value
-            if not isinstance(part, str):
+            if not isinstance(row[0].value, str):
                 continue
-
             resource: Resource = Resource(
                 row[0].value,
                 row[1].value,
@@ -253,23 +251,24 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
         base = Path(base)
     return [sheets for sheets in base.glob('[!~]*.xlsx')]  # pylint: disable=unnecessary-comprehension
 
-def load_consumables(resource_file: Path) -> List[Consumables]:
+def load_consumables(resource_file: Path) -> List[Consumable]:
     """Read consuables sheet"""
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A1:' + end_cell
-        cells = sheet[rnge]
-        consumables: List[Consumables] = [
-            cast(Consumables, [v.value for v in cell]) for cell in cells if cell[0].value]
+
+        consumables: List[Consumable] = list()
+
+        for row in sheet.iter_rows(min_row=2, max_col=2):
+            if not isinstance(row[0].value, str):
+                continue
+            consumable: Consumable = Consumable(
+                row[0].value,
+                float(row[1].value))
+            consumables.append(consumable)
+        xlsx.close()
     except (FileNotFoundError, PermissionError):
-        return list()
-    else:
-        if xlsx:
-            xlsx.close()
+        pass
     return consumables
 
 def load_hourly_rates(resource_file: Path) -> List[HourlyRates]:
@@ -338,7 +337,7 @@ def main() -> None:
             for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
             if sheet.name.startswith('BOM ')]
         resources: List[Resource] = load_resources(resource_files)
-        consumables: List[Consumables] = load_consumables(  # pylint: disable=unused-variable
+        consumables: List[Consumable] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
@@ -346,7 +345,7 @@ def main() -> None:
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
-        click.echo(f'Resources: {len(resources.parts)}   ')
+        click.echo(f'Resources: {len(resources)}   ')
         click.echo(pprint.pformat(resources, width=210))
     except Exception:
         logger.critical(traceback.format_exc())
