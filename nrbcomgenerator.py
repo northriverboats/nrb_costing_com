@@ -46,13 +46,17 @@ def resource_path(relative_path: Union[str, Path]) -> Path:
 env_path = resource_path('.env')
 load_dotenv(dotenv_path=env_path)
 
-DATABASE: str = str(os.environ.get('DATABASE'))
-COSTING_FOLDER: str = str(os.environ.get('COSTING_FOLDER'))
-SHEETS_FOLDER: str = str(os.environ.get('SHEETS_FOLDER'))
-TEMPLATE_FILE: str = str(os.environ.get('TEMPLATE_FILE'))
-MASTER_FILE: str = str(os.environ.get('MASTER_FILE'))
-BOATS_FOLDER: str = str(os.environ.get('BOATS_FOLDER'))
-RESOURCES_FOLDER: str = str(os.environ.get('RESOURCES_FOLDER'))
+print(os.environ.get('MARK_UPS_FILE'))
+
+DATABASE: Path = Path(os.environ.get('DATABASE'))
+SHEETS_FOLDER: Path = Path(os.environ.get('SHEETS_FOLDER'))
+BOATS_FOLDER: Path = Path(os.environ.get('BOATS_FOLDER'))
+RESOURCES_FOLDER: Path = Path(os.environ.get('RESOURCES_FOLDER'))
+TEMPLATE_FILE: Path = Path(os.environ.get('TEMPLATE_FILE'))
+MASTER_FILE: Path = Path(os.environ.get('MASTER_FILE'))
+CONSUMABLES_FILE: Path = Path(os.environ.get('CONSUMABLES_FILE'))
+HOURLY_RATES_FILE: Path = Path(os.environ.get('HOURLY_RATES_FILE'))
+MARK_UPS_FILE: Path = Path(os.environ.get('MARK_UPS_FILE'))
 MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER"))
 MAIL_FROM: str = str(os.environ.get("MAIL_FROM"))
 MAIL_TO: str = str(os.environ.get("MAIL_TO"))
@@ -335,6 +339,12 @@ def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
 def load_bom(bom_file: Path) -> Bom:
     """load individual BOM sheet"""
     bom: Bom = list()
+    # open sheet
+    # read title
+    # read smallest
+    # read biggest
+    # loop over sheet body
+    # add final section
     return bom
 
 def load_boms(bom_folder: Path) -> List[Bom]:
@@ -352,14 +362,12 @@ def load_boms(bom_folder: Path) -> List[Bom]:
 def main() -> None:
     """ main program entry point """
     try:
-        models: List[BoatModel] = load_boat_models(Path(MASTER_FILE))
-        resources: List[Resource] = load_resources(Path(RESOURCES_FOLDER))
-        consumables: List[Consumable] = load_consumables(  # pylint: disable=unused-variable
-            Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
-        hourly_rates: List[HourlyRate] = load_hourly_rates(  # pylint: disable=unused-variable
-            Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
-        mark_ups: List[MarkUp] = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
-        boms: List[Bom] = load_boms(Path(BOATS_FOLDER))
+        models: List[BoatModel] = load_boat_models(MASTER_FILE)
+        resources: List[Resource] = load_resources(RESOURCES_FOLDER)
+        consumables: List[Consumable] = load_consumables(CONSUMABLES_FILE)
+        hourly_rates: List[HourlyRate] = load_hourly_rates(HOURLY_RATES_FILE)
+        mark_ups: List[MarkUp] = load_mark_ups(MARK_UPS_FILE)
+        boms: List[Bom] = load_boms(BOATS_FOLDER)
 
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Resources: {len(resources)}   ', nl=False)
