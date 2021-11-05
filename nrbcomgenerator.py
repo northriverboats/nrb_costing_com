@@ -292,7 +292,7 @@ def load_mark_ups(resource_file: Path) -> List[MarkUp]:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
         mark_ups: List[MarkUp] = list()
-        for row in sheet.iter_rows(min_row=2, max_col=2):
+        for row in sheet.iter_rows(min_row=2, max_col=4):
             if not isinstance(row[0].value, str):
                 continue
             mark_up: MarkUp = MarkUp(
@@ -343,7 +343,8 @@ def main() -> None:
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
         click.echo(f'Resources: {len(resources)}   ')
-        click.echo(pprint.pformat(resources, width=210))
+        click.echo()
+        # click.echo(pprint.pformat(resources, width=210))
     except Exception:
         logger.critical(traceback.format_exc())
         raise
