@@ -3,3 +3,5 @@ good-names=
     i,
     e,
     logger,
+[FORMAT]
+max-line-length=79
