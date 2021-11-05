@@ -134,7 +134,7 @@ class Consumable:
     percent: float
 
 @dataclass
-class HourlyRates:
+class HourlyRate:
     """Hourly rate by department"""
     dept: str
     rate: float
@@ -271,23 +271,24 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
         pass
     return consumables
 
-def load_hourly_rates(resource_file: Path) -> List[HourlyRates]:
+def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     """Read hourly rates sheet"""
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A1:' + end_cell
-        cells = sheet[rnge]
-        hourly_rates: List[HourlyRates] = [
-            cast(HourlyRates, [v.value for v in cell]) for cell in cells if cell[0].value]
+
+        hourly_rates: List[HourlyRate] = list()
+
+        for row in sheet.iter_rows(min_row=2, max_col=2):
+            if not isinstance(row[0].value, str):
+                continue
+            hourly_rate: HourlyRate = HourlyRate(
+                row[0].value,
+                float(row[1].value))
+            hourly_rates.append(hourly_rate)
+        xlsx.close()
     except (FileNotFoundError, PermissionError):
-        return list()
-    else:
-        if xlsx:
-            xlsx.close()
+        pass
     return hourly_rates
 
 def load_mark_ups(resource_file: Path) -> List[MarkUps]:
