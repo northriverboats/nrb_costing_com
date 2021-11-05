@@ -200,17 +200,19 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
     """Build master list of sheets to combine to create costing sheets"""
     try:
         xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
-
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A2:' + end_cell
-        cells = sheet[rnge]
-        boats: List[BoatModels] = [
-            cast(BoatModels, [v.value for v in cell]) for cell in cells if cell[0].value]
+        boats: List[BoatModels] = list()
+        for row in sheet.iter_rows(min_row=2, max_col=3):
+            if not isinstance(row[0].value, str):
+                continue
+            boat: BoatModels = BoatModels(
+                row[0].value,
+                row[1].value,
+                row[2].value)
+            boats.append(boat)
         xlsx.close()
     except (FileNotFoundError, PermissionError):
-        return list()
+        pass
     return boats
 
 def load_resource(resource_file: Path) -> List[Resources]:
