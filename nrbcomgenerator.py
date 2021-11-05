@@ -342,7 +342,7 @@ def main() -> None:
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
-        mark_ups = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
+        mark_ups: List[MarkUp] = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
