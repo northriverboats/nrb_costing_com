@@ -11,8 +11,6 @@ real BOM files
 resources = parts that can be used on a bom
 boms = a list of parts used in building a cabin or boat
 
-* may not need boat_files
-
 DEBUG to log file
 ERROR to log file and screen
 CRITICAL to log file, screen and email
@@ -334,8 +332,18 @@ def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
 
 
 # ==================== High Level Functions
+def load_bom(bom_file: Path) -> Bom:
+    """load individual BOM sheet"""
+    bom: Bom = list()
+    return bom
+
 def load_boms(bom_folder: Path) -> List[Bom]:
+    """load all BOM sheets"""
+    bom_files: List[Path] = find_excel_files_in_dir(bom_folder)
     boms: List[Bom] = list()
+    for bom_file in bom_files:
+        bom = load_bom(bom_file)
+        boms.append(bom)
     return boms
 
 # ==================== Main Entry Point
@@ -345,7 +353,6 @@ def main() -> None:
     """ main program entry point """
     try:
         models: List[BoatModel] = load_boat_models(Path(MASTER_FILE))
-        boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
         resources: List[Resource] = load_resources(Path(RESOURCES_FOLDER))
         consumables: List[Consumable] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
@@ -355,7 +362,6 @@ def main() -> None:
         boms: List[Bom] = load_boms(Path(BOATS_FOLDER))
 
         click.echo(f'Models: {len(models)}   ', nl=False)
-        click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resources: {len(resources)}   ', nl=False)
         click.echo(f'Consumables: {len(consumables)}   ', nl=False)
         click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
