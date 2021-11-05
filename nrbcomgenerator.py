@@ -2,6 +2,17 @@
 """
 NRB COMMERCIAL COSTING SHEET GENERATOR
 
+The files in the RESOURCES folder are labeled BOM but in reality is just a list
+of parts from each department/motor/trailer that can go on a BOM
+
+The files in the folder BOATS are both boat files and cabin files but are the
+real BOM files
+
+resources = parts that can be used on a bom
+boms = a list of parts used in building a cabin or boat
+
+* may not need boat_files
+
 DEBUG to log file
 ERROR to log file and screen
 CRITICAL to log file, screen and email
@@ -236,12 +247,16 @@ def load_resource_file(resource_file: Path) -> List[Resource]:
         pass
     return resources
 
-def load_resources(resource_files: List[Path]) -> List[Resource]:
+def load_resources(resource_folder: Path) -> List[Resource]:
     """Load all resource files"""
+    resource_files: List[Path] = [
+        sheet
+        for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
+        if sheet.name.startswith('BOM ')]
+
     resources: List[Resource] = list()
     for resource_file in resource_files:
         resources += load_resource_file(resource_file)
-    click.echo('')
     return resources
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
@@ -329,11 +344,7 @@ def main() -> None:
     try:
         models: List[BoatModel] = load_boat_models(Path(MASTER_FILE))
         boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
-        resource_files: List[Path] = [
-            sheet
-            for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
-            if sheet.name.startswith('BOM ')]
-        resources: List[Resource] = load_resources(resource_files)
+        resources: List[Resource] = load_resources(Path(RESOURCES_FOLDER))
         consumables: List[Consumable] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
         hourly_rates: List[HourlyRate] = load_hourly_rates(  # pylint: disable=unused-variable
@@ -341,7 +352,6 @@ def main() -> None:
         mark_ups: List[MarkUp] = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
-        click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
         click.echo(f'Resources: {len(resources)}   ', nl=False)
         click.echo(f'Consumables: {len(consumables)}   ', nl=False)
         click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
