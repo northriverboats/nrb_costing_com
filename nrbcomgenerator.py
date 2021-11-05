@@ -183,6 +183,7 @@ class Bom:
     name: str
     smallest: float = field(compare=False)
     biggest: float = field(compare=False)
+    sizes: List[float] = field(compare=False)
     sections: List[BomSection] = field(compare=False)
 
 #
@@ -323,28 +324,34 @@ def load_mark_ups(resource_file: Path) -> List[MarkUp]:
         pass
     return mark_ups
 
+
+# ==================== Build BOM Functions 
 def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
     """find all hull sizes listed in sheet"""
-    dimensions: str = sheet.dimensions  # type: ignore
-    rnge: str = 'M1:' + ''.join(
-        [c for c in dimensions.split(':')[1] if c not in "0123456789"]) + "1"
-    cells = sheet[rnge]
-    sizes = [cell.value for cell in cells[0] if cell.value]
-    if "ANY" in sizes:
-        sizes = ["ANY"] + [size for size in sizes if size != "ANY"]
+    sizes = list()
+    for values  in sheet.iter_rows(
+            min_row=1,max_row=1,min_col=13,values_only=True):
+        for value in values:
+            if value:
+               sizes.append(float(value))
     return sizes
 
-
-# ==================== High Level Functions
 def load_bom(bom_file: Path) -> Bom:
     """load individual BOM sheet"""
-    bom: Bom = list()
-    # open sheet
-    # read title
-    # read smallest
-    # read biggest
-    # loop over sheet body
-    # add final section
+    try:
+        xlsx = openpyxl.load_workbook(bom_file.as_posix(), data_only=True)
+        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+
+        name: str = str(sheet["A1"].value)
+        smallest: float = float(
+            0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
+        biggest:float  = float(
+            0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
+        sizes = list() if smallest == 0 else get_hull_sizes(sheet)
+        bom: Bom = Bom(name, smallest, biggest, sizes, list())
+        xlsx.close()
+    except (FileNotFoundError, PermissionError):
+        pass
     return bom
 
 def load_boms(bom_folder: Path) -> List[Bom]:
@@ -374,7 +381,7 @@ def main() -> None:
         click.echo(f'Consumables: {len(consumables)}   ', nl=False)
         click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
         click.echo(f'Mark Ups: {len(mark_ups)}   ', nl=False)
-        click.echo(f'BOMs: {len(boms)}   ')
+        # click.echo(f'BOMs: {len(boms)}   ')
         click.echo()
         # click.echo(pprint.pformat(resources, width=210))
     except Exception:
