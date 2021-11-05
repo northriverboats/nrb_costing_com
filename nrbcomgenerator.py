@@ -215,32 +215,42 @@ def load_boat_models(master_file: Path) -> List[BoatModels]:
         pass
     return boats
 
-def load_resource(resource_file: Path) -> List[Resources]:
+def load_resource(resource_file: Path) -> List[Resource]:
     """Read resource sheet"""
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
         dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge = 'A2:' + end_cell
-        cells = sheet[rnge]
-        resources: List[Resources] = [
-            cast(Resources, [v.value for v in cell]) for cell in cells if cell[0].value]
+
+        resources: List[Resource] = list()
+
+        for row in sheet.iter_rows(min_row=2, max_col=8):
+            part = row[0].value
+            if not isinstance(part, str):
+                continue
+
+            resource: Resource = Resource(
+                row[0].value,
+                row[1].value,
+                row[2].value,
+                float(row[3].value),
+                row[4].value,
+                row[5].value,
+                row[6].value,
+                row[7].value)
+            resources.append(resource)
+        xlsx.close()
     except (FileNotFoundError, PermissionError):
-        return list()
-    finally:
-        if xlsx:
-            xlsx.close()
+        pass
     return resources
 
-def load_resources(resource_files: List[Path]) -> List[Resources]:
+def load_resources(resource_files: List[Path]) -> Resources:
     """Load all resource files"""
-    resources: List[Resources] = list()
+    resources: List[Resource] = list()
     for resource_file in resource_files:
-        click.echo('.', nl=False)
         resources += load_resource(resource_file)
     click.echo('')
-    return resources
+    return Resources(resources)
 
 def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
     """get list of spreadsheets in folder"""
@@ -332,7 +342,7 @@ def main() -> None:
             sheet
             for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
             if sheet.name.startswith('BOM ')]
-        resources: List[Resources] = load_resources(resource_files)
+        resources: Resources = load_resources(resource_files)
         consumables: List[Consumables] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
         hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
@@ -341,7 +351,7 @@ def main() -> None:
         click.echo(f'Models: {len(models)}   ', nl=False)
         click.echo(f'Boat Files: {len(boat_files)}   ', nl=False)
         click.echo(f'Resource Files: {len(resource_files)}   ', nl=False)
-        click.echo(f'Resources: {len(resources)}   ')
+        click.echo(f'Resources: {len(resources.parts)}   ')
         click.echo(pprint.pformat(resources, width=210))
     except Exception:
         logger.critical(traceback.format_exc())
