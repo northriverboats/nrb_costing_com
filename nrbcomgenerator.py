@@ -15,7 +15,7 @@ import sys
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Union, cast
+from typing import List, Optional, Union
 
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
@@ -118,6 +118,8 @@ class BoatModel:
 @dataclass(order=True)
 class Resource:
     """BOM Part Information """
+    # pylint: disable=too-many-instance-attributes
+    # Eight is reasonable in this case.
     oempart: str
     description: str = field(compare=False)
     uom: str = field(compare=False)
@@ -140,7 +142,7 @@ class HourlyRate:
     rate: float
 
 @dataclass
-class MarkUps:
+class MarkUp:
     """Mark-up rates by deprtment"""
     policy: str
     markup_1: float
@@ -215,10 +217,7 @@ def load_resource_file(resource_file: Path) -> List[Resource]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-
         resources: List[Resource] = list()
-
         for row in sheet.iter_rows(min_row=2, max_col=8):
             if not isinstance(row[0].value, str):
                 continue
@@ -256,9 +255,7 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-
         consumables: List[Consumable] = list()
-
         for row in sheet.iter_rows(min_row=2, max_col=2):
             if not isinstance(row[0].value, str):
                 continue
@@ -276,9 +273,7 @@ def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-
         hourly_rates: List[HourlyRate] = list()
-
         for row in sheet.iter_rows(min_row=2, max_col=2):
             if not isinstance(row[0].value, str):
                 continue
@@ -291,23 +286,24 @@ def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
         pass
     return hourly_rates
 
-def load_mark_ups(resource_file: Path) -> List[MarkUps]:
+def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     """read makrkup file into object """
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        dimensions: str = sheet.dimensions  # type: ignore
-        end_cell: str = dimensions.split(':')[1]
-        rnge: str = 'A2:' + end_cell
-        cells = sheet[rnge]
-        mark_ups: List[MarkUps] = [
-            cast(MarkUps, [v.value for v in cell]) for cell in cells if cell[0].value]
+        mark_ups: List[MarkUp] = list()
+        for row in sheet.iter_rows(min_row=2, max_col=2):
+            if not isinstance(row[0].value, str):
+                continue
+            mark_up: MarkUp = MarkUp(
+                row[0].value,
+                float(row[1].value),
+                float(row[2].value),
+                float(row[3].value))
+            mark_ups.append(mark_up)
+        xlsx.close()
     except (FileNotFoundError, PermissionError):
-        return list()
-    else:
-        if xlsx:
-            xlsx.close()
+        pass
     return mark_ups
 
 def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
@@ -331,7 +327,7 @@ def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
 def main() -> None:
     """ main program entry point """
     try:
-        models: List[BoatModels] = load_boat_models(Path(MASTER_FILE))
+        models: List[BoatModel] = load_boat_models(Path(MASTER_FILE))
         boat_files: List[Path] = find_excel_files_in_dir(Path(BOATS_FOLDER))
         resource_files: List[Path] = [
             sheet
@@ -340,7 +336,7 @@ def main() -> None:
         resources: List[Resource] = load_resources(resource_files)
         consumables: List[Consumable] = load_consumables(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('Consumables.xlsx'))
-        hourly_rates = load_hourly_rates(  # pylint: disable=unused-variable
+        hourly_rates: List[HourlyRate] = load_hourly_rates(  # pylint: disable=unused-variable
             Path(RESOURCES_FOLDER).joinpath('HOURLY RATES.xlsx'))
         mark_ups: List[MarkUp] = load_mark_ups(Path(RESOURCES_FOLDER).joinpath('Mark up.xlsx'))  # pylint: disable=unused-variable
         click.echo(f'Models: {len(models)}   ', nl=False)
