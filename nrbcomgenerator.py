@@ -46,8 +46,6 @@ def resource_path(relative_path: Union[str, Path]) -> Path:
 env_path = resource_path('.env')
 load_dotenv(dotenv_path=env_path)
 
-print(os.environ.get('MARK_UPS_FILE'))
-
 DATABASE: Path = Path(os.environ.get('DATABASE', ''))
 SHEETS_FOLDER: Path = Path(os.environ.get('SHEETS_FOLDER', ''))
 BOATS_FOLDER: Path = Path(os.environ.get('BOATS_FOLDER', ''))
@@ -336,6 +334,27 @@ def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
                sizes.append(float(value))
     return sizes
 
+def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List[BomSection]:
+    """read in BOM items into sections"""
+    sections: List[BomSection] = list()
+    for row in sheet.iter_rows(min_row=18,max_col=8):
+        qty: Optional[Union[str, int, float]] = row[0].value
+        if isinstance(qty, str) and qty != "QTY":
+            if 'section' in locals():
+               sections.append(section)
+            section: BomSection = BomSection(qty, list())
+        elif isinstance(qty, int) or isinstance(qty, float):
+           bom_part: BomPart = BomPart(
+                str(row[5].value),
+                float(row[0].value),
+                float(0 if row[1].value is None else row[1].value),
+                float(0 if row[2].value is None else row[2].value),
+                float(0 if row[3].value is None else row[3].value))
+           section.parts.append(bom_part)
+    sections.append(section)
+    return sections
+
+
 def load_bom(bom_file: Path) -> Bom:
     """load individual BOM sheet"""
     try:
@@ -348,7 +367,8 @@ def load_bom(bom_file: Path) -> Bom:
         biggest:float  = float(
             0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
         sizes = list() if smallest == 0 else get_hull_sizes(sheet)
-        bom: Bom = Bom(name, smallest, biggest, sizes, list())
+        resources: List[BomSection] = get_bom_sections(sheet)
+        bom: Bom = Bom(name, smallest, biggest, sizes, resources)
         xlsx.close()
     except (FileNotFoundError, PermissionError):
         pass
@@ -381,9 +401,9 @@ def main() -> None:
         click.echo(f'Consumables: {len(consumables)}   ', nl=False)
         click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
         click.echo(f'Mark Ups: {len(mark_ups)}   ', nl=False)
-        # click.echo(f'BOMs: {len(boms)}   ')
-        click.echo()
+        click.echo(f'BOMs: {len(boms)}   ')
         # click.echo(pprint.pformat(resources, width=210))
+        pprint.pprint(boms[0].sections)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
