@@ -61,6 +61,7 @@ MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER", ''))
 MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
 MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
 
+verbosity: int = 0
 
 #
 # ==================== ENALBE LOGGING
@@ -119,6 +120,13 @@ class NRBError(Exception):
 
 
 #
+# ==================== Utility clases
+#
+def status_msg(msg: str, level: int, nl: bool = True) -> None:
+    if verbosity >= level:
+        click.echo(msg, nl=nl)
+
+
 # ==================== Dataclasses
 #
 @dataclass
@@ -406,8 +414,11 @@ def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
 # ==================== Main Entry Point
 
 @click.command()
-def main() -> None:
+@click.option('-v', '--verbose', count=True)
+def main(verbose: int) -> None:
     """ main program entry point """
+    global verbosity
+    verbosity = verbose
     try:
         models: List[BoatModel] = load_boat_models(MASTER_FILE)
         resources: List[Resource] = load_resources(RESOURCES_FOLDER)
