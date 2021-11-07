@@ -343,7 +343,7 @@ def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     return mark_ups
 
 
-# ==================== Build BOM Functions 
+# ==================== Build BOM Functions
 def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
     """find all hull sizes listed in sheet"""
     sizes = list()
@@ -446,6 +446,7 @@ def main(verbose: int) -> None:
         status_msg(f'Mark Ups: {len(mark_ups)}   ', 1, nl=False)
         status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
+        click.echo(pprint.pformat(models, width=140))
     except Exception:
         logger.critical(traceback.format_exc())
         raise
