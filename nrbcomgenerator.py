@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim expandtab shiftwidth=2 softtabstop=2
 """
 NRB COMMERCIAL COSTING SHEET GENERATOR
 
