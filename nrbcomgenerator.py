@@ -22,6 +22,7 @@ import os
 import pprint
 import sys
 import traceback
+from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
@@ -382,6 +383,24 @@ def load_boms(bom_folder: Path) -> List[Bom]:
         bom = load_bom(bom_file)
         boms.append(bom)
     return boms
+
+
+# ==================== Merge BOMs
+def bom_merge_section(parts1: List[BomPart], parts2: List[BomPart]) -> None:
+    """Merege two sections"""
+    for part2 in parts2:
+        part1 = next(iter([part for part in parts1 if part.part == part2.part]),None)
+        if part1:
+            part1.qty += part2.qty
+        else:
+            parts1.append(deepcopy(part2))
+
+def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
+    """Merge two BOMs creating a new BOM in the process"""
+    bom: Bom = deepcopy(bom1)
+    for section1, section2 in zip(bom.sections, bom2.sections):
+        bom_merge_section(section1.parts, section2.parts)
+    return bom
 
 # ==================== Main Entry Point
 
