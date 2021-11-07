@@ -425,6 +425,13 @@ def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
         bom_merge_section(section1.parts, section2.parts)
     return bom
 
+def get_bom(boms: List[BoatModel], model: BoatModel) -> Bom:
+    """Combine sheets if necessary and return BOM"""
+    bom1 = next(iter([bom for bom in boms if bom.name == model.sheet1]), None)
+    bom2 = next(iter([bom for bom in boms if bom.name == model.sheet2]), None)
+    return bom_merge(bom1, bom2)
+
+
 # ==================== Main Entry Point
 
 @click.command()
