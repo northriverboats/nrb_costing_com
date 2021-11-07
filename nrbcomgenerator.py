@@ -123,9 +123,9 @@ class NRBError(Exception):
 # ==================== Utility clases
 #
 def status_msg(msg: str, level: int, nl: bool = True) -> None:
+    """output message if verbosity is sufficent"""
     if verbosity >= level:
         click.echo(msg, nl=nl)
-
 
 # ==================== Dataclasses
 #
@@ -218,6 +218,7 @@ def section_add_part(section: BomSection, part: BomPart) -> None:
 def load_boat_models(master_file: Path) -> List[BoatModel]:
     """Build master list of sheets to combine to create costing sheets"""
     status_msg('Loading Boat Models', 1)
+    status_msg(f'  {master_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -237,6 +238,7 @@ def load_boat_models(master_file: Path) -> List[BoatModel]:
 
 def load_resource_file(resource_file: Path) -> List[Resource]:
     """Read resource sheet"""
+    status_msg(f'  {resource_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -281,6 +283,7 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
 def load_consumables(resource_file: Path) -> List[Consumable]:
     """Read consuables sheet"""
     status_msg('Loading Consumables', 1)
+    status_msg(f'  {resource_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -300,6 +303,7 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
 def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     """Read hourly rates sheet"""
     status_msg('Loading Hourly Rates', 1)
+    status_msg(f'  {resource_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -319,6 +323,7 @@ def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
 def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     """read makrkup file into object """
     status_msg('Loading Mark Ups', 1)
+    status_msg(f'  {resource_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -372,6 +377,7 @@ def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List[BomS
 
 def load_bom(bom_file: Path) -> Bom:
     """load individual BOM sheet"""
+    status_msg(f'  {bom_file.name}', 2)
     try:
         xlsx = openpyxl.load_workbook(bom_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -391,6 +397,7 @@ def load_bom(bom_file: Path) -> Bom:
 
 def load_boms(bom_folder: Path) -> List[Bom]:
     """load all BOM sheets"""
+    status_msg('Loading BOMs', 1)
     bom_files: List[Path] = find_excel_files_in_dir(bom_folder)
     boms: List[Bom] = list()
     for bom_file in bom_files:
