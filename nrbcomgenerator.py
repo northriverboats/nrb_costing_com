@@ -419,6 +419,8 @@ def bom_merge_section(parts1: List[BomPart], parts2: List[BomPart]) -> None:
 def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
     """Merge two BOMs creating a new BOM in the process"""
     bom: Bom = deepcopy(bom1)
+    if bom2 is None:
+        return bom
     for section1, section2 in zip(bom.sections, bom2.sections):
         bom_merge_section(section1.parts, section2.parts)
     return bom
@@ -446,7 +448,7 @@ def main(verbose: int) -> None:
         status_msg(f'Mark Ups: {len(mark_ups)}   ', 1, nl=False)
         status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
-        click.echo(pprint.pformat(models, width=140))
+        status_msg(pprint.pformat(models, width=140), 3)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
