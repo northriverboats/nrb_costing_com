@@ -217,6 +217,7 @@ def section_add_part(section: BomSection, part: BomPart) -> None:
 
 def load_boat_models(master_file: Path) -> List[BoatModel]:
     """Build master list of sheets to combine to create costing sheets"""
+    status_msg('Loading Boat Models', 1)
     try:
         xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -260,6 +261,7 @@ def load_resource_file(resource_file: Path) -> List[Resource]:
 
 def load_resources(resource_folder: Path) -> List[Resource]:
     """Load all resource files"""
+    status_msg('Loading Resources', 1)
     resource_files: List[Path] = [
         sheet
         for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
@@ -278,6 +280,7 @@ def find_excel_files_in_dir(base: Union[str, Path]) -> List[Path]:
 
 def load_consumables(resource_file: Path) -> List[Consumable]:
     """Read consuables sheet"""
+    status_msg('Loading Consumables', 1)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -296,6 +299,7 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
 
 def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     """Read hourly rates sheet"""
+    status_msg('Loading Hourly Rates', 1)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -314,6 +318,7 @@ def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
 
 def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     """read makrkup file into object """
+    status_msg('Loading Mark Ups', 1)
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
@@ -427,14 +432,13 @@ def main(verbose: int) -> None:
         mark_ups: List[MarkUp] = load_mark_ups(MARK_UPS_FILE)
         boms: List[Bom] = load_boms(BOATS_FOLDER)
 
-        click.echo(f'Models: {len(models)}   ', nl=False)
-        click.echo(f'Resources: {len(resources)}   ', nl=False)
-        click.echo(f'Consumables: {len(consumables)}   ', nl=False)
-        click.echo(f'Hourly Rates: {len(hourly_rates)}   ', nl=False)
-        click.echo(f'Mark Ups: {len(mark_ups)}   ', nl=False)
-        click.echo(f'BOMs: {len(boms)}   ')
+        status_msg(f'Models: {len(models)}   ', 1, nl=False)
+        status_msg(f'Resources: {len(resources)}   ', 1, nl=False)
+        status_msg(f'Consumables: {len(consumables)}   ', 1,  nl=False)
+        status_msg(f'Hourly Rates: {len(hourly_rates)}   ', 1, nl=False)
+        status_msg(f'Mark Ups: {len(mark_ups)}   ', 1, nl=False)
+        status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
-        pprint.pprint(boms[0].sections)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
@@ -444,3 +448,4 @@ def main(verbose: int) -> None:
 
 if __name__ == "__main__":
     main()
+
