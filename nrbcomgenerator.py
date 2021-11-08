@@ -61,7 +61,7 @@ MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER", ''))
 MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
 MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
 
-verbosity: int = 0
+_VERBOSE:  List[int] = [0]
 
 #
 # ==================== ENALBE LOGGING
@@ -72,7 +72,8 @@ verbosity: int = 0
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 consoleHandler = logging.StreamHandler(sys.stdout)
 consoleHandler.setLevel(logging.DEBUG)
@@ -115,7 +116,7 @@ class NRBError(Exception):
 
     def __str__(self):
         if self.message:
-            return 'NRB Error, {0} '.format(self.message)
+            return f"NRB Error, {self.message}"
         return 'NRB Error has been raised'
 
 
@@ -124,7 +125,7 @@ class NRBError(Exception):
 #
 def status_msg(msg: str, level: int, nl: bool = True) -> None:
     """output message if verbosity is sufficent"""
-    if verbosity >= level:
+    if _VERBOSE[0] >= level:
         click.echo(msg, nl=nl)
 
 # ==================== Dataclasses
@@ -201,9 +202,12 @@ class Bom:
 def make_bom_part(row) -> BomPart:
     """Create bom part from row in spreadsheet"""
     qty: float = float(row[0].value)
-    smallest: Optional[float] = None if row[1].value is None else float(row[1].value)
-    biggest: Optional[float] = None if row[2].value is None else float(row[2].value)
-    percent: Optional[float] = None if row[3].value is None else float(row[3].value)
+    smallest: Optional[float] = (
+        None if row[1].value is None else float(row[1].value))
+    biggest: Optional[float] = (
+        None if row[2].value is None else float(row[2].value))
+    percent: Optional[float] = (
+        None if row[3].value is None else float(row[3].value))
     part: Optional[str] = None if row[5].value is None else row[5].value
     return BomPart(part, qty, smallest, biggest, percent)
 
@@ -222,7 +226,7 @@ def load_boat_models(master_file: Path) -> List[BoatModel]:
     try:
         xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        boats: List[BoatModel] = list()
+        boats: List[BoatModel] = []
         for row in sheet.iter_rows(min_row=2, max_col=3):
             if not isinstance(row[0].value, str):
                 continue
@@ -242,7 +246,7 @@ def load_resource_file(resource_file: Path) -> List[Resource]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        resources: List[Resource] = list()
+        resources: List[Resource] = []
         for row in sheet.iter_rows(min_row=2, max_col=8):
             if not isinstance(row[0].value, str):
                 continue
@@ -266,10 +270,10 @@ def load_resources(resource_folder: Path) -> List[Resource]:
     status_msg('Loading Resources', 1)
     resource_files: List[Path] = [
         sheet
-        for sheet in find_excel_files_in_dir(Path(RESOURCES_FOLDER))
+        for sheet in find_excel_files_in_dir(resource_folder)
         if sheet.name.startswith('BOM ')]
 
-    resources: List[Resource] = list()
+    resources: List[Resource] = []
     for resource_file in resource_files:
         resources += load_resource_file(resource_file)
     return resources
@@ -287,7 +291,7 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        consumables: List[Consumable] = list()
+        consumables: List[Consumable] = []
         for row in sheet.iter_rows(min_row=2, max_col=2):
             if not isinstance(row[0].value, str):
                 continue
@@ -307,7 +311,7 @@ def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        hourly_rates: List[HourlyRate] = list()
+        hourly_rates: List[HourlyRate] = []
         for row in sheet.iter_rows(min_row=2, max_col=2):
             if not isinstance(row[0].value, str):
                 continue
@@ -327,7 +331,7 @@ def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     try:
         xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
         sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        mark_ups: List[MarkUp] = list()
+        mark_ups: List[MarkUp] = []
         for row in sheet.iter_rows(min_row=2, max_col=4):
             if not isinstance(row[0].value, str):
                 continue
@@ -346,31 +350,32 @@ def load_mark_ups(resource_file: Path) -> List[MarkUp]:
 # ==================== Build BOM Functions
 def get_hull_sizes(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List:
     """find all hull sizes listed in sheet"""
-    sizes = list()
+    sizes = []
     for values  in sheet.iter_rows(
             min_row=1,max_row=1,min_col=13,values_only=True):
         for value in values:
             if value:
-               sizes.append(float(value))
+                sizes.append(float(value))
     return sizes
 
-def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet) -> List[BomSection]:
+def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet
+                    ) -> List[BomSection]:
     """read in BOM items into sections"""
-    sections: List[BomSection] = list()
+    sections: List[BomSection] = []
     for row in sheet.iter_rows(min_row=18,max_col=8):
         qty: Optional[Union[str, int, float]] = row[0].value
         if isinstance(qty, str) and qty != "QTY":
             if 'section' in locals():
-               sections.append(section)
-            section: BomSection = BomSection(qty, list())
-        elif isinstance(qty, int) or isinstance(qty, float):
-           bom_part: BomPart = BomPart(
+                sections.append(section)
+            section: BomSection = BomSection(qty, [])
+        elif isinstance(qty, (float, int)):
+            bom_part: BomPart = BomPart(
                 str(row[5].value),
                 float(row[0].value),
                 float(0 if row[1].value is None else row[1].value),
                 float(0 if row[2].value is None else row[2].value),
                 float(0 if row[3].value is None else row[3].value))
-           section.parts.append(bom_part)
+            section.parts.append(bom_part)
     sections.append(section)
     return sections
 
@@ -387,7 +392,7 @@ def load_bom(bom_file: Path) -> Bom:
             0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
         biggest:float  = float(
             0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
-        sizes = list() if smallest == 0 else get_hull_sizes(sheet)
+        sizes = [] if smallest == 0 else get_hull_sizes(sheet)
         resources: List[BomSection] = get_bom_sections(sheet)
         bom: Bom = Bom(name, smallest, biggest, sizes, resources)
         xlsx.close()
@@ -399,7 +404,7 @@ def load_boms(bom_folder: Path) -> List[Bom]:
     """load all BOM sheets"""
     status_msg('Loading BOMs', 1)
     bom_files: List[Path] = find_excel_files_in_dir(bom_folder)
-    boms: List[Bom] = list()
+    boms: List[Bom] = []
     for bom_file in bom_files:
         bom = load_bom(bom_file)
         boms.append(bom)
@@ -411,7 +416,8 @@ def load_boms(bom_folder: Path) -> List[Bom]:
 def bom_merge_section(parts1: List[BomPart], parts2: List[BomPart]) -> None:
     """Merege two sections"""
     for part2 in parts2:
-        part1 = next(iter([part for part in parts1 if part.part == part2.part]),None)
+        part1 = next(
+            iter([part for part in parts1 if part.part == part2.part]),None)
         if part1:
             part1.qty += part2.qty
         else:
@@ -425,10 +431,10 @@ def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
     return bom
 
 def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
-    """Combine sheets if necessary and return BOM"""
-    """Assumes if sheet is not None that there will be a match"""
+    """Combine sheets if necessary and return BOM
+       Assumes if sheet is not None that there will be a match"""
     bom1: Bom = next(iter([bom for bom in boms if bom.name == model.sheet1]))
-    bom2: Bom = Bom('', 0.0, 0.0, list(), list()) if model.sheet2 else next(
+    bom2: Bom = Bom('', 0.0, 0.0, [], []) if model.sheet2 else next(
         iter([bom for bom in boms if bom.name == model.sheet2]))
     return bom_merge(bom1, bom2)
 
@@ -440,8 +446,7 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 @click.option('-v', '--verbose', count=True)
 def main(verbose: int) -> None:
     """ main program entry point """
-    global verbosity
-    verbosity = verbose
+    _VERBOSE[0] = verbose
     try:
         models: List[BoatModel] = load_boat_models(MASTER_FILE)
         resources: List[Resource] = load_resources(RESOURCES_FOLDER)
@@ -466,5 +471,4 @@ def main(verbose: int) -> None:
         sys.exit()
 
 if __name__ == "__main__":
-    main()
-
+    main()  # pylint: disable=E1120
