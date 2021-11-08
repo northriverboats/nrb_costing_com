@@ -405,8 +405,9 @@ def load_boms(bom_folder: Path) -> List[Bom]:
         boms.append(bom)
     return boms
 
-
+#
 # ==================== Merge BOMs
+#
 def bom_merge_section(parts1: List[BomPart], parts2: List[BomPart]) -> None:
     """Merege two sections"""
     for part2 in parts2:
@@ -419,21 +420,22 @@ def bom_merge_section(parts1: List[BomPart], parts2: List[BomPart]) -> None:
 def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
     """Merge two BOMs creating a new BOM in the process"""
     bom: Bom = deepcopy(bom1)
-    if bom2 is None:
-        return bom
     for section1, section2 in zip(bom.sections, bom2.sections):
         bom_merge_section(section1.parts, section2.parts)
     return bom
 
-def get_bom(boms: List[BoatModel], model: BoatModel) -> Bom:
+def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
     """Combine sheets if necessary and return BOM"""
-    bom1 = next(iter([bom for bom in boms if bom.name == model.sheet1]), None)
-    bom2 = next(iter([bom for bom in boms if bom.name == model.sheet2]), None)
+    """Assumes if sheet is not None that there will be a match"""
+    bom1: Bom = next(iter([bom for bom in boms if bom.name == model.sheet1]))
+    bom2: Bom = Bom('', 0.0, 0.0, list(), list()) if model.sheet2 else next(
+        iter([bom for bom in boms if bom.name == model.sheet2]))
     return bom_merge(bom1, bom2)
 
 
+#
 # ==================== Main Entry Point
-
+#
 @click.command()
 @click.option('-v', '--verbose', count=True)
 def main(verbose: int) -> None:
