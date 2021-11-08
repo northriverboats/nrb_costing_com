@@ -2,6 +2,7 @@
 good-names=
     i,
     e,
+    nl,
     logger,
 [FORMAT]
 max-line-length=79
