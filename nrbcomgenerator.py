@@ -415,10 +415,37 @@ def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
 def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
     """Combine sheets if necessary and return BOM
        Assumes if sheet is not None that there will be a match"""
-    bom1: Bom = next(iter([bom for bom in boms if bom.name == model.sheet1]))
-    bom2: Bom = Bom('', 0.0, 0.0, [], []) if model.sheet2 else next(
-        iter([bom for bom in boms if bom.name == model.sheet2]))
+    try:
+        bom1: Bom = next(iter([bom for bom in boms if bom.name == model.sheet1]))
+    except StopIteration:
+        print(f"bom1 not found error {model.sheet1}")
+        bom1: Bom = Bom('', 0.0, 0.0, [], [])
+    try:
+        bom2: Bom = Bom('', 0.0, 0.0, [], []) if model.sheet2 is None else next(
+            iter([bom for bom in boms if bom.name == model.sheet2]))
+    except StopIteration:
+        print(f"bom2 not found error {model.sheet2} {model.sheet1}   {model.folder}")
+        bom2: Bom = Bom('', 0.0, 0.0, [], [])
     return bom_merge(bom1, bom2)
+
+
+#
+# ==================== Generate Sheets
+#
+def generate_sheets_for_all_models(models: List[BoatModel],
+                                   resources: List[Resource],
+                                   consumables: List[Consumable],
+                                   hourly_rates: List[HourlyRate],
+                                   mark_ups: List[MarkUp],
+                                   boms: List[Bom]) -> None:
+    """" cycle through each sheet/option combo to create sheets"""
+    status_msg("Merging", 1)
+    for model in models:
+        bom = get_bom(boms, model)
+        status_msg(f"  {model.folder:35}  {bom.sizes}", 1)
+    # pass resources, consumables, hourly_rates, mark_ups, bom, model
+    #   to generate new sheets for all sizes generate_sheets_for_model
+    #                                         generate_sheet_for_model
 
 
 #
@@ -445,6 +472,12 @@ def main(verbose: int) -> None:
         status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
         status_msg(pprint.pformat(models, width=140), 3)
+        generate_sheets_for_all_models(models,
+                                      resources,
+                                      consumables,
+                                      hourly_rates,
+                                      mark_ups,
+                                      boms)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
