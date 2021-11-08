@@ -223,46 +223,40 @@ def load_boat_models(master_file: Path) -> List[BoatModel]:
     """Build master list of sheets to combine to create costing sheets"""
     status_msg('Loading Boat Models', 1)
     status_msg(f'  {master_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        boats: List[BoatModel] = []
-        for row in sheet.iter_rows(min_row=2, max_col=3):
-            if not isinstance(row[0].value, str):
-                continue
-            boat: BoatModel = BoatModel(
-                row[0].value,
-                row[1].value,
-                row[2].value)
-            boats.append(boat)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        boats: List[BoatModel] = []
+    xlsx = openpyxl.load_workbook(master_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    boats: List[BoatModel] = []
+    for row in sheet.iter_rows(min_row=2, max_col=3):
+        if not isinstance(row[0].value, str):
+            continue
+        boat: BoatModel = BoatModel(
+            row[0].value,
+            row[1].value,
+            row[2].value)
+        boats.append(boat)
+    xlsx.close()
     return boats
 
 def load_resource_file(resource_file: Path) -> List[Resource]:
     """Read resource sheet"""
     status_msg(f'  {resource_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        resources: List[Resource] = []
-        for row in sheet.iter_rows(min_row=2, max_col=8):
-            if not isinstance(row[0].value, str):
-                continue
-            resource: Resource = Resource(
-                row[0].value,
-                row[1].value,
-                row[2].value,
-                float(row[3].value),
-                row[4].value,
-                row[5].value,
-                row[6].value,
-                row[7].value)
-            resources.append(resource)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        pass
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    resources: List[Resource] = []
+    for row in sheet.iter_rows(min_row=2, max_col=8):
+        if not isinstance(row[0].value, str):
+            continue
+        resource: Resource = Resource(
+            row[0].value,
+            row[1].value,
+            row[2].value,
+            float(row[3].value),
+            row[4].value,
+            row[5].value,
+            row[6].value,
+            row[7].value)
+        resources.append(resource)
+    xlsx.close()
     return resources
 
 def load_resources(resource_folder: Path) -> List[Resource]:
@@ -288,62 +282,53 @@ def load_consumables(resource_file: Path) -> List[Consumable]:
     """Read consuables sheet"""
     status_msg('Loading Consumables', 1)
     status_msg(f'  {resource_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        consumables: List[Consumable] = []
-        for row in sheet.iter_rows(min_row=2, max_col=2):
-            if not isinstance(row[0].value, str):
-                continue
-            consumable: Consumable = Consumable(
-                row[0].value,
-                float(row[1].value))
-            consumables.append(consumable)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        pass
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    consumables: List[Consumable] = []
+    for row in sheet.iter_rows(min_row=2, max_col=2):
+        if not isinstance(row[0].value, str):
+            continue
+        consumable: Consumable = Consumable(
+            row[0].value,
+            float(row[1].value))
+        consumables.append(consumable)
+    xlsx.close()
     return consumables
 
 def load_hourly_rates(resource_file: Path) -> List[HourlyRate]:
     """Read hourly rates sheet"""
     status_msg('Loading Hourly Rates', 1)
     status_msg(f'  {resource_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        hourly_rates: List[HourlyRate] = []
-        for row in sheet.iter_rows(min_row=2, max_col=2):
-            if not isinstance(row[0].value, str):
-                continue
-            hourly_rate: HourlyRate = HourlyRate(
-                row[0].value,
-                float(row[1].value))
-            hourly_rates.append(hourly_rate)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        pass
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    hourly_rates: List[HourlyRate] = []
+    for row in sheet.iter_rows(min_row=2, max_col=2):
+        if not isinstance(row[0].value, str):
+            continue
+        hourly_rate: HourlyRate = HourlyRate(
+            row[0].value,
+            float(row[1].value))
+        hourly_rates.append(hourly_rate)
+    xlsx.close()
     return hourly_rates
 
 def load_mark_ups(resource_file: Path) -> List[MarkUp]:
     """read makrkup file into object """
     status_msg('Loading Mark Ups', 1)
     status_msg(f'  {resource_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-        mark_ups: List[MarkUp] = []
-        for row in sheet.iter_rows(min_row=2, max_col=4):
-            if not isinstance(row[0].value, str):
-                continue
-            mark_up: MarkUp = MarkUp(
-                row[0].value,
-                float(row[1].value),
-                float(row[2].value),
-                float(row[3].value))
-            mark_ups.append(mark_up)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        pass
+    xlsx = openpyxl.load_workbook(resource_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    mark_ups: List[MarkUp] = []
+    for row in sheet.iter_rows(min_row=2, max_col=4):
+        if not isinstance(row[0].value, str):
+            continue
+        mark_up: MarkUp = MarkUp(
+            row[0].value,
+            float(row[1].value),
+            float(row[2].value),
+            float(row[3].value))
+        mark_ups.append(mark_up)
+    xlsx.close()
     return mark_ups
 
 
@@ -383,21 +368,18 @@ def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet
 def load_bom(bom_file: Path) -> Bom:
     """load individual BOM sheet"""
     status_msg(f'  {bom_file.name}', 2)
-    try:
-        xlsx = openpyxl.load_workbook(bom_file.as_posix(), data_only=True)
-        sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    xlsx = openpyxl.load_workbook(bom_file.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
 
-        name: str = str(sheet["A1"].value)
-        smallest: float = float(
-            0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
-        biggest:float  = float(
-            0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
-        sizes = [] if smallest == 0 else get_hull_sizes(sheet)
-        resources: List[BomSection] = get_bom_sections(sheet)
-        bom: Bom = Bom(name, smallest, biggest, sizes, resources)
-        xlsx.close()
-    except (FileNotFoundError, PermissionError):
-        pass
+    name: str = str(sheet["A1"].value)
+    smallest: float = float(
+        0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
+    biggest:float  = float(
+        0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
+    sizes = [] if smallest == 0 else get_hull_sizes(sheet)
+    resources: List[BomSection] = get_bom_sections(sheet)
+    bom: Bom = Bom(name, smallest, biggest, sizes, resources)
+    xlsx.close()
     return bom
 
 def load_boms(bom_folder: Path) -> List[Bom]:
