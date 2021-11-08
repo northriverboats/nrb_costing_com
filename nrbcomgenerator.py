@@ -237,7 +237,7 @@ def load_boat_models(master_file: Path) -> List[BoatModel]:
             boats.append(boat)
         xlsx.close()
     except (FileNotFoundError, PermissionError):
-        pass
+        boats: List[BoatModel] = []
     return boats
 
 def load_resource_file(resource_file: Path) -> List[Resource]:
