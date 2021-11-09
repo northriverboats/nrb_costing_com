@@ -120,14 +120,6 @@ class NRBError(Exception):
         return 'NRB Error has been raised'
 
 
-#
-# ==================== Utility clases
-#
-def status_msg(msg: str, level: int, nl: bool = True) -> None:
-    """output message if verbosity is sufficent"""
-    if _VERBOSE[0] >= level:
-        click.echo(msg, nl=nl)
-
 # ==================== Dataclasses
 #
 @dataclass
@@ -194,6 +186,29 @@ class Bom:
     biggest: float = field(compare=False)
     sizes: List[float] = field(compare=False)
     sections: List[BomSection] = field(compare=False)
+
+
+#
+# ==================== Utility clases
+#
+def status_msg(msg: str, level: int, nl: bool = True) -> None:
+    """output message if verbosity is sufficent"""
+    if _VERBOSE[0] >= level:
+        click.echo(msg, nl=nl)
+
+def normalize_size(size: float) -> str:
+    """convert float to proper feet inchs"""
+    if size > int(size):
+        return f"{int(size)}' 6\""
+    return f"{int(size)}'"
+
+def build_name(size: float, model: BoatModel) -> str:
+    """build file name for sheet"""
+    name = normalize_size(size) + ' ' + model.sheet1
+    if model.sheet2:
+        name += ' ' + model.sheet2
+    return name
+
 
 #
 # ==================== Low Level Functions
@@ -416,15 +431,19 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
     """Combine sheets if necessary and return BOM
        Assumes if sheet is not None that there will be a match"""
     try:
-        bom1: Bom = next(iter([bom for bom in boms if bom.name == model.sheet1]))
+        bom1: Bom = next(
+            iter([bom for bom in boms if bom.name == model.sheet1]))
     except StopIteration:
         print(f"bom1 not found error {model.sheet1}")
         bom1: Bom = Bom('', 0.0, 0.0, [], [])
     try:
-        bom2: Bom = Bom('', 0.0, 0.0, [], []) if model.sheet2 is None else next(
+        bom2: Bom = Bom('', 0, 0, [], []) if model.sheet2 is None else next(
             iter([bom for bom in boms if bom.name == model.sheet2]))
     except StopIteration:
-        print(f"bom2 not found error {model.sheet2} {model.sheet1}   {model.folder}")
+        sheet1 = model.sheet1
+        sheet2 = model.sheet2
+        folder = model.folder
+        print(f"bom2 not found error {sheet1} {sheet2}   {folder}")
         bom2: Bom = Bom('', 0.0, 0.0, [], [])
     return bom_merge(bom1, bom2)
 
@@ -432,6 +451,19 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 #
 # ==================== Generate Sheets
 #
+# pylint: disable=too-many-arguments
+def generate_sheets_for_model(model: BoatModel,
+                              resources: List[Resource],
+                              consumables: List[Consumable],
+                              hourly_rates: List[HourlyRate],
+                              mark_ups: List[MarkUp],
+                              bom: Bom) -> None:
+    """" cycle through each size to create sheets"""
+    for size in bom.sizes:
+        name = build_name(size, model)
+        status_msg(f"    {name}",2)
+
+# pylint: disable=too-many-arguments
 def generate_sheets_for_all_models(models: List[BoatModel],
                                    resources: List[Resource],
                                    consumables: List[Consumable],
@@ -442,10 +474,13 @@ def generate_sheets_for_all_models(models: List[BoatModel],
     status_msg("Merging", 1)
     for model in models:
         bom = get_bom(boms, model)
-        status_msg(f"  {model.folder:35}  {bom.sizes}", 1)
-    # pass resources, consumables, hourly_rates, mark_ups, bom, model
-    #   to generate new sheets for all sizes generate_sheets_for_model
-    #                                         generate_sheet_for_model
+        status_msg(f"  {model.folder}", 1)
+        generate_sheets_for_model(model,
+                                  resources,
+                                  consumables,
+                                  hourly_rates,
+                                  mark_ups,
+                                  bom)
 
 
 #
