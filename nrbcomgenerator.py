@@ -26,7 +26,7 @@ import traceback
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
@@ -65,8 +65,8 @@ _VERBOSE:  List[int] = [0]
 
 #
 # ==================== ENALBE LOGGING
-# DEBUG + = to rotating log files in current directory
-# INFO + = to stdout
+# DEBUG + = to stdout
+# INFO + = to rotating log files in current directory
 # CRITICAL + = to email
 
 logger = logging.getLogger(__name__)
@@ -182,6 +182,7 @@ class BomSection:
 class Bom:
     """BOM sheet"""
     name: str
+    beam: str = field(compare=False)
     smallest: float = field(compare=False)
     biggest: float = field(compare=False)
     sizes: List[float] = field(compare=False)
@@ -210,11 +211,16 @@ def normalize_size(size: float) -> str:
         return f"{int(size)}' 6\""
     return f"{int(size)}'"
 
-def build_name(size: float, model: BoatModel) -> str:
+def build_name(size: float, model: BoatModel) -> Dict[str, str]:
     """build file name for sheet"""
-    name = normalize_size(size) + ' ' + model.sheet1
-    if model.sheet2:
-        name += ' ' + model.sheet2
+    option: str = "" if model.sheet2 is None else ' ' + model.sheet2
+    name: Dict[str, str] = {
+        'size': normalize_size(size),
+        'model': model.sheet1,
+        'option': option,
+        'full': model.sheet1 + option,
+        'all': normalize_size(size) + ' ' + model.sheet1 + option,
+    }
     return name
 
 
@@ -395,13 +401,14 @@ def load_bom(bom_file: Path) -> Bom:
     sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
 
     name: str = str(sheet["A1"].value)
+    beam: str = "" if sheet["A2"].value is None else sheet["A2"].value
     smallest: float = float(
         0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
     biggest:float  = float(
         0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
     sizes = [] if smallest == 0 else get_hull_sizes(sheet)
     resources: List[BomSection] = get_bom_sections(sheet)
-    bom: Bom = Bom(name, smallest, biggest, sizes, resources)
+    bom: Bom = Bom(name, beam, smallest, biggest, sizes, resources)
     xlsx.close()
     return bom
 
@@ -438,38 +445,49 @@ def bom_merge(bom1: Bom, bom2: Bom) -> Bom:
 def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
     """Combine sheets if necessary and return BOM
        Assumes if sheet is not None that there will be a match"""
+    bom1: Bom = Bom('', "", 0.0, 0.0, [], [])
+    bom2: Bom = Bom('', "", 0.0, 0.0, [], [])
     try:
-        bom1: Bom = next(
+        bom1 = next(
             iter([bom for bom in boms if bom.name == model.sheet1]))
     except StopIteration:
         print(f"bom1 not found error {model.sheet1}")
-        bom1: Bom = Bom('', 0.0, 0.0, [], [])  # type: ignore
     try:
-        bom2: Bom = Bom('', 0, 0, [], []) if model.sheet2 is None else next(
+        bom2 = Bom('', "", 0, 0, [], []) if model.sheet2 is None else next(
             iter([bom for bom in boms if bom.name == model.sheet2]))
     except StopIteration:
         sheet1 = model.sheet1
         sheet2 = model.sheet2
         folder = model.folder
         print(f"bom2 not found error {sheet1} {sheet2}   {folder}")
-        bom2: Bom = Bom('', 0.0, 0.0, [], [])  # type: ignore
     return bom_merge(bom1, bom2)
 
 
 #
 # ==================== Generate Sheets
 #
-# pylint: disable=too-many-arguments
+def generate_sheet(lookups: Lookups,
+                   bom: Bom,
+                   name: Dict[str, str],
+                   filename: Path) -> None:
+    """genereate costing sheet"""
+    # xlsx = openpyxl.load_workbook(TEMPLATE_FILE.as_posix(), data_only=True)
+    # sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    # sheet["C4"].value ==
+    # write header of boat_model length beam
+
+
+    status_msg(f"    {name['full']:50} {name['all']}",2)
+
 def generate_sheets_for_model(model: BoatModel,
                               lookups: Lookups,
                               bom: Bom) -> None:
-    """" cycle through each size to create sheets"""
+    """"cycle through each size to create sheets"""
     for size in bom.sizes:
-        name: str  = build_name(size, model)
-        path: Path = SHEETS_FOLDER / (name + '.xlsx')
-        status_msg(f"    {name:50} {path}",2)
+        name: Dict[str, str]  = build_name(size, model)
+        filename: Path = SHEETS_FOLDER / (name['all'] + '.xlsx')
+        generate_sheet(lookups, bom, name, filename)
 
-# pylint: disable=too-many-arguments
 def generate_sheets_for_all_models(models: List[BoatModel],
                                    lookups: Lookups,
                                    boms: List[Bom]) -> None:
