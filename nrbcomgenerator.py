@@ -187,6 +187,14 @@ class Bom:
     sizes: List[float] = field(compare=False)
     sections: List[BomSection] = field(compare=False)
 
+@dataclass
+class Lookups:
+    """object to hold all refernce lookups"""
+    resources: List[Resource]
+    consumables: List[Consumable]
+    hourly_rates: List[HourlyRate]
+    mark_ups: List[MarkUp]
+
 
 #
 # ==================== Utility clases
@@ -435,7 +443,7 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
             iter([bom for bom in boms if bom.name == model.sheet1]))
     except StopIteration:
         print(f"bom1 not found error {model.sheet1}")
-        bom1: Bom = Bom('', 0.0, 0.0, [], [])
+        bom1: Bom = Bom('', 0.0, 0.0, [], [])  # type: ignore
     try:
         bom2: Bom = Bom('', 0, 0, [], []) if model.sheet2 is None else next(
             iter([bom for bom in boms if bom.name == model.sheet2]))
@@ -444,7 +452,7 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
         sheet2 = model.sheet2
         folder = model.folder
         print(f"bom2 not found error {sheet1} {sheet2}   {folder}")
-        bom2: Bom = Bom('', 0.0, 0.0, [], [])
+        bom2: Bom = Bom('', 0.0, 0.0, [], [])  # type: ignore
     return bom_merge(bom1, bom2)
 
 
@@ -453,34 +461,24 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 #
 # pylint: disable=too-many-arguments
 def generate_sheets_for_model(model: BoatModel,
-                              resources: List[Resource],
-                              consumables: List[Consumable],
-                              hourly_rates: List[HourlyRate],
-                              mark_ups: List[MarkUp],
+                              lookups: Lookups,
                               bom: Bom) -> None:
     """" cycle through each size to create sheets"""
     for size in bom.sizes:
-        name = build_name(size, model)
-        status_msg(f"    {name}",2)
+        name: str  = build_name(size, model)
+        path: Path = SHEETS_FOLDER / (name + '.xlsx')
+        status_msg(f"    {name:50} {path}",2)
 
 # pylint: disable=too-many-arguments
 def generate_sheets_for_all_models(models: List[BoatModel],
-                                   resources: List[Resource],
-                                   consumables: List[Consumable],
-                                   hourly_rates: List[HourlyRate],
-                                   mark_ups: List[MarkUp],
+                                   lookups: Lookups,
                                    boms: List[Bom]) -> None:
     """" cycle through each sheet/option combo to create sheets"""
     status_msg("Merging", 1)
     for model in models:
         bom = get_bom(boms, model)
         status_msg(f"  {model.folder}", 1)
-        generate_sheets_for_model(model,
-                                  resources,
-                                  consumables,
-                                  hourly_rates,
-                                  mark_ups,
-                                  bom)
+        generate_sheets_for_model(model, lookups, bom)
 
 
 #
@@ -497,6 +495,10 @@ def main(verbose: int) -> None:
         consumables: List[Consumable] = load_consumables(CONSUMABLES_FILE)
         hourly_rates: List[HourlyRate] = load_hourly_rates(HOURLY_RATES_FILE)
         mark_ups: List[MarkUp] = load_mark_ups(MARK_UPS_FILE)
+        lookups: Lookups = Lookups(resources,
+                                   consumables,
+                                   hourly_rates,
+                                   mark_ups)
         boms: List[Bom] = load_boms(BOATS_FOLDER)
 
         status_msg(f'Models: {len(models)}   ', 1, nl=False)
@@ -507,12 +509,7 @@ def main(verbose: int) -> None:
         status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
         status_msg(pprint.pformat(models, width=140), 3)
-        generate_sheets_for_all_models(models,
-                                      resources,
-                                      consumables,
-                                      hourly_rates,
-                                      mark_ups,
-                                      boms)
+        generate_sheets_for_all_models(models, lookups, boms)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
