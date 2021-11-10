@@ -471,13 +471,16 @@ def generate_sheet(lookups: Lookups,
                    name: Dict[str, str],
                    filename: Path) -> None:
     """genereate costing sheet"""
-    # xlsx = openpyxl.load_workbook(TEMPLATE_FILE.as_posix(), data_only=True)
-    # sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-    # sheet["C4"].value ==
+    xlsx = openpyxl.load_workbook(TEMPLATE_FILE.as_posix(), data_only=True)
+    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
+    sheet["C4"].value: str = name['full'].title()
+    sheet["C5"].value: str = name['size']
+    sheet["C6"].value: str = bom.beam
     # write header of boat_model length beam
+    # status_msg(f"    {name['full']:50} {name['all']}",2)
+    status_msg(f"      {name['all']}",2)
+    xlsx.save(os.path.abspath(str(filename)))
 
-
-    status_msg(f"    {name['full']:50} {name['all']}",2)
 
 def generate_sheets_for_model(model: BoatModel,
                               lookups: Lookups,
@@ -487,6 +490,7 @@ def generate_sheets_for_model(model: BoatModel,
         name: Dict[str, str]  = build_name(size, model)
         filename: Path = SHEETS_FOLDER / (name['all'] + '.xlsx')
         generate_sheet(lookups, bom, name, filename)
+    sys.exit()
 
 def generate_sheets_for_all_models(models: List[BoatModel],
                                    lookups: Lookups,
@@ -526,7 +530,7 @@ def main(verbose: int) -> None:
         status_msg(f'Mark Ups: {len(mark_ups)}   ', 1, nl=False)
         status_msg(f'BOMs: {len(boms)}   ', 1)
         # click.echo(pprint.pformat(resources, width=210))
-        status_msg(pprint.pformat(models, width=140), 3)
+        # status_msg(pprint.pformat(models, width=140), 3)
         generate_sheets_for_all_models(models, lookups, boms)
     except Exception:
         logger.critical(traceback.format_exc())
