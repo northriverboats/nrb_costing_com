@@ -490,14 +490,14 @@ def generate_sheets_for_model(model: BoatModel,
         name: Dict[str, str]  = build_name(size, model)
         filename: Path = SHEETS_FOLDER / (name['all'] + '.xlsx')
         generate_sheet(lookups, bom, name, filename)
-    sys.exit()
 
 def generate_sheets_for_all_models(models: List[BoatModel],
                                    lookups: Lookups,
                                    boms: List[Bom]) -> None:
     """" cycle through each sheet/option combo to create sheets"""
     status_msg("Merging", 1)
-    for model in models:
+    # for model in models:
+    for model in [models[19]]:   # fww
         bom = get_bom(boms, model)
         status_msg(f"  {model.folder}", 1)
         generate_sheets_for_model(model, lookups, bom)
