@@ -125,6 +125,25 @@ class NRBError(Exception):
 # ==================== Dataclasses
 #
 @dataclass
+class SectionInfo:
+    """information on sections of the sheet"""
+    name: str
+    start: int
+    finish: int
+    count: int
+
+section_info: List[SectionInfo] = [
+        SectionInfo('TRAILER', 175, 175, 1),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 3),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 2),
+        SectionInfo('CANVAS', 77, 139, 63),
+        SectionInfo('OUTFITTING', 48, 70, 23),
+        SectionInfo('PAINT', 26, 38, 13),
+        SectionInfo('FABRICATION', 17, 14, 4),
+]
+
+@dataclass
 class BoatModel:
     """Information on which sheets make a boat costing sheet"""
     sheet1: str
