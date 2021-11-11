@@ -490,6 +490,11 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
     """Mange filling in sections"""
     pass
+def generate_heading(bom: Bom, name: Dict[str, str], sheet: Worksheet) -> None:
+    """Fill out heading at top of sheet"""
+    sheet["C4"].value = name['full'].title()
+    sheet["C5"].value = name['size']
+    sheet["C6"].value = bom.beam
 
 def generate_sheet(lookups: Lookups,
                    bom: Bom,
@@ -499,10 +504,7 @@ def generate_sheet(lookups: Lookups,
     xlsx: Workbook = openpyxl.load_workbook(
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
-    sheet["C4"].value = name['full'].title()
-    sheet["C5"].value = name['size']
-    sheet["C6"].value = bom.beam
-    # write header of boat_model length beam
+    generate_heading(bom, name, sheet)
     # status_msg(f"    {name['full']:50} {name['all']}",2)
     status_msg(f"      {name['all']}",2)
     xlsx.save(os.path.abspath(str(filename)))
