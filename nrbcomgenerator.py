@@ -488,8 +488,17 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 # ==================== Generate Sheets
 #
 def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
-    """Mange filling in sections"""
-    pass
+    """Manage filling in sections
+
+    Works by iterating over the sections of the sheet from the last section to
+    the first section. Order matters here.
+    * bom.Sections were built from first section to last section. Needs to be
+      iterated over in reverse order
+    * section_info was constructed in reverse order
+    """
+    for section, info in zip(reversed(bom.sections), section_info):
+        generate_section(lookups, sheet, section, info)
+
 def generate_heading(bom: Bom, name: Dict[str, str], sheet: Worksheet) -> None:
     """Fill out heading at top of sheet"""
     sheet["C4"].value = name['full'].title()
@@ -505,6 +514,7 @@ def generate_sheet(lookups: Lookups,
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
     generate_heading(bom, name, sheet)
+    generate_sections(lookups, bom, sheet)
     # status_msg(f"    {name['full']:50} {name['all']}",2)
     status_msg(f"      {name['all']}",2)
     xlsx.save(os.path.abspath(str(filename)))
