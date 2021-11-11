@@ -92,7 +92,7 @@ smtpHandler = logging.handlers.SMTPHandler(
     mailhost=MAIL_SERVER,
     fromaddr=MAIL_FROM,
     toaddrs=MAIL_TO,
-    subject="alert!"
+    subject="NRB Commerical Costing Sheet Generator Critial Error"
 )
 smtpHandler.setLevel(logging.CRITICAL)
 smtpHandler.setFormatter(formatter)
