@@ -20,7 +20,7 @@ import datetime
 import logging
 import logging.handlers
 import os
-import pprint
+# import pprint
 import sys
 import traceback
 from copy import deepcopy
@@ -31,6 +31,8 @@ from typing import Dict, List, Optional, Union
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
 import openpyxl  # pylint: disable=import-error
+from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.workbook.workbook import Workbook
 
 #
 # ==================== Low Level Utilities
@@ -466,16 +468,21 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 #
 # ==================== Generate Sheets
 #
+def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
+    """Mange filling in sections"""
+    pass
+
 def generate_sheet(lookups: Lookups,
                    bom: Bom,
                    name: Dict[str, str],
                    filename: Path) -> None:
     """genereate costing sheet"""
-    xlsx = openpyxl.load_workbook(TEMPLATE_FILE.as_posix(), data_only=True)
-    sheet: openpyxl.worksheet.worksheet.Worksheet = xlsx.active
-    sheet["C4"].value: str = name['full'].title()
-    sheet["C5"].value: str = name['size']
-    sheet["C6"].value: str = bom.beam
+    xlsx: Workbook = openpyxl.load_workbook(
+        TEMPLATE_FILE.as_posix(), data_only=False)
+    sheet: Worksheet = xlsx.active
+    sheet["C4"].value = name['full'].title()
+    sheet["C5"].value = name['size']
+    sheet["C6"].value = bom.beam
     # write header of boat_model length beam
     # status_msg(f"    {name['full']:50} {name['all']}",2)
     status_msg(f"      {name['all']}",2)
