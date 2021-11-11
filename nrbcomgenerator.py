@@ -490,7 +490,8 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 def generate_section(lookups: Lookups, sheet: Worksheet, section: BomSection,
                      info: SectionInfo) -> None:
     """"Fill in one section of sheet, adding or deleting rows as needed"""
-    print(len(lookups.resources), sheet, section.name, info.name)
+    status_msg(f"        {len(lookups.resources):0}{sheet}    "
+               f"{section.name:22} {len(section.parts):03}  {info.count:03}", 3)
 
 def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
     """Manage filling in sections
