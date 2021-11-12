@@ -27,7 +27,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-
+# Callable[[int, int] int]  def sum(a: int, b: int) -> int:
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
 import openpyxl  # pylint: disable=import-error
@@ -131,16 +131,17 @@ class SectionInfo:
     start: int
     finish: int
     count: int
+    total: int
 
 section_info: List[SectionInfo] = [
-        SectionInfo('TRAILER', 175, 175, 1),
-        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4),
-        SectionInfo('OUTBOARD MOTORS', 156, 158, 3),
-        SectionInfo('BIG TICKET ITEMS', 148, 149, 2),
-        SectionInfo('CANVAS', 77, 139, 63),
-        SectionInfo('OUTFITTING', 48, 70, 23),
-        SectionInfo('PAINT', 26, 38, 13),
-        SectionInfo('FABRICATION', 17, 14, 4),
+        SectionInfo('FABRICATION', 17, 14, 4, 20),
+        SectionInfo('PAINT', 26, 38, 13, 40),
+        SectionInfo('OUTFITTING', 48, 70, 23, 72),
+        SectionInfo('CANVAS', 77, 139, 63, 141),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 2, 151),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 3, 160),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4, 170),
+        SectionInfo('TRAILER', 175, 175, 1, 177),
 ]
 
 @dataclass
@@ -400,6 +401,8 @@ def get_bom_sections(sheet: openpyxl.worksheet.worksheet.Worksheet
     for row in sheet.iter_rows(min_row=18,max_col=8):
         qty: Optional[Union[str, int, float]] = row[0].value
         if isinstance(qty, str) and qty != "QTY":
+            if qty == 'CANVAS':
+                continue
             if 'section' in locals():
                 sections.append(section)
             section: BomSection = BomSection(qty, [])
@@ -488,10 +491,20 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 # ==================== Generate Sheets
 #
 def generate_section(lookups: Lookups, sheet: Worksheet, section: BomSection,
-                     info: SectionInfo) -> None:
+                     info: SectionInfo) -> int:
     """"Fill in one section of sheet, adding or deleting rows as needed"""
+    offset: int = (info.count - 1) - len(section.parts)
     status_msg(f"        {len(lookups.resources):0}{sheet}    "
-               f"{section.name:22} {len(section.parts):03}  {info.count:03}", 3)
+               f"{section.name:22} {len(section.parts):03}  {info.count:03}"
+               f"  {offset}", 3)
+    if offset > 0:
+        # delete offset lines
+        # sheet.delete_rows(idx=info.start+1, amount=offset)
+        pass
+    elif offset < 0:
+        # add abs(offset) lines
+        pass
+    return offset
 
 def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
     """Manage filling in sections
@@ -502,8 +515,8 @@ def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
       iterated over in reverse order
     * section_info was constructed in reverse order
     """
-    for section, info in zip(reversed(bom.sections), section_info):
-        generate_section(lookups, sheet, section, info)
+    for section, info in zip(bom.sections, section_info):
+        offest: int = generate_section(lookups, sheet, section, info)
 
 def generate_heading(bom: Bom, name: Dict[str, str], sheet: Worksheet) -> None:
     """Fill out heading at top of sheet"""
