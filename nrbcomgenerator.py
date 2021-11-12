@@ -127,28 +127,6 @@ class NRBError(Exception):
 # ==================== Dataclasses
 #
 @dataclass
-class SectionInfo:
-    """information on sections of the sheet"""
-    name: str
-    start: int
-    finish: int
-    count: int
-    total: int
-    offset: int
-    sort_by: Callable[[List], List]  # send list to sort() and return a list
-
-section_info: List[SectionInfo] = [
-        SectionInfo('FABRICATION', 17, 14, 4, 20, 0, noop),
-        SectionInfo('PAINT', 26, 38, 13, 40, 0, noop),
-        SectionInfo('OUTFITTING', 48, 70, 23, 72, 0, noop),
-        SectionInfo('CANVAS', 77, 139, 63, 141, 0, noop),
-        SectionInfo('BIG TICKET ITEMS', 148, 149, 2, 151, 0, noop),
-        SectionInfo('OUTBOARD MOTORS', 156, 158, 3, 160, 0, noop),
-        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4, 170, 0, noop),
-        SectionInfo('TRAILER', 175, 175, 1, 177, 0, noop),
-]
-
-@dataclass
 class BoatModel:
     """Information on which sheets make a boat costing sheet"""
     sheet1: str
@@ -221,6 +199,17 @@ class Lookups:
     consumables: List[Consumable]
     hourly_rates: List[HourlyRate]
     mark_ups: List[MarkUp]
+
+@dataclass
+class SectionInfo:
+    """information on sections of the sheet"""
+    name: str
+    start: int
+    finish: int
+    count: int
+    total: int
+    offset: int
+    sort_by: Callable[[List[BomPart]], List[BomPart]]
 
 
 #
@@ -494,6 +483,26 @@ def get_bom(boms: List[Bom], model: BoatModel) -> Bom:
 #
 # ==================== Generate Sheets
 #
+def sort_by_part(parts: List[BomPart]) -> List[BomPart]:
+    """sort by part field"""
+    return sorted(parts)
+
+def sort_by_vendor_part(parts: List[BomPart])-> List[BomPart]:
+    """sort by vendor then part field"""
+    return sorted(parts)
+
+section_info: List[SectionInfo] = [
+        SectionInfo('FABRICATION', 17, 14, 4, 20, 0, sort_by_part),
+        SectionInfo('PAINT', 26, 38, 13, 40, 0, sort_by_part),
+        SectionInfo('OUTFITTING', 48, 70, 23, 72, 0, sort_by_vendor_part),
+        SectionInfo('CANVAS', 77, 139, 63, 141, 0, sort_by_part),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 2, 151, 0, sort_by_part),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 3, 160, 0, sort_by_part),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4, 170, 0,
+                    sort_by_part),
+        SectionInfo('TRAILER', 175, 175, 1, 177, 0, sort_by_part),
+]
+
 def generate_section(lookups: Lookups, sheet: Worksheet, section: BomSection,
                      info: SectionInfo) -> int:
     """"Fill in one section of sheet, adding or deleting rows as needed"""
