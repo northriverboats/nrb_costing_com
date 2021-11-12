@@ -110,7 +110,9 @@ logger.addHandler(smtpHandler)
 # ==================== Custom Errors
 #
 class NRBError(Exception):
-    """Base class for all NRB errors"""
+    """Base class for all NRB errors
+    Use as NRBError("My custom message")
+    """
     def __init__(self, *args):
         if args:
             self.message = args[0]
@@ -529,7 +531,8 @@ def generate_sections(lookups: Lookups, bom: Bom, sheet: Worksheet) -> None:
     * section_info was constructed in reverse order
     """
     for section, info in zip(bom.sections, section_info):
-        offest: int = generate_section(lookups, sheet, section, info)
+        offset: int = generate_section(lookups, sheet, section, info)
+        status_msg(f"        {offset}",3)
 
 def generate_heading(bom: Bom, name: Dict[str, str], sheet: Worksheet) -> None:
     """Fill out heading at top of sheet"""
