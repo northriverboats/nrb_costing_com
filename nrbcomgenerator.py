@@ -26,8 +26,7 @@ import traceback
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union
-# Callable[[int, int] int]  def sum(a: int, b: int) -> int:
+from typing import Callable, Dict, List, Optional, Union
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
 import openpyxl  # pylint: disable=import-error
@@ -46,6 +45,9 @@ def resource_path(relative_path: Union[str, Path]) -> Path:
         base_path = Path.cwd()
 
     return base_path / relative_path
+
+def noop() -> None:
+    """Empty funtcion placeholder"""
 
 env_path = resource_path('.env')
 load_dotenv(dotenv_path=env_path)
@@ -132,16 +134,18 @@ class SectionInfo:
     finish: int
     count: int
     total: int
+    offset: int
+    sort_by: Callable[[List], List]  # send list to sort() and return a list
 
 section_info: List[SectionInfo] = [
-        SectionInfo('FABRICATION', 17, 14, 4, 20),
-        SectionInfo('PAINT', 26, 38, 13, 40),
-        SectionInfo('OUTFITTING', 48, 70, 23, 72),
-        SectionInfo('CANVAS', 77, 139, 63, 141),
-        SectionInfo('BIG TICKET ITEMS', 148, 149, 2, 151),
-        SectionInfo('OUTBOARD MOTORS', 156, 158, 3, 160),
-        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4, 170),
-        SectionInfo('TRAILER', 175, 175, 1, 177),
+        SectionInfo('FABRICATION', 17, 14, 4, 20, 0, noop),
+        SectionInfo('PAINT', 26, 38, 13, 40, 0, noop),
+        SectionInfo('OUTFITTING', 48, 70, 23, 72, 0, noop),
+        SectionInfo('CANVAS', 77, 139, 63, 141, 0, noop),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 2, 151, 0, noop),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 3, 160, 0, noop),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 4, 170, 0, noop),
+        SectionInfo('TRAILER', 175, 175, 1, 177, 0, noop),
 ]
 
 @dataclass
