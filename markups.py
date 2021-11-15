@@ -35,7 +35,7 @@ def load_mark_ups(xlsx_file: Path) -> dict[str, MarkUp]:
             float(row[1].value),
             float(row[2].value),
             float(row[3].value))
-        status_msg(f"  {mark_up}", 2)
+        status_msg(f"    {mark_up}", 3)
         mark_ups[row[0].value] = mark_up
     xlsx.close()
     return mark_ups
