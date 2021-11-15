@@ -65,20 +65,19 @@ def main(verbose: int) -> None:
     try:
         # load information from spreadsheets
         models: dict[str, Model] = load_models(MODELS_FILE)
+        status_msg(f"{len(models)} models loaded\n", 0)
         resources: dict[str, Resource] = load_resources(RESOURCES_FOLDER)
+        status_msg(f"{len(resources)} resources loaded\n", 0)
         consumables: dict[str, Consumable] = load_consumables(
             CONSUMABLES_FILE)
+        status_msg(f"{len(consumables)} consumalbes loaded\n", 0)
         hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
             HOURLY_RATES_FILE)
+        status_msg(f"{len(hourly_rates)} hourly rates loaded\n", 0)
         mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
+        status_msg(f"{len(mark_ups)} mark ups loaded\n", 0)
         boms: dict[str, Bom] = load_boms(BOATS_FOLDER, resources)
-        # display stats about spreadsheets
-        status_msg(f"{len(models)} models loaded", 0)
-        status_msg(f"{len(resources)} resources loaded", 0)
-        status_msg(f"{len(consumables)} consumalbes loaded", 0)
-        status_msg(f"{len(hourly_rates)} hourly rates loaded", 0)
-        status_msg(f"{len(mark_ups)} mark ups loaded", 0)
-        status_msg(f"{len(boms)} boms loaded", 0)
+        status_msg(f"{len(boms)} boms loaded\n", 0)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
