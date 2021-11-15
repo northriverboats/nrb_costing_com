@@ -51,7 +51,7 @@ def load_resource_file(xlsx_file: Path) -> dict[str, Resource]:
             row[6].value,
             row[7].value)
         resources[row[0].value] = resource
-        status_msg(f"  {resource}",2)
+        status_msg(f"    {resource}",3)
     xlsx.close()
     return resources
 
