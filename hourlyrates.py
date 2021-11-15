@@ -33,7 +33,7 @@ def load_hourly_rates(xlsx_file: Path) -> dict[str, HourlyRate]:
         hourly_rate: HourlyRate = HourlyRate(
             row[0].value,
             float(row[1].value))
-        status_msg(f"  {hourly_rate}", 2)
+        status_msg(f"    {hourly_rate}", 3)
         hourly_rates[row[0].value] = hourly_rate
     xlsx.close()
     return hourly_rates
