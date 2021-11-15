@@ -7,7 +7,7 @@ Pass in master_file return data structure
 """
 from dataclasses import dataclass
 from pathlib import Path
-from  openpyxl import load_workbook # pylint: disable=import-error
+from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from utility import status_msg

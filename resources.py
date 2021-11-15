@@ -8,7 +8,7 @@ Pass in master_file return data structure
 from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
-from  openpyxl import load_workbook # pylint: disable=import-error
+from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from utility import status_msg
