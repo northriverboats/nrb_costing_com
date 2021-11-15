@@ -7,7 +7,7 @@ Pass in master_file return data structure
 """
 from dataclasses import dataclass
 from pathlib import Path
-import openpyxl  # pylint: disable=import-error
+from openpyxl  import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from utility import status_msg
@@ -22,7 +22,7 @@ class Model:
 def load_models(models_file: Path) -> list[Model]:
     """Build master list of sheets to combine to create costing sheets"""
     status_msg('Loading Boat Models', 1)
-    xlsx: Workbook = openpyxl.load_workbook(
+    xlsx: Workbook = load_workbook(
         models_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
     models: list[Model] = []
