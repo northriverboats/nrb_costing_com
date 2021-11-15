@@ -12,8 +12,8 @@ from typing import Optional, Union
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
-from resources import Resource
-from utility import status_msg
+from .resources import Resource
+from .utilities import status_msg
 
 @dataclass(order=True)
 class BomPart:

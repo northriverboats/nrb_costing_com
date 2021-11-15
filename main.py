@@ -25,13 +25,14 @@ import traceback
 from pathlib import Path
 import click
 from dotenv import load_dotenv  # pylint: disable=import-error
-from boms import load_boms, Bom
-from consumables import load_consumables, Consumable
-from hourlyrates import load_hourly_rates, HourlyRate
-from markups import load_mark_ups, MarkUp
-from models import load_models, Model
-from resources import load_resources, Resource
-from utility import enable_logging, options, resource_path, status_msg
+from modules.boms import load_boms, Bom
+from modules.consumables import load_consumables, Consumable
+from modules.hourlyrates import load_hourly_rates, HourlyRate
+from modules.markups import load_mark_ups, MarkUp
+from modules.models import load_models, Model
+from modules.resources import load_resources, Resource
+from modules.utilities import (enable_logging, options, resource_path,
+                               status_msg)
 
 
 env_path = resource_path('.env')
@@ -78,7 +79,6 @@ def main(verbose: int) -> None:
         status_msg(f"{len(hourly_rates)} hourly rates loaded", 0)
         status_msg(f"{len(mark_ups)} mark ups loaded", 0)
         status_msg(f"{len(boms)} boms loaded", 0)
-        print(boms['FREEDOM ALPHA'])
     except Exception:
         logger.critical(traceback.format_exc())
         raise
