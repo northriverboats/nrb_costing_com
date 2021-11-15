@@ -68,11 +68,13 @@ def main(verbose: int) -> None:
             CONSUMABLES_FILE)
         hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
             HOURLY_RATES_FILE)
+        mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
         # display stats about spreadsheets
         status_msg(f"{len(models)} models loaded", 0)
         status_msg(f"{len(resources)} resources loaded", 0)
         status_msg(f"{len(consumables)} consumalbes loaded", 0)
         status_msg(f"{len(hourly_rates)} hourly rates loaded", 0)
+        status_msg(f"{len(mark_ups)} mark ups loaded", 0)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
