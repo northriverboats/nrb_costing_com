@@ -27,6 +27,7 @@ import click
 from dotenv import load_dotenv  # pylint: disable=import-error
 from models import load_models, Model
 from resources import load_resources, Resource
+from consumables import load_consumables, Consumable
 from utility import enable_logging, options, resource_path, status_msg
 
 
@@ -61,10 +62,13 @@ def main(verbose: int) -> None:
         # load information from spreadsheets
         models: list[Model] = load_models(MODELS_FILE)
         resources: dict[str, Resource] = load_resources(RESOURCES_FOLDER)
+        consumables: dict[str, Consumable] = load_consumables(
+            CONSUMABLES_FILE)
 
         # display stats about spreadsheets
         status_msg(f"{len(models)} models loaded", 0)
         status_msg(f"{len(resources)} resources loaded", 0)
+        status_msg(f"{len(consumables)} consumalbes loaded", 0)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
