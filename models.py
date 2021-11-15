@@ -19,13 +19,13 @@ class Model:
     sheet2: str
     folder: str
 
-def load_models(xlsx_file: Path) -> list[Model]:
+def load_models(xlsx_file: Path) -> dict[str, Model]:
     """Build master list of sheets to combine to create costing sheets"""
     status_msg('Loading Boat Models', 1)
     xlsx: Workbook = load_workbook(
         xlsx_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
-    models: list[Model] = []
+    models: dict[str, Model] = {}
     for row in sheet.iter_rows(min_row=2, max_col=3):
         if not isinstance(row[0].value, str):
             continue
@@ -33,8 +33,8 @@ def load_models(xlsx_file: Path) -> list[Model]:
             row[0].value,
             row[1].value,
             row[2].value)
-        models.append(model)
-        status_msg(f"  {model}", 2)
+        models[model.sheet1] = model
+        status_msg(f"    {model}", 3)
     xlsx.close()
     return models
 
