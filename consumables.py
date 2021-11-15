@@ -33,6 +33,7 @@ def load_consumables(xlsx_file: Path) -> dict[str, Consumable]:
         consumable: Consumable = Consumable(
             row[0].value,
             float(row[1].value))
+        status_msg(f"    {consumable}", 3)
         consumables[row[0].value] = consumable
     xlsx.close()
     return consumables
