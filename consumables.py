@@ -20,11 +20,11 @@ class Consumable:
     percent: float
 
 
-def load_consumables(resource_file: Path) -> dict[str, Consumable]:
+def load_consumables(xlsx_file: Path) -> dict[str, Consumable]:
     """Read consuables sheet"""
     status_msg('Loading Consumables', 1)
-    status_msg(f'  {resource_file.name}', 2)
-    xlsx: Workbook = load_workbook(resource_file.as_posix(), data_only=True)
+    status_msg(f'  {xlsx_file.name}', 2)
+    xlsx: Workbook = load_workbook(xlsx_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
     consumables: dict[str, Consumable] = {}
     for row in sheet.iter_rows(min_row=2, max_col=2):

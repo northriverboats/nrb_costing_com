@@ -19,11 +19,11 @@ class Model:
     sheet2: str
     folder: str
 
-def load_models(models_file: Path) -> list[Model]:
+def load_models(xlsx_file: Path) -> list[Model]:
     """Build master list of sheets to combine to create costing sheets"""
     status_msg('Loading Boat Models', 1)
     xlsx: Workbook = load_workbook(
-        models_file.as_posix(), data_only=True)
+        xlsx_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
     models: list[Model] = []
     for row in sheet.iter_rows(min_row=2, max_col=3):

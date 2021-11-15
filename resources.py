@@ -32,10 +32,10 @@ def find_excel_files_in_dir(base: Path) -> list[Path]:
     """get list of spreadsheets in folder"""
     return list(base.glob('[!~]*.xlsx'))
 
-def load_resource_file(resource_file: Path) -> dict[str, Resource]:
+def load_resource_file(xlsx_file: Path) -> dict[str, Resource]:
     """Read resource sheet"""
-    status_msg(f'  {resource_file.name}', 2)
-    xlsx: Workbook = load_workbook(resource_file.as_posix(), data_only=True)
+    status_msg(f'  {xlsx_file.name}', 2)
+    xlsx: Workbook = load_workbook(xlsx_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
     resources: dict[str, Resource] = {}
     for row in sheet.iter_rows(min_row=2, max_col=8):
