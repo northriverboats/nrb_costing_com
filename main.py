@@ -16,42 +16,20 @@ DEBUG to log file
 ERROR to log file and screen
 CRITICAL to log file, screen and email
 """
-import logging
-import logging.handlers
-import os
-# import pprint
 import sys
 import traceback
-from pathlib import Path
 import click
-from dotenv import load_dotenv  # pylint: disable=import-error
 from modules.boms import load_boms, Bom
 from modules.consumables import load_consumables, Consumable
+from modules.costingsheets import generate_sheets_for_all_models
 from modules.hourlyrates import load_hourly_rates, HourlyRate
 from modules.markups import load_mark_ups, MarkUp
 from modules.models import load_models, Model
 from modules.resources import load_resources, Resource
-from modules.utilities import (enable_logging, options, resource_path,
-                               status_msg)
-
-
-env_path = resource_path('.env')
-load_dotenv(dotenv_path=env_path)
-logger = logging.getLogger(__name__)
-
-DATABASE: Path = Path(os.environ.get('DATABASE', ''))
-SHEETS_FOLDER: Path = Path(os.environ.get('SHEETS_FOLDER', ''))
-BOATS_FOLDER: Path = Path(os.environ.get('BOATS_FOLDER', ''))
-RESOURCES_FOLDER: Path = Path(os.environ.get('RESOURCES_FOLDER', ''))
-TEMPLATE_FILE: Path = Path(os.environ.get('TEMPLATE_FILE', ''))
-MODELS_FILE: Path = Path(os.environ.get('MODELS_FILE', ''))
-CONSUMABLES_FILE: Path = Path(os.environ.get('CONSUMABLES_FILE', ''))
-HOURLY_RATES_FILE: Path = Path(os.environ.get('HOURLY_RATES_FILE', ''))
-MARK_UPS_FILE: Path = Path(os.environ.get('MARK_UPS_FILE', ''))
-MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER", ''))
-MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
-MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
-
+from modules.utilities import (enable_logging, logger, options, status_msg,
+                               BOATS_FOLDER, CONSUMABLES_FILE, MARK_UPS_FILE,
+                               HOURLY_RATES_FILE, MODELS_FILE, MAIL_SERVER,
+                               MAIL_FROM, MAIL_TO, RESOURCES_FOLDER,)
 
 #
 # ==================== Main Entry Point
@@ -63,21 +41,30 @@ def main(verbose: int) -> None:
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
     try:
+        if 1 > 2:
+            # should not need to be used if TEMPLATE_FILE is updated
+            consumables: dict[str, Consumable] = load_consumables(
+                CONSUMABLES_FILE)
+            status_msg(f"{len(consumables)} consumalbes loaded\n", 0)
+            hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
+                HOURLY_RATES_FILE)
+            status_msg(f"{len(hourly_rates)} hourly rates loaded\n", 0)
+            mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
+            status_msg(f"{len(mark_ups)} mark ups loaded\n", 0)
+
         # load information from spreadsheets
         models: dict[str, Model] = load_models(MODELS_FILE)
         status_msg(f"{len(models)} models loaded\n", 0)
+
+        # resources is only needed to build BomPart
         resources: dict[str, Resource] = load_resources(RESOURCES_FOLDER)
         status_msg(f"{len(resources)} resources loaded\n", 0)
-        consumables: dict[str, Consumable] = load_consumables(
-            CONSUMABLES_FILE)
-        status_msg(f"{len(consumables)} consumalbes loaded\n", 0)
-        hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
-            HOURLY_RATES_FILE)
-        status_msg(f"{len(hourly_rates)} hourly rates loaded\n", 0)
-        mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
-        status_msg(f"{len(mark_ups)} mark ups loaded\n", 0)
+
+        # build BOM information
         boms: dict[str, Bom] = load_boms(BOATS_FOLDER, resources)
         status_msg(f"{len(boms)} boms loaded\n", 0)
+
+        generate_sheets_for_all_models(models, boms)
     except Exception:
         logger.critical(traceback.format_exc())
         raise

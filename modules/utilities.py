@@ -3,14 +3,15 @@
 """
 Utility Functions
 """
+import os
 import sys
 from pathlib import Path
 from typing import Union
 import logging
 import logging.handlers
+from dotenv import load_dotenv  # pylint: disable=import-error
 from click import echo
 
-options: dict = {'verbose': 0}
 
 def resource_path(relative_path: Union[str, Path]) -> Path:
     """Get absolute path to resource, works for dev and for PyInstaller"""
@@ -21,6 +22,27 @@ def resource_path(relative_path: Union[str, Path]) -> Path:
         base_path = Path.cwd()
 
     return base_path / relative_path
+
+
+options: dict = {'verbose': 0}
+logger = logging.getLogger(__name__)
+
+env_path = resource_path('../.env')
+load_dotenv(dotenv_path=env_path)
+
+DATABASE: Path = Path(os.environ.get('DATABASE', ''))
+SHEETS_FOLDER: Path = Path(os.environ.get('SHEETS_FOLDER', ''))
+BOATS_FOLDER: Path = Path(os.environ.get('BOATS_FOLDER', ''))
+RESOURCES_FOLDER: Path = Path(os.environ.get('RESOURCES_FOLDER', ''))
+TEMPLATE_FILE: Path = Path(os.environ.get('TEMPLATE_FILE', ''))
+MODELS_FILE: Path = Path(os.environ.get('MODELS_FILE', ''))
+CONSUMABLES_FILE: Path = Path(os.environ.get('CONSUMABLES_FILE', ''))
+HOURLY_RATES_FILE: Path = Path(os.environ.get('HOURLY_RATES_FILE', ''))
+MARK_UPS_FILE: Path = Path(os.environ.get('MARK_UPS_FILE', ''))
+MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER", ''))
+MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
+MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
+
 
 
 def noop() -> None:
@@ -68,12 +90,12 @@ def normalize_size(size: float) -> str:
 # DEBUG + = to stdout
 # INFO + = to rotating log files in current directory
 # CRITICAL + = to email
-def enable_logging(logger: logging.Logger,
+def enable_logging(logger1: logging.Logger,
                    mail_server: str,
                    mail_from: str,
                    mail_to: str) -> None:
     """enable logging for app"""
-    logger.setLevel(logging.DEBUG)
+    logger1.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -100,9 +122,9 @@ def enable_logging(logger: logging.Logger,
     smtp_handler.setLevel(logging.CRITICAL)
     smtp_handler.setFormatter(formatter)
 
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-    # logger.addHandler(smtp_handler)
+    logger1.addHandler(console_handler)
+    logger1.addHandler(file_handler)
+    # logger1.addHandler(smtp_handler)
 
 if __name__ == "__main__":
     pass

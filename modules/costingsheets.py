@@ -11,10 +11,10 @@ import os
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
-from main import logger, SHEETS_FOLDER, TEMPLATE_FILE
 from .boms import Bom, BomPart
 from .models import Model
-from .utilities import normalize_size, status_msg
+from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
+                        TEMPLATE_FILE,)
 
 
 # UTILITY FUNCTIONS ===========================================================
@@ -132,7 +132,7 @@ def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
 
 def generate_sheet(bom: Bom,
                    name: dict[str, str],
-                   filename: Path) -> None:
+                   file_name: Path) -> None:
     """genereate costing sheet
 
     Arguments:
@@ -140,6 +140,7 @@ def generate_sheet(bom: Bom,
     Returns:
         None
     """
+    #  file_name.parent.mkdir(parents=True, exist_ok=True)
     xlsx: Workbook = load_workbook(
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
@@ -147,7 +148,7 @@ def generate_sheet(bom: Bom,
     # generate_sections(lookups, bom, sheet)
     # status_msg(f"    {name['full']:50} {name['all']}",2)
     status_msg(f"      {name['all']}",2)
-    xlsx.save(os.path.abspath(str(filename)))
+    xlsx.save(os.path.abspath(str(file_name)))
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
