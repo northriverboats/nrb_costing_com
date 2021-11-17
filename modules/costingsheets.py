@@ -3,7 +3,7 @@
 """
 Generate Costing Sheets
 """
-from copy import deepcopy
+from copy import copy, deepcopy
 # from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -273,6 +273,36 @@ def generate_sheets_for_all_models(models: dict[str, Model],
     status_msg("Merging", 1)
     # for model in models:
     # for model in models:  # fww
+    xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
+    sheet: Worksheet = xlsx.active
+    sheet.insert_rows(78,5)
+
+    for col in range(1,16):
+        cell = sheet.cell(row=77, column=col)
+        style = copy(cell.style)
+        font = copy(cell.font)
+        border = copy(cell.border)
+        number_format = copy(cell.number_format)
+        alignment = copy(cell.alignment)
+
+        for row in range(78,83):
+            cell = sheet.cell(row=row, column=col)
+            cell.style = copy(style)
+            cell.font = copy(font)
+            cell.border = copy(border)
+            cell.number_format = copy(number_format)
+            cell.alignment = copy(alignment)
+            if col == 5:
+                cell.value = 'ea'
+            if col == 7:
+                cell.value = f'=D{row}*F{row}'
+            if col == 8:
+                cell.value = 0
+            if col == 9:
+                cell.value = f'=G{row}+H{row}'
+
+    xlsx.save(os.path.abspath(str('/home/fwarren/test.xlsx')))
+    return
     for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
         bom = get_bom(boms, models[key])
         # status_msg(f"  {models[key].folder}", 1)
