@@ -5,6 +5,7 @@ Generate Costing Sheets
 """
 from copy import deepcopy
 # from datetime import datetime
+from dataclasses import dataclass, field
 from pathlib import Path
 import os
 # from typing import Optional, Union
@@ -15,6 +16,33 @@ from .boms import Bom, BomPart
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
                         TEMPLATE_FILE,)
+
+@dataclass
+class SectionInfo:
+    """Information about each section on xlsx sheet"""
+    name: str
+    start: int
+    finish: int
+    total: int
+    offset: int = field(init=False)
+    break_point: int = field(init=False)
+    lines: int = field(init=False)
+
+    def __post_init__(self):
+        self.offset = 0
+        self.break_point = self.total
+        self.lines = self.finish - self.start + 1
+
+section_info_master: list[SectionInfo] = [
+        SectionInfo('FABRICATION', 14, 17, 20),
+        SectionInfo('PAINT', 26, 38, 40),
+        SectionInfo('OUTFITTING', 48, 70, 72),
+        SectionInfo('CANVAS', 77, 139, 141),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 151),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 160),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 170),
+        SectionInfo('TRAILER', 175, 175, 177),
+]
 
 
 # UTILITY FUNCTIONS ===========================================================
@@ -124,8 +152,64 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
+def generate_section(xxxxx, yyyyy, zzzzz):
+    """this is a doc string"""
+    print(xxxxx, yyyyy, zzzzz)
+
+def compute_section_sizes(bom_sections, section_info) -> None:
+    """x"""
+    offset = 0
+    print("sta fin tot lin off bp     sta fin tot off bp")
+    print("--- --- --- --- --- ---    --- --- --- --- ---")
+    for section, info in zip(bom_sections, section_info):
+        s = info.start
+        f = info.finish
+        t = info.total
+        o = offset
+        b = info.break_point
+
+        info.offsest = offset
+        items = len(section.parts) - info.lines
+        info.start += offset
+        offset = offset + items
+        info.finish += offset
+        info.total += offset
+        print(f"{s:3}-{f:3} {t:3} {items:3} {o:3} {b:3}    "
+              f"{info.start:3}-{info.finish} {info.total:3} {offset:3} {b:3}")
+    print()
+
+
+    pass
+
+def resize_sections():
+    """x"""
+    pass
+
+def generate_sections(bom: Bom, sheet: Worksheet) -> None:
+    """Manage filling in sections
+
+    Works by iterating over the sections of the sheet from the last section to
+    the first section. Order matters here.
+    * bom.Sections were built from first section to last section. Needs to be
+      iterated over in reverse order
+    * section_info was constructed in reverse order
+
+    Arguements:
+    """
+    for section, info in reversed(list(zip(bom.sections, section_info))):
+        # offset: int = generate_section(sheet, section, info)
+        # status_msg(f"        {section.name:25} {offset}",3)
+        print(section.name, info.name)
+
 def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
-    """Fill out heading at top of sheet"""
+    """Fill out heading at top of sheet
+    Arguments:
+        bom: Bom -- bom with information for all sizes of current model/option
+        name: dict -- parts and full name of current sheet
+
+    Returns:
+        None
+    """
     sheet["C4"].value = name['full'].title()
     sheet["C5"].value = name['size']
     sheet["C6"].value = bom.beam
@@ -136,6 +220,10 @@ def generate_sheet(bom: Bom,
     """genereate costing sheet
 
     Arguments:
+        bom: Bom -- bom with information for all sizes of current model/option
+        name: dict -- parts and full name of current sheet
+        file_name: Path -- filename with full pathing to xls sheet to be
+                           created
 
     Returns:
         None
@@ -145,8 +233,7 @@ def generate_sheet(bom: Bom,
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
     generate_heading(bom, name, sheet)
-    # generate_sections(lookups, bom, sheet)
-    # status_msg(f"    {name['full']:50} {name['all']}",2)
+    generate_sections(bom, sheet)
     status_msg(f"      {name['all']}",2)
     xlsx.save(os.path.abspath(str(file_name)))
 
@@ -188,8 +275,10 @@ def generate_sheets_for_all_models(models: dict[str, Model],
     # for model in models:  # fww
     for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
         bom = get_bom(boms, models[key])
-        status_msg(f"  {models[key].folder}", 1)
-        generate_sheets_for_model(models[key], bom)
+        # status_msg(f"  {models[key].folder}", 1)
+        # generate_sheets_for_model(models[key], bom)
+        section_info = deepcopy(section_info_master)
+        compute_section_sizes(bom.sections, section_info)
 
 if __name__ == "__main__":
     pass
