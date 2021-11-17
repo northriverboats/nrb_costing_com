@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# vim expandtab shiftwidth=2 softtabstop=2
+# vim expandtab shiftwidth=4 softtabstop=4
 """
 Generate Costing Sheets
 """
@@ -18,31 +18,91 @@ from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
                         TEMPLATE_FILE,)
 
 @dataclass
+class SheetRange:
+    """Range for caclating formula offsets"""
+    start: int
+    end: int
+    offset: int
+
+@dataclass
+class SheetRanges:
+    """List for computing offect for formulas"""
+    ranges: list[SheetRange] = field(default_factory=list)
+
+    def offset(self, reference: str) -> str:
+        """find offset for cell value"""
+        col: str = reference[0]
+        row = int(reference[1:])
+        for rows in self.ranges:
+            if rows.start <= row <= rows.end:
+                return col + str(row + rows.offset)
+        return reference
+
+    def adjust(self, row: int, offset: int) -> None:
+        """adjust row offsets"""
+        old_offset = 0
+        for rows in self.ranges:
+            if row > rows.end:
+                continue
+            if not rows.start <= row <= rows.end:
+                rows.start += offset
+            rows.end += offset
+            rows.offset += old_offset
+            old_offset = offset
+
+    def show(self):
+        """show range table"""
+        for rows in self.ranges:
+            print(rows)
+
+@dataclass
 class SectionInfo:
     """Information about each section on xlsx sheet"""
-    name: str
-    start: int
-    finish: int
-    total: int
-    offset: int = field(init=False)
-    break_point: int = field(init=False)
-    lines: int = field(init=False)
+    name: str  # name of section
+    start: int  # current start row of section
+    end: int # current ending sow of sectiong
+    total: int # cell with total for section
+    offset: int = field(init=False) # rows shrink/added
+    begin: int = field(init=False) # begin range to use for offset
+    finish: int = field(init=False) # end range to use for offset
+    lines: int = field(init=False) # number of part lines in section
 
     def __post_init__(self):
         self.offset = 0
-        self.break_point = self.total
-        self.lines = self.finish - self.start + 1
+        self.beign= 0
+        self.finish = self.end
+        self.lines = self.end - self.start + 1
 
+    def new_size__(self, length: int, begin: int, offest: int) -> None:
+        """compute new size of section and add/remove lines as needed
+
+        Arguments:
+            length: int -- new  size in number of lines in the part section
+            begin: int -- beginnig of range to modify formlas with the offest
+            offest: int -- running total of add/remove lines
+
+        Returns:
+            begin: int -- new begging of range
+            offset: int -- new running offset
+        """
+        self.begin = begin
+        items: int = length - self.lines
+
+
+# last entry 'begin' is from prior sections 'end' + 1
 section_info_master: list[SectionInfo] = [
-        SectionInfo('FABRICATION', 14, 17, 20),
-        SectionInfo('PAINT', 26, 38, 40),
-        SectionInfo('OUTFITTING', 48, 70, 72),
-        SectionInfo('CANVAS', 77, 139, 141),
-        SectionInfo('BIG TICKET ITEMS', 148, 149, 151),
-        SectionInfo('OUTBOARD MOTORS', 156, 158, 160),
-        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 170),
-        SectionInfo('TRAILER', 175, 175, 177),
+        SectionInfo('FABRICATION', 14, 17, 20, 1),
+        SectionInfo('PAINT', 26, 38, 40, 18),
+        SectionInfo('OUTFITTING', 48, 70, 72, 39, ),
+        SectionInfo('CANVAS', 77, 139, 141, 71),
+        SectionInfo('BIG TICKET ITEMS', 148, 149, 151, 140),
+        SectionInfo('OUTBOARD MOTORS', 156, 158, 160, 150),
+        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 170, 159),
+        SectionInfo('TRAILER', 175, 175, 177, 169),
 ]
+
+section_final_begin = 176
+
 
 
 # UTILITY FUNCTIONS ===========================================================
@@ -257,22 +317,8 @@ def generate_sheets_for_model(model: Model,
         generate_sheet(bom, name, file_name)
 
 
-def generate_sheets_for_all_models(models: dict[str, Model],
-                                   boms: dict[str, Bom]) -> None:
-    """" cycle through each sheet/option combo to create sheets
-
-    Arguments:
-        target_parts: dict[str, BomPart] -- longer dict of BomParts to append
-                                            to or merge part with
-        source_parts: dict[str, BomPart] -- shorter dict of BomParts to add or
-                                            merge parts from
-
-    Returns:
-        None
-    """
-    status_msg("Merging", 1)
-    # for model in models:
-    # for model in models:  # fww
+def junk():
+    """Temp place for insert and format cells in sheet"""
     xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
     sheet.insert_rows(78,5)
@@ -303,6 +349,24 @@ def generate_sheets_for_all_models(models: dict[str, Model],
 
     xlsx.save(os.path.abspath(str('/home/fwarren/test.xlsx')))
     return
+
+
+def generate_sheets_for_all_models(models: dict[str, Model],
+                                   boms: dict[str, Bom]) -> None:
+    """" cycle through each sheet/option combo to create sheets
+
+    Arguments:
+        target_parts: dict[str, BomPart] -- longer dict of BomParts to append
+                                            to or merge part with
+        source_parts: dict[str, BomPart] -- shorter dict of BomParts to add or
+                                            merge parts from
+
+    Returns:
+        None
+    """
+    status_msg("Merging", 1)
+    # for model in models:
+    # for model in models:  # fww
     for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
         bom = get_bom(boms, models[key])
         # status_msg(f"  {models[key].folder}", 1)
