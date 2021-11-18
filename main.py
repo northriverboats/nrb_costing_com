@@ -45,24 +45,24 @@ def main(verbose: int) -> None:
             # should not need to be used if TEMPLATE_FILE is updated
             consumables: dict[str, Consumable] = load_consumables(
                 CONSUMABLES_FILE)
-            status_msg(f"{len(consumables)} consumalbes loaded\n", 0)
+            status_msg(f"{len(consumables)} consumalbes loaded", 0)
             hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
                 HOURLY_RATES_FILE)
-            status_msg(f"{len(hourly_rates)} hourly rates loaded\n", 0)
+            status_msg(f"{len(hourly_rates)} hourly rates loaded", 0)
             mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
-            status_msg(f"{len(mark_ups)} mark ups loaded\n", 0)
+            status_msg(f"{len(mark_ups)} mark ups loaded", 0)
 
         # load information from spreadsheets
         models: dict[str, Model] = load_models(MODELS_FILE)
-        status_msg(f"{len(models)} models loaded\n", 0)
+        status_msg(f"{len(models)} models loaded", 0)
 
         # resources is only needed to build BomPart
         resources: dict[str, Resource] = load_resources(RESOURCES_FOLDER)
-        status_msg(f"{len(resources)} resources loaded\n", 0)
+        status_msg(f"{len(resources)} resources loaded", 0)
 
         # build BOM information
         boms: dict[str, Bom] = load_boms(BOATS_FOLDER, resources)
-        status_msg(f"{len(boms)} boms loaded\n", 0)
+        status_msg(f"{len(boms)} boms loaded", 0)
 
         generate_sheets_for_all_models(models, boms)
     except Exception:
