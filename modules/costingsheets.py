@@ -216,8 +216,8 @@ def bom_merge(target_bom: Bom, source_bom: Bom) -> Bom:
     return bom
 
 def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
-    """Combine sheets if necessary and return BOM.
-       Assumes if sheet is not None that there will be a match
+    """Merges sheets if necessary and returns a BOM.
+    Assumes if sheet is not None that there will be a match
 
     Arguments:
         bom: list[Bom] --
