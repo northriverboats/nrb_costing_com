@@ -40,7 +40,12 @@ class SheetRanges:
     ranges: list[SheetRange] = field(default_factory=list)
 
     def offset(self, reference: str) -> str:
-        """find offset for cell value *** does not handle $ refs
+        """update offset for cell reference
+        * does not handle links
+        * must list functions by name
+        * will lnot handle named ranges
+        * parse Sheet ! references but will update offsets though they are not
+          on the curernt sheet
 
         Arguments:
             reference: str -- cell reference such as D22
@@ -48,19 +53,23 @@ class SheetRanges:
         Returns
             str -- cell reference such as D14
         """
-        blob: list = re.findall(r"((?:^.+!)\$?[A-Z]+\$?|\$?[A-Z]+\$?)(\d+)",
+        blob: list = re.findall(r"(.+!\$?[A-Z]+\$?|\$?[A-Z]+\$?)(\d+)",
                           reference)
         if not blob:
             return reference
         col: str = blob[0][0]
-        row: int = (blob[0][1])
+        row: int = int(blob[0][1])
         for rows in self.ranges:
             if rows.start <= row <= rows.end:
                 return col + str(row + rows.offset)
         return reference
 
     def adjust(self, row: int, offset: int) -> None:
-        """adjust row offsets"""
+        """adjust row offsets
+        Arguments:
+            row: int -- starting row to adjust from
+            offset: int -- offset to add to those rows
+        """
         old_offset = 0
         for rows in self.ranges:
             if row > rows.end:
