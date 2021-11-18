@@ -30,7 +30,14 @@ class SheetRanges:
     ranges: list[SheetRange] = field(default_factory=list)
 
     def offset(self, reference: str) -> str:
-        """find offset for cell value"""
+        """find offset for cell value *** does not handle $ refs
+
+        Arguments:
+            reference: str -- cell reference such as D22
+
+        Returns
+            str -- cell reference such as D14
+        """
         col: str = reference[0]
         row = int(reference[1:])
         for rows in self.ranges:
@@ -49,6 +56,36 @@ class SheetRanges:
             rows.end += offset
             rows.offset += old_offset
             old_offset = offset
+
+    def offset_formula(self, formula: str) -> str:
+        """compute formula offsets-- will not handle named ranges
+
+        Arguements:
+          formula: str -- formula in
+
+        Return:
+          str -- formula out
+        """
+        if formula[0] != "=":
+            return formula
+        result: str = "="
+        reference: str = ""
+        for char in formula[1:]:
+            if reference in ["SUM", "VLOOKUP", "HLOOKUP"]:
+                result += reference + char
+                reference = ""
+                continue
+            if char not in "(*/+-):":
+                reference += char
+                continue
+            if reference:
+                result += self.offset(reference)
+                reference = ""
+            result += char
+        if reference:
+            result += self.offset(reference)
+            reference = ""
+        return result
 
     def show(self):
         """show range table"""
