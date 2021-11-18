@@ -8,6 +8,7 @@ from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 import os
+import re
 # from typing import Optional, Union
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
@@ -20,9 +21,18 @@ from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
 @dataclass
 class SheetRange:
     """Range for caclating formula offsets"""
-    start: int
-    end: int
-    offset: int
+    name: str   # name of range
+    start: int  # start area for computing offsets
+    first: int  # first row with formulas in it
+    end: int  # end aera for computing offsets/last row with formulats in it
+    subtotal: int # where subotal is for section
+    offset: int = field(init=False) # relative offset
+    lines: int = field(init=False) # number of formula lines
+
+    def __post_init__(self):
+        """initialize range"""
+        self.offset = 0
+        self.lines = self.end - self.first + 1
 
 @dataclass
 class SheetRanges:
@@ -38,8 +48,12 @@ class SheetRanges:
         Returns
             str -- cell reference such as D14
         """
-        col: str = reference[0]
-        row = int(reference[1:])
+        blob: list = re.findall(r"((?:^.+!)\$?[A-Z]+\$?|\$?[A-Z]+\$?)(\d+)",
+                          reference)
+        if not blob:
+            return reference
+        col: str = blob[0][0]
+        row: int = (blob[0][1])
         for rows in self.ranges:
             if rows.start <= row <= rows.end:
                 return col + str(row + rows.offset)
@@ -53,7 +67,9 @@ class SheetRanges:
                 continue
             if not rows.start <= row <= rows.end:
                 rows.start += offset
+            rows.first += offset
             rows.end += offset
+            rows.subtotal += offset
             rows.offset += old_offset
             old_offset = offset
 
@@ -92,53 +108,17 @@ class SheetRanges:
         for rows in self.ranges:
             print(rows)
 
-@dataclass
-class SectionInfo:
-    """Information about each section on xlsx sheet"""
-    name: str  # name of section
-    start: int  # current start row of section
-    end: int # current ending sow of sectiong
-    total: int # cell with total for section
-    offset: int = field(init=False) # rows shrink/added
-    begin: int = field(init=False) # begin range to use for offset
-    finish: int = field(init=False) # end range to use for offset
-    lines: int = field(init=False) # number of part lines in section
 
-    def __post_init__(self):
-        self.offset = 0
-        self.beign= 0
-        self.finish = self.end
-        self.lines = self.end - self.start + 1
-
-    def new_size__(self, length: int, begin: int, offest: int) -> None:
-        """compute new size of section and add/remove lines as needed
-
-        Arguments:
-            length: int -- new  size in number of lines in the part section
-            begin: int -- beginnig of range to modify formlas with the offest
-            offest: int -- running total of add/remove lines
-
-        Returns:
-            begin: int -- new begging of range
-            offset: int -- new running offset
-        """
-        self.begin = begin
-        items: int = length - self.lines
-
-
-# last entry 'begin' is from prior sections 'end' + 1
-section_info_master: list[SectionInfo] = [
-        SectionInfo('FABRICATION', 14, 17, 20, 1),
-        SectionInfo('PAINT', 26, 38, 40, 18),
-        SectionInfo('OUTFITTING', 48, 70, 72, 39, ),
-        SectionInfo('CANVAS', 77, 139, 141, 71),
-        SectionInfo('BIG TICKET ITEMS', 148, 149, 151, 140),
-        SectionInfo('OUTBOARD MOTORS', 156, 158, 160, 150),
-        SectionInfo('INBOARD MOTORS & JETS', 165, 168, 170, 159),
-        SectionInfo('TRAILER', 175, 175, 177, 169),
-]
-
-section_final_begin = 176
+ranges = SheetRanges()
+ranges.ranges.append(SheetRange('FABRICATION', 1, 14, 17, 20))
+ranges.ranges.append(SheetRange('PAINT', 18, 26, 38, 40))
+ranges.ranges.append(SheetRange('', 39, 49, 70, 72))
+ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141))
+ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151))
+ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160))
+ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170))
+ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177))
+ranges.ranges.append(SheetRange('', 176, 177, 999, 999))
 
 
 
@@ -249,54 +229,23 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
-def generate_section(xxxxx, yyyyy, zzzzz):
-    """this is a doc string"""
-    print(xxxxx, yyyyy, zzzzz)
-
-def compute_section_sizes(bom_sections, section_info) -> None:
-    """x"""
-    offset = 0
-    print("sta fin tot lin off bp     sta fin tot off bp")
-    print("--- --- --- --- --- ---    --- --- --- --- ---")
-    for section, info in zip(bom_sections, section_info):
-        s = info.start
-        f = info.finish
-        t = info.total
-        o = offset
-        b = info.break_point
-
-        info.offsest = offset
-        items = len(section.parts) - info.lines
-        info.start += offset
-        offset = offset + items
-        info.finish += offset
-        info.total += offset
-        print(f"{s:3}-{f:3} {t:3} {items:3} {o:3} {b:3}    "
-              f"{info.start:3}-{info.finish} {info.total:3} {offset:3} {b:3}")
-    print()
-
-
-    pass
-
-def resize_sections():
-    """x"""
-    pass
-
-def generate_sections(bom: Bom, sheet: Worksheet) -> None:
+def generate_sections(bom: Bom,
+                      sheet_ranges: list[SheetRange],
+                      sheet: Worksheet) -> None:
     """Manage filling in sections
 
     Works by iterating over the sections of the sheet from the last section to
     the first section. Order matters here.
     * bom.Sections were built from first section to last section. Needs to be
       iterated over in reverse order
-    * section_info was constructed in reverse order
+    * sheet_ranges was constructed in reverse order
 
     Arguements:
     """
-    for section, info in reversed(list(zip(bom.sections, section_info))):
+    for section, info in reversed(list(zip(bom.sections, sheet_ranges))):
         # offset: int = generate_section(sheet, section, info)
         # status_msg(f"        {section.name:25} {offset}",3)
-        print(section.name, info.name)
+        print(section.name, info.name, sheet)
 
 def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
     """Fill out heading at top of sheet
@@ -312,6 +261,7 @@ def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
     sheet["C6"].value = bom.beam
 
 def generate_sheet(bom: Bom,
+                   sheet_ranges: list[SheetRange],
                    name: dict[str, str],
                    file_name: Path) -> None:
     """genereate costing sheet
@@ -330,14 +280,15 @@ def generate_sheet(bom: Bom,
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
     generate_heading(bom, name, sheet)
-    generate_sections(bom, sheet)
+    generate_sections(bom, sheet_ranges, sheet)
     status_msg(f"      {name['all']}",2)
     xlsx.save(os.path.abspath(str(file_name)))
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
 def generate_sheets_for_model(model: Model,
-                              bom: Bom) -> None:
+                              bom: Bom,
+                              sheet_ranges: list[SheetRange]) -> None:
     """"cycle through each size to create sheets
 
     Arguments:
@@ -351,7 +302,7 @@ def generate_sheets_for_model(model: Model,
         name: dict[str, str] = build_name(size, model)
         file_name: Path = (SHEETS_FOLDER / model.folder /
                            (name['all'] + '.xlsx'))
-        generate_sheet(bom, name, file_name)
+        generate_sheet(bom, sheet_ranges, name, file_name)
 
 
 def junk():
@@ -385,7 +336,6 @@ def junk():
                 cell.value = f'=G{row}+H{row}'
 
     xlsx.save(os.path.abspath(str('/home/fwarren/test.xlsx')))
-    return
 
 
 def generate_sheets_for_all_models(models: dict[str, Model],
@@ -405,11 +355,12 @@ def generate_sheets_for_all_models(models: dict[str, Model],
     # for model in models:
     # for model in models:  # fww
     for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
-        bom = get_bom(boms, models[key])
+        bom: Bom = get_bom(boms, models[key])
         # status_msg(f"  {models[key].folder}", 1)
         # generate_sheets_for_model(models[key], bom)
-        section_info = deepcopy(section_info_master)
-        compute_section_sizes(bom.sections, section_info)
+        # sheet_ranges: list[SheetRange] = deepcopy(ranges)
+        # compute_section_sizes(bom.sections, sheet_ranges)
+        print(bom)
 
 if __name__ == "__main__":
     pass
