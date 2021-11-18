@@ -363,15 +363,12 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         None
     """
     status_msg("Merging", 1)
-    # for model in models:
     # for model in models:  # fww
     for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
+        # merge "model" sheet 1 Bom with "option" sheet 2 Bom
         bom: Bom = get_bom(boms, models[key])
-        # status_msg(f"  {models[key].folder}", 1)
-        # generate_sheets_for_model(models[key], bom)
-        # sheet_ranges: list[SheetRange] = deepcopy(ranges)
+        generate_sheets_for_model(models[key], bom)
         # compute_section_sizes(bom.sections, sheet_ranges)
-        print(bom)
 
 if __name__ == "__main__":
     pass
