@@ -299,9 +299,7 @@ def generate_sheet(bom: Bom,
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
-def generate_sheets_for_model(model: Model,
-                              bom: Bom,
-                              sheet_ranges: list[SheetRange]) -> None:
+def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     """"cycle through each size to create sheets
 
     Arguments:
