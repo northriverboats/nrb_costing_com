@@ -132,7 +132,7 @@ ranges.ranges.append(SheetRange('', 176, 177, 999, 999))
 
 
 # UTILITY FUNCTIONS ===========================================================
-def build_name(size: float, model: Model) -> dict[str, str]:
+def build_name(size: float, model: Model, folder: str) -> dict[str, str]:
     """build file name for sheet
 
     Arguments:
@@ -141,18 +141,22 @@ def build_name(size: float, model: Model) -> dict[str, str]:
 
     Returns:
         dict -- size of boat as text  such as 18' or 18'6"
-                model of boat as text
-                option of boat as text
-                full text of model + option
-                all text size + model + option
+                model: of boat as text
+                option: of boat as text
+                with_options: text of model + option
+                size_with_options: size + model + option
+                file_name: full absolute path to file
     """
     option: str = "" if model.sheet2 is None else ' ' + model.sheet2
+    size_with_options: str = normalize_size(size) + ' ' + model.sheet1 + option
+    file_name: Path = SHEETS_FOLDER / folder / (size_with_options + '.xlsx')
     name: dict[str, str] = {
         'size': normalize_size(size),
         'model': model.sheet1,
         'option': option,
-        'full': model.sheet1 + option,
-        'all': normalize_size(size) + ' ' + model.sheet1 + option,
+        'with_options': model.sheet1 + option,
+        'size_with_options': size_with_options,
+        'file_name': file_name,
     }
     return name
 
