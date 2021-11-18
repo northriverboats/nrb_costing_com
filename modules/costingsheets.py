@@ -309,11 +309,11 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     Returns:
         None
     """
+    status_msg(f"  {model.folder}", 1)
     for size in bom.sizes:
-        name: dict[str, str] = build_name(size, model)
-        file_name: Path = (SHEETS_FOLDER / model.folder /
-                           (name['all'] + '.xlsx'))
-        generate_sheet(bom, sheet_ranges, name, file_name)
+        file_name_info: dict[str, str] = build_name(size, model, model.folder)
+        status_msg(f"    {file_name_info['file_name']}", 2)
+        #generate_sheet(bom, file_name_info, file_name)
 
 
 def junk():
