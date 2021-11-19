@@ -26,14 +26,18 @@ class SheetRange:
     first: int  # first row with formulas in it
     end: int  # end aera for computing offsets/last row with formulats in it
     subtotal: int # where subotal is for section
+    max_delete: int # max number of rows that can be deleted
     offset: int = field(init=False) # relative offset
     lines: int = field(init=False) # number of formula lines
     add_del: int = field(init=False) # number of lines to add or delete
+    parts: int = field(init=False) # number of parts in section
 
     def __post_init__(self):
         """initialize range"""
         self.offset = 0
-        self.lines = self.end - self.first + 1
+        self.parts = 0
+        self.add_del = 0
+        self.lines = (self.end +1) - self.first
 
 @dataclass
 class SheetRanges:
@@ -128,15 +132,15 @@ class SheetRanges:
 
 
 ranges = SheetRanges()
-ranges.ranges.append(SheetRange('FABRICATION', 1, 14, 17, 20))
-ranges.ranges.append(SheetRange('PAINT', 18, 26, 38, 40))
-ranges.ranges.append(SheetRange('UNUSED', 39, 49, 70, 72))
-ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141))
-ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151))
-ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160))
-ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170))
-ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177))
-ranges.ranges.append(SheetRange('TOTALS', 176, 177, 235, 235))
+ranges.ranges.append(SheetRange('FABRICATION', 1, 14, 17, 20, 1))
+ranges.ranges.append(SheetRange('PAINT', 18, 26, 38, 40, 9))
+ranges.ranges.append(SheetRange('UNUSED', 39, 49, 70, 72, 0))
+ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141, 68))
+ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151, 0))
+ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160, 0))
+ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170, 0))
+ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177, 0))
+ranges.ranges.append(SheetRange('TOTALS', 176, 177, 235, 235, 0))
 
 
 
@@ -259,16 +263,22 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
     return bom_merge(bom1, bom2)
 
 
-def compute_section_sizes(bom_sections: list[BomSection]) -> SheetRanges:
-    """compute size of sections and appropriate offsets"""
+def compute_section_sizes(bom_sections: list[BomSection],
+                          size: float) -> SheetRanges:
+    """compute size of sections and appropriate offsets
+    insert 0 for UNUSED and TOTALS sections part counts not found on BOMs
+
+    Arguements:
+        bom_sections: list[BomSection] -- parts sections of BOM
+        size: float -- filter parts to add by size of boat
+
+    Returns:
+        SheetRanges -- SheetRanges with oupdated section sizes
+    """
+    parts = [section.parts for section in bom.sections]
+    parts = parts[:2] + [0] + parts[2:] + parts[0]
     offsets: SheetRanges = deepcopy(ranges)
-    for bom_section in bom_sections:
-        lines: int = len(bom_section.parts)
-        section: SheetRange = offsets.find(bom_section.name)
-        row: int = section.first + 1
-        offset: int = lines - section.lines
-        offsets.adjust(row, offset)
-    return offsets
+    return offsets.adjust[parts]
 
 
 # WRITING SHEET FUNCTIONS =====================================================
@@ -336,6 +346,25 @@ def generate_sheet(bom: Bom,
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
+def filter_bom(original_bom: Bom, size: float) -> Bom:
+    """fitler out parts based on size if necessary
+    also correcting costs as necessary
+
+    Arguments:
+        bom: Bom -- Bom with parts sections
+        size: float -- size of boat to filter for
+
+    Returns:
+        Bom -- Deepcopy Bom with correct parts
+    """
+    bom = deepcopy(bom)
+    for section in bom.sections:
+        section.parts = [
+            part
+            for part in section.parts
+            if (part.smallest and size >= part.smallest) or
+               (part.biggest and size <= part.biggest)]
+
 def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     """"cycle through each size to create sheets
 
@@ -350,6 +379,7 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     for size in bom.sizes:
         file_name_info: FileNameInfo = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
+        filtered_bom = filter_bom(bom)
         generate_sheet(bom, file_name_info, size)
 
 
@@ -405,6 +435,8 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         # merge "model" sheet 1 Bom with "option" sheet 2 Bom
         bom: Bom = get_bom(boms, models[key])
         generate_sheets_for_model(models[key], bom)
+        for section in bom.sections:
+            print(f"{section.name:25} {len(section.parts)}")
 
 if __name__ == "__main__":
     pass
