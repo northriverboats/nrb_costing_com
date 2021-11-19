@@ -63,7 +63,6 @@ def main(verbose: int) -> None:
         # build BOM information
         boms: dict[str, Bom] = load_boms(BOATS_FOLDER, resources)
         status_msg(f"{len(boms)} boms loaded", 0)
-
         generate_sheets_for_all_models(models, boms)
     except Exception:
         logger.critical(traceback.format_exc())

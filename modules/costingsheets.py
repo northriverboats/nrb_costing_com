@@ -28,6 +28,7 @@ class SheetRange:
     subtotal: int # where subotal is for section
     offset: int = field(init=False) # relative offset
     lines: int = field(init=False) # number of formula lines
+    add_del: int = field(init=False) # number of lines to add or delete
 
     def __post_init__(self):
         """initialize range"""
@@ -79,6 +80,8 @@ class SheetRanges:
             rows.first += offset
             rows.end += offset
             rows.subtotal += offset
+            rows.lines += offset
+            rows.add_del = offset
             rows.offset += old_offset
             old_offset = offset
 
@@ -270,7 +273,8 @@ def compute_section_sizes(bom_sections: list[BomSection]) -> SheetRanges:
 
 # WRITING SHEET FUNCTIONS =====================================================
 def generate_sections(bom: Bom,
-                      sheet_ranges: SheetRanges,
+                      section_sizes: SheetRanges,
+                      size: float,
                       sheet: Worksheet) -> None:
     """Manage filling in sections
 
@@ -283,10 +287,10 @@ def generate_sections(bom: Bom,
     Arguements:
     """
     for section in bom.sections:
-        offset = sheet_ranges.find(section.name)
-        # offset: int = generate_section(sheet, section, info)
-        # status_msg(f"        {section.name:25} {offset}",3)
-        print(section.name, sheet, offset)
+        offset = section_sizes.find(section.name)
+        # generate_section(sheet, section, size, info)
+        print(f"{size:2.0f} {section.name:24} {offset}")
+    print()
 
 def generate_heading(bom: Bom,
                      file_name_info: FileNameInfo,
@@ -303,7 +307,9 @@ def generate_heading(bom: Bom,
     sheet["C5"].value = file_name_info['size']
     sheet["C6"].value = bom.beam
 
-def generate_sheet(bom: Bom, file_name_info: FileNameInfo) -> None:
+def generate_sheet(bom: Bom,
+                   file_name_info: FileNameInfo,
+                   size: float) -> None:
     """genereate costing sheet
 
     Arguments:
@@ -324,7 +330,7 @@ def generate_sheet(bom: Bom, file_name_info: FileNameInfo) -> None:
     sheet: Worksheet = xlsx.active
 
     generate_heading(bom, file_name_info, sheet)
-    # generate_sections(bom, section_sizes, sheet)
+    generate_sections(bom, section_sizes, size, sheet)
     status_msg(f"      saved {file_name_info['file_name']}", 2)
     xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
@@ -344,7 +350,7 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     for size in bom.sizes:
         file_name_info: FileNameInfo = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
-        generate_sheet(bom, file_name_info)
+        generate_sheet(bom, file_name_info, size)
 
 
 def junk():
