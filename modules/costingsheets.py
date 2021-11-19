@@ -6,14 +6,14 @@ Generate Costing Sheets
 from copy import copy, deepcopy
 # from datetime import datetime
 from dataclasses import dataclass, field
+from typing import TypedDict
 from pathlib import Path
 import os
 import re
-# from typing import Optional, Union
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
-from .boms import Bom, BomPart
+from .boms import Bom, BomPart, BomSection
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
                         TEMPLATE_FILE,)
@@ -112,6 +112,12 @@ class SheetRanges:
             reference = ""
         return result
 
+    def find(self, name: str) -> SheetRange:
+        """find matching sheet range"""
+        match: list[SheetRange] = [
+            offset for offset in self.ranges if offset.name == name]
+        return match[0]
+
     def show(self):
         """show range table"""
         for rows in self.ranges:
@@ -121,18 +127,27 @@ class SheetRanges:
 ranges = SheetRanges()
 ranges.ranges.append(SheetRange('FABRICATION', 1, 14, 17, 20))
 ranges.ranges.append(SheetRange('PAINT', 18, 26, 38, 40))
-ranges.ranges.append(SheetRange('', 39, 49, 70, 72))
+ranges.ranges.append(SheetRange('UNUSED', 39, 49, 70, 72))
 ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141))
 ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151))
 ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160))
 ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170))
 ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177))
-ranges.ranges.append(SheetRange('', 176, 177, 999, 999))
+ranges.ranges.append(SheetRange('TOTALS', 176, 177, 235, 235))
 
 
 
 # UTILITY FUNCTIONS ===========================================================
-def build_name(size: float, model: Model, folder: str) -> dict[str, str]:
+class FileNameInfo(TypedDict):
+    """file name info"""
+    size: str
+    model: str
+    option: str
+    with_options: str
+    size_with_options: str
+    file_name: Path
+
+def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
     """build file name for sheet
 
     Arguments:
@@ -150,7 +165,7 @@ def build_name(size: float, model: Model, folder: str) -> dict[str, str]:
     option: str = "" if model.sheet2 is None else ' ' + model.sheet2
     size_with_options: str = normalize_size(size) + ' ' + model.sheet1 + option
     file_name: Path = SHEETS_FOLDER / folder / (size_with_options + '.xlsx')
-    name: dict[str, str] = {
+    name: FileNameInfo = {
         'size': normalize_size(size),
         'model': model.sheet1,
         'option': option,
@@ -241,9 +256,21 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
     return bom_merge(bom1, bom2)
 
 
+def compute_section_sizes(bom_sections: list[BomSection]) -> SheetRanges:
+    """compute size of sections and appropriate offsets"""
+    offsets: SheetRanges = deepcopy(ranges)
+    for bom_section in bom_sections:
+        lines: int = len(bom_section.parts)
+        section: SheetRange = offsets.find(bom_section.name)
+        row: int = section.first + 1
+        offset: int = lines - section.lines
+        offsets.adjust(row, offset)
+    return offsets
+
+
 # WRITING SHEET FUNCTIONS =====================================================
 def generate_sections(bom: Bom,
-                      sheet_ranges: list[SheetRange],
+                      sheet_ranges: SheetRanges,
                       sheet: Worksheet) -> None:
     """Manage filling in sections
 
@@ -255,12 +282,15 @@ def generate_sections(bom: Bom,
 
     Arguements:
     """
-    for section, info in reversed(list(zip(bom.sections, sheet_ranges))):
+    for section in bom.sections:
+        offset = sheet_ranges.find(section.name)
         # offset: int = generate_section(sheet, section, info)
         # status_msg(f"        {section.name:25} {offset}",3)
-        print(section.name, info.name, sheet)
+        print(section.name, sheet, offset)
 
-def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
+def generate_heading(bom: Bom,
+                     file_name_info: FileNameInfo,
+                     sheet: Worksheet) -> None:
     """Fill out heading at top of sheet
     Arguments:
         bom: Bom -- bom with information for all sizes of current model/option
@@ -269,14 +299,11 @@ def generate_heading(bom: Bom, name: dict[str, str], sheet: Worksheet) -> None:
     Returns:
         None
     """
-    sheet["C4"].value = name['full'].title()
-    sheet["C5"].value = name['size']
+    sheet["C4"].value = file_name_info['with_options'].title()
+    sheet["C5"].value = file_name_info['size']
     sheet["C6"].value = bom.beam
 
-def generate_sheet(bom: Bom,
-                   sheet_ranges: list[SheetRange],
-                   name: dict[str, str],
-                   file_name: Path) -> None:
+def generate_sheet(bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
     Arguments:
@@ -288,14 +315,18 @@ def generate_sheet(bom: Bom,
     Returns:
         None
     """
-    #  file_name.parent.mkdir(parents=True, exist_ok=True)
+    # create parent folder if necessay
+    file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
+    section_sizes: SheetRanges = compute_section_sizes(bom.sections)
+    # open templeate file
     xlsx: Workbook = load_workbook(
         TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
-    generate_heading(bom, name, sheet)
-    generate_sections(bom, sheet_ranges, sheet)
-    status_msg(f"      {name['all']}",2)
-    xlsx.save(os.path.abspath(str(file_name)))
+
+    generate_heading(bom, file_name_info, sheet)
+    # generate_sections(bom, section_sizes, sheet)
+    status_msg(f"      saved {file_name_info['file_name']}", 2)
+    xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
@@ -311,9 +342,9 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     """
     status_msg(f"  {model.folder}", 1)
     for size in bom.sizes:
-        file_name_info: dict[str, str] = build_name(size, model, model.folder)
+        file_name_info: FileNameInfo = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
-        #generate_sheet(bom, file_name_info, file_name)
+        generate_sheet(bom, file_name_info)
 
 
 def junk():
@@ -368,7 +399,6 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         # merge "model" sheet 1 Bom with "option" sheet 2 Bom
         bom: Bom = get_bom(boms, models[key])
         generate_sheets_for_model(models[key], bom)
-        # compute_section_sizes(bom.sections, sheet_ranges)
 
 if __name__ == "__main__":
     pass
