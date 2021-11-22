@@ -6,12 +6,14 @@ Load model data from sheet
 Pass in master_file return data structure
 """
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from pathlib import Path
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from .utilities import status_msg
 
+@dataclass_json
 @dataclass
 class MarkUp:
     """Mark-up rates by deprtment"""

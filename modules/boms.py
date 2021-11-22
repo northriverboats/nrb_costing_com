@@ -6,6 +6,7 @@ Load model data from sheet
 Pass in master_file return data structure
 """
 from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
@@ -15,6 +16,7 @@ from openpyxl.workbook.workbook import Workbook
 from .resources import Resource
 from .utilities import status_msg
 
+@dataclass_json
 @dataclass(order=True)
 class BomPart:
     """Part Information from Section of a BOM Parts Sheet"""
@@ -32,12 +34,14 @@ class BomPart:
     vendor: str = field(compare=False)
     updated: datetime = field(compare=False)
 
+@dataclass_json
 @dataclass(order=True)
 class BomSection:
     """Group of BOM Parts"""
     name: str
     parts: dict[str, BomPart] = field(compare=False)
 
+@dataclass_json
 @dataclass(order=True)
 class Bom:
     """BOM sheet"""
