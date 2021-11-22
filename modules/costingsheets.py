@@ -3,147 +3,18 @@
 """
 Generate Costing Sheets
 """
-from copy import copy, deepcopy
+from copy import deepcopy
 # from datetime import datetime
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
 from typing import TypedDict
 from pathlib import Path
 import os
-import re
-from openpyxl import load_workbook # pylint: disable=import-error
+from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.workbook.workbook import Workbook
-from .boms import Bom, BomPart, BomSection
+# from openpyxl.workbook.workbook import Workbook
+from .boms import Bom, BomPart
 from .models import Model
-from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
-                        TEMPLATE_FILE,)
-
-@dataclass
-class SheetRange:
-    """Range for caclating formula offsets"""
-    # pylint: disable=too-many-instance-attributes
-    name: str   # name of range
-    start: int  # start area for computing offsets
-    first: int  # first row with formulas in it
-    end: int  # end aera for computing offsets/last row with formulats in it
-    subtotal: int # where subotal is for section
-    max_delete: int # max number of rows that can be deleted
-    offset: int = field(init=False) # relative offset
-    lines: int = field(init=False) # number of formula lines
-    add_del: int = field(init=False) # number of lines to add or delete
-    parts: int = field(init=False) # number of parts in section
-
-    def __post_init__(self):
-        """initialize range"""
-        self.offset = 0
-        self.parts = 0
-        self.add_del = 0
-        self.lines = self.end + 1 - self.first
-
-@dataclass
-class SheetRanges:
-    """List for computing offect for formulas"""
-    ranges: list[SheetRange] = field(default_factory=list)
-
-    def offset(self, reference: str) -> str:
-        """update offset for cell reference
-        * does not handle links
-        * must list functions by name
-        * will lnot handle named ranges
-        * parse Sheet ! references but will update offsets though they are not
-          on the curernt sheet
-
-        Arguments:
-            reference: str -- cell reference such as D22
-
-        Returns
-            str -- cell reference such as D14
-        """
-        blob: list = re.findall(r"(.+!\$?[A-Z]+\$?|\$?[A-Z]+\$?)(\d+)",
-                          reference)
-        if not blob:
-            return reference
-        col: str = blob[0][0]
-        row: int = int(blob[0][1])
-        for rows in self.ranges:
-            if rows.start <= row <= rows.end:
-                return col + str(row + rows.offset)
-        return reference
-
-    def adjust(self, parts_tally: list[int]) -> None:
-        """adjust row offsets
-        Arguments:
-            parts_tally: list[int] -- how many parts each section has
-        """
-        offset: int = 0
-        for section, tally in zip(self.ranges, parts_tally):
-            if tally - section.lines < 0:
-                section.add_del = -(min(section.lines - tally,
-                                        section.max_delete))
-            else:
-                section.add_del = tally - section.lines
-            section.parts = tally
-            section.offset = offset
-            section.first += offset
-            offset += section.add_del
-            section.end += offset
-            section.subtotal += offset
-            section.lines = section.end + 1 - section.first
-
-    def offset_formula(self, formula: str) -> str:
-        """compute formula offsets-- will not handle named ranges
-
-        Arguements:
-          formula: str -- formula in
-
-        Return:
-          str -- formula out
-        """
-        if formula[0] != "=":
-            return formula
-        result: str = "="
-        reference: str = ""
-        for char in formula[1:]:
-            if reference in ["SUM", "VLOOKUP", "HLOOKUP"]:
-                result += reference + char
-                reference = ""
-                continue
-
-            if char not in "(*/+-):":
-                reference += char
-                continue
-            if reference:
-                result += self.offset(reference)
-                reference = ""
-            result += char
-        if reference:
-            result += self.offset(reference)
-            reference = ""
-        return result
-
-    def find(self, name: str) -> SheetRange:
-        """find matching sheet range"""
-        match: list[SheetRange] = [
-            offset for offset in self.ranges if offset.name == name]
-        return match[0]
-
-    def show(self):
-        """show range table"""
-        for rows in self.ranges:
-            print(rows)
-
-
-ranges = SheetRanges()
-ranges.ranges.append(SheetRange('FABRICATION', 1, 14, 17, 20, 1))
-ranges.ranges.append(SheetRange('PAINT', 18, 26, 38, 40, 9))
-ranges.ranges.append(SheetRange('UNUSED', 39, 49, 70, 72, 0))
-ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141, 68))
-ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151, 0))
-ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160, 0))
-ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170,
-                                0))
-ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177, 0))
-ranges.ranges.append(SheetRange('TOTALS', 176, 177, 235, 235, 0))
+from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER)
 
 
 
@@ -265,27 +136,6 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
                      model.sheet1, model.sheet2, model.folder)
     return bom_merge(bom1, bom2)
 
-
-def compute_section_sizes(bom_sections: list[BomSection],) -> SheetRanges:
-    """compute size of sections and appropriate offsets
-    * insert blank sections for UNUSED and TOTALS so that list[BomSections] and
-
-    Arguements:
-        bom_sections: list[BomSection] -- parts sections of BOM
-
-    Returns:
-        SheetRanges -- SheetRanges with oupdated section sizes
-    """
-    # list[BomSection] .name: str .parts: dict[BomPart]
-    parts_tally: list[int] = [
-        len(section.parts)
-        for section in bom_sections]
-    parts_tally = parts_tally[:2] + [0] + parts_tally[2:] + [0]
-    offsets: SheetRanges = deepcopy(ranges)
-    offsets.adjust(parts_tally)
-    return offsets
-
-
 def filter_bom(original_bom: Bom, size: float) -> Bom:
     """fitler out parts based on size if necessary
     also correcting costs as necessary
@@ -312,98 +162,6 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
-def insert_rows(section: SheetRange, sheet: Worksheet) -> None:
-    """insert new rows and format cells"""
-    print(f" in {section.name} Inserting at row {section.first + 1} for {section.add_del} rows")
-    sheet.insert_rows(section.first + 1,section.add_del)
-
-    for col in range(1,16):
-        # work way across sheet getting the format from each column
-        cell = sheet.cell(row=section.first, column=col)
-        style = copy(cell.style)
-        font = copy(cell.font)
-        border = copy(cell.border)
-        number_format = copy(cell.number_format)
-        alignment = copy(cell.alignment)
-
-        # work way down the column formating freshly insterted rows
-        for row in range(section.first + 1, section.end + 1):
-            cell = sheet.cell(row=row, column=col)
-            cell.style = copy(style)
-            cell.font = copy(font)
-            cell.border = copy(border)
-            cell.number_format = copy(number_format)
-            cell.alignment = copy(alignment)
-            if col == 5:
-                cell.value = 'ea'
-            if col == 7:
-                cell.value = f'=D{row}*F{row}'
-            if col == 8:
-                cell.value = 0
-            if col == 9:
-                cell.value = f'=G{row}+H{row}'
-
-def delete_rows(section: SheetRange, sheet: Worksheet) -> None:
-    """delete rows"""
-    print(f" In {section.name} Deleting at row {section.first + 1} for "
-          f"{abs(section.add_del)} rows")
-    sheet.delete_rows(section.first + 1,abs(section.add_del))
-
-def resize_sections(sections: SheetRanges, sheet: Worksheet) -> None:
-    """resize sections of sheet by removig rows or adding rows and formatting
-    them. Will also redo-the formula references in the range and subtotal
-
-    Arguments:
-        section_sizes: SheetRanges -- data on how to resize the sections
-        sheet: Worksheet -- handle to xlsx worksheet
-
-    Returns:
-        None
-    """
-    for section in sections.ranges:
-        if section.add_del < 0:
-            delete_rows(section, sheet)
-        elif section.add_del > 0:
-            insert_rows(section, sheet)
-    # renumber formula
-    # redo subtotal
-    # redo subtotal#2
-
-
-def generate_sections(bom: Bom,
-                      section_sizes: SheetRanges,
-                      sheet: Worksheet) -> None:
-    """Manage filling in sections
-
-    Works by iterating over the sections of the sheet from the last section to
-    the first section. Order matters here.
-    * bom.Sections were built from first section to last section. Needs to be
-      iterated over in reverse order
-    * sheet_ranges was constructed in reverse order
-
-    Arguements:
-    """
-    for section in bom.sections:
-        offset = section_sizes.find(section.name)
-        # generate_section(sheet, section, size, info)
-        print(f"{section.name:24} {offset} {sheet}")
-    print()
-
-def generate_heading(bom: Bom,
-                     file_name_info: FileNameInfo,
-                     sheet: Worksheet) -> None:
-    """Fill out heading at top of sheet
-    Arguments:
-        bom: Bom -- bom with information for all sizes of current model/option
-        name: dict -- parts and full name of current sheet
-
-    Returns:
-        None
-    """
-    sheet["C4"].value = file_name_info['with_options'].title()
-    sheet["C5"].value = file_name_info['size']
-    sheet["C6"].value = bom.beam
-
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
@@ -419,15 +177,12 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     # create parent folder if necessay
     file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
     # caculate the size of each section
-    section_sizes: SheetRanges = compute_section_sizes(filtered_bom.sections)
 
     # open templeate file
-    xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
+    xlsx: Workbook = Workbook()
     sheet: Worksheet = xlsx.active
+    status_msg(f"{len(filtered_bom.sections)} {sheet.dimensions}", 0)
 
-    resize_sections(section_sizes, sheet)
-    # generate_heading(filtered_bom, file_name_info, sheet)
-    # generate_sections(filtered_bom, section_sizes, sheet)
     xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
 
