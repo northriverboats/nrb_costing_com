@@ -6,10 +6,10 @@ Load model data from sheet
 Pass in master_file return data structure
 """
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
+from dataclasses_json import dataclass_json
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
@@ -51,6 +51,12 @@ class Bom:
     biggest: float = field(compare=False)
     sizes: list[float] = field(compare=False)
     sections: list[BomSection] = field(compare=False)
+
+@dataclass_json
+@dataclass(order=True)
+class Boms:
+    """BOM sheets"""
+    boms: dict[str, Bom]
 
 
 def find_excel_files_in_dir(base: Path) -> list[Path]:
@@ -145,15 +151,15 @@ def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
     return bom
 
 def load_boms(bom_folder: Path,
-              resources: dict[str, Resource]) -> dict[str, Bom]:
+              resources: dict[str, Resource]) -> Boms:
     """load all BOM sheets"""
     status_msg('Loading BOMs', 1)
     bom_files: list[Path] = find_excel_files_in_dir(bom_folder)
-    boms: dict[str, Bom] = {}
+    all_boms: Boms = Boms({})
     for bom_file in bom_files:
         bom = load_bom(bom_file, resources)
-        boms[bom.name] = bom
-    return boms
+        all_boms.boms[bom.name] = bom
+    return all_boms
 
 if __name__ == "__main__":
     pass
