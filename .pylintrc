@@ -1,5 +1,7 @@
 [BASIC]
 good-names=
+    k,
+    v,
     i,
     e,
     nl,
