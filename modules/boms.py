@@ -21,9 +21,9 @@ class BomPart:
     # pylint: disable=too-many-instance-attributes
     part: str
     qty: float = field(compare=False)
-    smallest: Optional[float] = field(compare=False)
-    biggest: Optional[float] = field(compare=False)
-    percent: Optional[float] = field(compare=False)  # FT field
+    smallest:float = field(compare=False)
+    biggest: float = field(compare=False)
+    percent: float = field(compare=False)  # FT field
     description: str = field(compare=False)
     uom: str = field(compare=False)
     unitprice: float = field(compare=False)
@@ -56,12 +56,12 @@ def find_excel_files_in_dir(base: Path) -> list[Path]:
 def make_bom_part(row, resources: dict[str, Resource]) -> BomPart:
     """Create bom part from row in spreadsheet"""
     qty: float = float(row[0].value)
-    smallest: Optional[float] = (
-        None if row[1].value is None else float(row[1].value))
-    biggest: Optional[float] = (
-        None if row[2].value is None else float(row[2].value))
-    percent: Optional[float] = (
-        None if row[3].value is None else float(row[3].value))
+    smallest: float = (
+        0.0 if row[1].value is None else float(row[1].value))
+    biggest: float = (
+        0.0 if row[2].value is None else float(row[2].value))
+    percent: float = (
+        0.0 if row[3].value is None else float(row[3].value))
     part: str = str(row[5].value)
 
     # fww resolve at later point, we need to throw errors on fail
