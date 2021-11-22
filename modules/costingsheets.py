@@ -181,7 +181,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     # open templeate file
     xlsx: Workbook = Workbook()
     sheet: Worksheet = xlsx.active
-    status_msg(f"{len(filtered_bom.sections)} {sheet.dimensions}", 0)
+    status_msg(f"{len(filtered_bom.sections)} {sheet.row_dimensions}", 0)
 
     xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
