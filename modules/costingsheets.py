@@ -37,7 +37,7 @@ class SheetRange:
         self.offset = 0
         self.parts = 0
         self.add_del = 0
-        self.lines = (self.end +1) - self.first
+        self.lines = self.end + 1 - self.first
 
 @dataclass
 class SheetRanges:
@@ -69,25 +69,25 @@ class SheetRanges:
                 return col + str(row + rows.offset)
         return reference
 
-    def adjust(self, row: int, offset: int) -> None:
+    def adjust(self, parts_tally: list[int]) -> None:
         """adjust row offsets
         Arguments:
-            row: int -- starting row to adjust from
-            offset: int -- offset to add to those rows
+            parts_tally: list[int] -- how many parts each section has
         """
-        old_offset = 0
-        for rows in self.ranges:
-            if row > rows.end:
-                continue
-            if not rows.start <= row <= rows.end:
-                rows.start += offset
-            rows.first += offset
-            rows.end += offset
-            rows.subtotal += offset
-            rows.lines += offset
-            rows.add_del = offset
-            rows.offset += old_offset
-            old_offset = offset
+        offset: int = 0
+        for section, tally in zip(self.ranges, parts_tally):
+            if tally - section.lines < 0:
+                section.add_del = -(min(section.lines - tally,
+                                        section.max_delete))
+            else:
+                section.add_del = tally - section.lines
+            section.parts = tally
+            section.offset = offset
+            section.first += offset
+            offset += section.add_del
+            section.end += offset
+            section.subtotal += offset
+            section.lines = section.end + 1 - section.first
 
     def offset_formula(self, formula: str) -> str:
         """compute formula offsets-- will not handle named ranges
@@ -107,6 +107,7 @@ class SheetRanges:
                 result += reference + char
                 reference = ""
                 continue
+
             if char not in "(*/+-):":
                 reference += char
                 continue
@@ -138,7 +139,8 @@ ranges.ranges.append(SheetRange('UNUSED', 39, 49, 70, 72, 0))
 ranges.ranges.append(SheetRange('OUTFITTING',71, 77, 139, 141, 68))
 ranges.ranges.append(SheetRange('BIG TICKET ITEMS', 140, 148, 149, 151, 0))
 ranges.ranges.append(SheetRange('OUTBOARD MOTORS', 150, 156, 158, 160, 0))
-ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170, 0))
+ranges.ranges.append(SheetRange('INBOARD MOTORS & JETS', 159, 165, 168, 170,
+                                0))
 ranges.ranges.append(SheetRange('TRAILER', 169, 175, 175, 177, 0))
 ranges.ranges.append(SheetRange('TOTALS', 176, 177, 235, 235, 0))
 
@@ -263,28 +265,71 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
     return bom_merge(bom1, bom2)
 
 
-def compute_section_sizes(bom_sections: list[BomSection],
-                          size: float) -> SheetRanges:
+def compute_section_sizes(bom_sections: list[BomSection],) -> SheetRanges:
     """compute size of sections and appropriate offsets
-    insert 0 for UNUSED and TOTALS sections part counts not found on BOMs
+    * insert blank sections for UNUSED and TOTALS so that list[BomSections] and
 
     Arguements:
         bom_sections: list[BomSection] -- parts sections of BOM
-        size: float -- filter parts to add by size of boat
 
     Returns:
         SheetRanges -- SheetRanges with oupdated section sizes
     """
-    parts = [section.parts for section in bom.sections]
-    parts = parts[:2] + [0] + parts[2:] + parts[0]
+    # list[BomSection] .name: str .parts: dict[BomPart]
+    parts_tally: list[int] = [
+        len(section.parts)
+        for section in bom_sections]
+    parts_tally = parts_tally[:2] + [0] + parts_tally[2:] + [0]
     offsets: SheetRanges = deepcopy(ranges)
-    return offsets.adjust[parts]
+    pprint(offsets.ranges)
+    offsets.adjust(parts_tally)
+    return offsets
+
+
+def filter_bom(original_bom: Bom, size: float) -> Bom:
+    """fitler out parts based on size if necessary
+    also correcting costs as necessary
+
+    Arguments:
+        bom: Bom -- Bom with parts sections
+        size: float -- size of boat to filter for
+
+    Returns:
+        Bom -- Deepcopy Bom with correct parts
+    """
+    bom: Bom = deepcopy(original_bom)
+    for section in bom.sections:
+        section.parts = {
+            k:v
+            for k, v in section.parts.items()
+            if (v.smallest == 0 or size >= v.smallest) and
+            (v.biggest == 0 or size <= v.biggest)
+        }
+        for v in section.parts.values():
+            if v.percent:
+                v.unitprice = size / v.percent * v.unitprice
+    return bom
 
 
 # WRITING SHEET FUNCTIONS =====================================================
+def resize_sections(section_sizes: SheetRanges, sheet: Worksheet) -> None:
+    """resize sections of sheet by removig rows or adding rows and formatting
+    them. Will also redo-the formula references in the range and subtotal
+
+    Arguments:
+        section_sizes: SheetRanges -- data on how to resize the sections
+        sheet: Worksheet -- handle to xlsx worksheet
+
+    Returns:
+        None
+    """
+    for section_size in section_sizes.ranges:
+        print(f"{section_size.name}  -- {section_size.add_del}")
+    print(sheet)
+
+
 def generate_sections(bom: Bom,
                       section_sizes: SheetRanges,
-                      size: float,
                       sheet: Worksheet) -> None:
     """Manage filling in sections
 
@@ -299,7 +344,7 @@ def generate_sections(bom: Bom,
     for section in bom.sections:
         offset = section_sizes.find(section.name)
         # generate_section(sheet, section, size, info)
-        print(f"{size:2.0f} {section.name:24} {offset}")
+        print(f"{section.name:24} {offset}")
     print()
 
 def generate_heading(bom: Bom,
@@ -317,13 +362,11 @@ def generate_heading(bom: Bom,
     sheet["C5"].value = file_name_info['size']
     sheet["C6"].value = bom.beam
 
-def generate_sheet(bom: Bom,
-                   file_name_info: FileNameInfo,
-                   size: float) -> None:
+def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
     Arguments:
-        bom: Bom -- bom with information for all sizes of current model/option
+        filterd_bom: Bom -- bom with only parts fr the current size
         name: dict -- parts and full name of current sheet
         file_name: Path -- filename with full pathing to xls sheet to be
                            created
@@ -333,40 +376,26 @@ def generate_sheet(bom: Bom,
     """
     # create parent folder if necessay
     file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
-    section_sizes: SheetRanges = compute_section_sizes(bom.sections)
+    # caculate the size of each section
+    section_sizes: SheetRanges = compute_section_sizes(filtered_bom.sections)
+
     # open templeate file
-    xlsx: Workbook = load_workbook(
-        TEMPLATE_FILE.as_posix(), data_only=False)
+    xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
 
-    generate_heading(bom, file_name_info, sheet)
-    generate_sections(bom, section_sizes, size, sheet)
-    status_msg(f"      saved {file_name_info['file_name']}", 2)
+    # resize_sections(section_sizes, sheet)
+    # generate_heading(filtered_bom, file_name_info, sheet)
+    # generate_sections(filtered_bom, section_sizes, sheet)
     xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
-def filter_bom(original_bom: Bom, size: float) -> Bom:
-    """fitler out parts based on size if necessary
-    also correcting costs as necessary
-
-    Arguments:
-        bom: Bom -- Bom with parts sections
-        size: float -- size of boat to filter for
-
-    Returns:
-        Bom -- Deepcopy Bom with correct parts
-    """
-    bom = deepcopy(bom)
-    for section in bom.sections:
-        section.parts = [
-            part
-            for part in section.parts
-            if (part.smallest and size >= part.smallest) or
-               (part.biggest and size <= part.biggest)]
-
 def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     """"cycle through each size to create sheets
+    * build the filname and size as as a text name
+    * filter out parts that are not needed for this size of boat and correct
+      costing for size of boat if necessay
+    * computing section sizes is done in genereate_sheet
 
     Arguments:
         model: Model -- Model of boat to process
@@ -379,8 +408,8 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     for size in bom.sizes:
         file_name_info: FileNameInfo = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
-        filtered_bom = filter_bom(bom)
-        generate_sheet(bom, file_name_info, size)
+        filtered_bom = filter_bom(bom, size)
+        generate_sheet(filtered_bom, file_name_info)
 
 
 def junk():
@@ -435,8 +464,8 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         # merge "model" sheet 1 Bom with "option" sheet 2 Bom
         bom: Bom = get_bom(boms, models[key])
         generate_sheets_for_model(models[key], bom)
-        for section in bom.sections:
-            print(f"{section.name:25} {len(section.parts)}")
+        # for section in bom.sections:
+        #   print(f"{section.name:25} {len(section.parts)}")
 
 if __name__ == "__main__":
     pass
