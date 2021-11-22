@@ -21,6 +21,7 @@ from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
 @dataclass
 class SheetRange:
     """Range for caclating formula offsets"""
+    # pylint: disable=too-many-instance-attributes
     name: str   # name of range
     start: int  # start area for computing offsets
     first: int  # first row with formulas in it
@@ -281,7 +282,6 @@ def compute_section_sizes(bom_sections: list[BomSection],) -> SheetRanges:
         for section in bom_sections]
     parts_tally = parts_tally[:2] + [0] + parts_tally[2:] + [0]
     offsets: SheetRanges = deepcopy(ranges)
-    pprint(offsets.ranges)
     offsets.adjust(parts_tally)
     return offsets
 
@@ -312,7 +312,44 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
-def resize_sections(section_sizes: SheetRanges, sheet: Worksheet) -> None:
+def insert_rows(section: SheetRange, sheet: Worksheet) -> None:
+    """insert new rows and format cells"""
+    print(f" in {section.name} Inserting at row {section.first + 1} for {section.add_del} rows")
+    sheet.insert_rows(section.first + 1,section.add_del)
+
+    for col in range(1,16):
+        # work way across sheet getting the format from each column
+        cell = sheet.cell(row=section.first, column=col)
+        style = copy(cell.style)
+        font = copy(cell.font)
+        border = copy(cell.border)
+        number_format = copy(cell.number_format)
+        alignment = copy(cell.alignment)
+
+        # work way down the column formating freshly insterted rows
+        for row in range(section.first + 1, section.end + 1):
+            cell = sheet.cell(row=row, column=col)
+            cell.style = copy(style)
+            cell.font = copy(font)
+            cell.border = copy(border)
+            cell.number_format = copy(number_format)
+            cell.alignment = copy(alignment)
+            if col == 5:
+                cell.value = 'ea'
+            if col == 7:
+                cell.value = f'=D{row}*F{row}'
+            if col == 8:
+                cell.value = 0
+            if col == 9:
+                cell.value = f'=G{row}+H{row}'
+
+def delete_rows(section: SheetRange, sheet: Worksheet) -> None:
+    """delete rows"""
+    print(f" In {section.name} Deleting at row {section.first + 1} for "
+          f"{abs(section.add_del)} rows")
+    sheet.delete_rows(section.first + 1,abs(section.add_del))
+
+def resize_sections(sections: SheetRanges, sheet: Worksheet) -> None:
     """resize sections of sheet by removig rows or adding rows and formatting
     them. Will also redo-the formula references in the range and subtotal
 
@@ -323,9 +360,14 @@ def resize_sections(section_sizes: SheetRanges, sheet: Worksheet) -> None:
     Returns:
         None
     """
-    for section_size in section_sizes.ranges:
-        print(f"{section_size.name}  -- {section_size.add_del}")
-    print(sheet)
+    for section in sections.ranges:
+        if section.add_del < 0:
+            delete_rows(section, sheet)
+        elif section.add_del > 0:
+            insert_rows(section, sheet)
+    # renumber formula
+    # redo subtotal
+    # redo subtotal#2
 
 
 def generate_sections(bom: Bom,
@@ -344,7 +386,7 @@ def generate_sections(bom: Bom,
     for section in bom.sections:
         offset = section_sizes.find(section.name)
         # generate_section(sheet, section, size, info)
-        print(f"{section.name:24} {offset}")
+        print(f"{section.name:24} {offset} {sheet}")
     print()
 
 def generate_heading(bom: Bom,
@@ -383,7 +425,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
     sheet: Worksheet = xlsx.active
 
-    # resize_sections(section_sizes, sheet)
+    resize_sections(section_sizes, sheet)
     # generate_heading(filtered_bom, file_name_info, sheet)
     # generate_sections(filtered_bom, section_sizes, sheet)
     xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
@@ -410,39 +452,6 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
         status_msg(f"    {file_name_info['file_name']}", 2)
         filtered_bom = filter_bom(bom, size)
         generate_sheet(filtered_bom, file_name_info)
-
-
-def junk():
-    """Temp place for insert and format cells in sheet"""
-    xlsx: Workbook = load_workbook(TEMPLATE_FILE.as_posix(), data_only=False)
-    sheet: Worksheet = xlsx.active
-    sheet.insert_rows(78,5)
-
-    for col in range(1,16):
-        cell = sheet.cell(row=77, column=col)
-        style = copy(cell.style)
-        font = copy(cell.font)
-        border = copy(cell.border)
-        number_format = copy(cell.number_format)
-        alignment = copy(cell.alignment)
-
-        for row in range(78,83):
-            cell = sheet.cell(row=row, column=col)
-            cell.style = copy(style)
-            cell.font = copy(font)
-            cell.border = copy(border)
-            cell.number_format = copy(number_format)
-            cell.alignment = copy(alignment)
-            if col == 5:
-                cell.value = 'ea'
-            if col == 7:
-                cell.value = f'=D{row}*F{row}'
-            if col == 8:
-                cell.value = 0
-            if col == 9:
-                cell.value = f'=G{row}+H{row}'
-
-    xlsx.save(os.path.abspath(str('/home/fwarren/test.xlsx')))
 
 
 def generate_sheets_for_all_models(models: dict[str, Model],
