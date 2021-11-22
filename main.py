@@ -19,16 +19,12 @@ CRITICAL to log file, screen and email
 import sys
 import traceback
 import click
-from modules.boms import load_boms, Bom
-from modules.consumables import load_consumables, Consumable
+from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
-from modules.hourlyrates import load_hourly_rates, HourlyRate
-from modules.markups import load_mark_ups, MarkUp
-from modules.models import load_models, Model
-from modules.resources import load_resources, Resource
+from modules.models import load_models, Models
+from modules.resources import load_resources, Resources
 from modules.utilities import (enable_logging, logger, options, status_msg,
-                               BOATS_FOLDER, CONSUMABLES_FILE, MARK_UPS_FILE,
-                               HOURLY_RATES_FILE, MODELS_FILE, MAIL_SERVER,
+                               BOATS_FOLDER, MODELS_FILE, MAIL_SERVER,
                                MAIL_FROM, MAIL_TO, RESOURCES_FOLDER,)
 
 #
@@ -41,29 +37,18 @@ def main(verbose: int) -> None:
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
     try:
-        if 1 > 2:
-            # should not need to be used if TEMPLATE_FILE is updated
-            consumables: dict[str, Consumable] = load_consumables(
-                CONSUMABLES_FILE)
-            status_msg(f"{len(consumables)} consumalbes loaded", 0)
-            hourly_rates: dict[str, HourlyRate] = load_hourly_rates(
-                HOURLY_RATES_FILE)
-            status_msg(f"{len(hourly_rates)} hourly rates loaded", 0)
-            mark_ups: dict[str, MarkUp] = load_mark_ups(MARK_UPS_FILE)
-            status_msg(f"{len(mark_ups)} mark ups loaded", 0)
-
         # load information from spreadsheets
-        models: dict[str, Model] = load_models(MODELS_FILE)
-        status_msg(f"{len(models)} models loaded", 0)
+        all_models: Models = load_models(MODELS_FILE)
+        status_msg(f"{len(all_models.models)} models loaded", 0)
 
         # resources is only needed to build BomPart
-        resources: dict[str, Resource] = load_resources(RESOURCES_FOLDER)
-        status_msg(f"{len(resources)} resources loaded", 0)
+        all_resources: Resources = load_resources(RESOURCES_FOLDER)
+        status_msg(f"{len(all_resources.resources)} resources loaded", 0)
 
         # build BOM information
-        boms: dict[str, Bom] = load_boms(BOATS_FOLDER, resources)
-        status_msg(f"{len(boms)} boms loaded", 0)
-        generate_sheets_for_all_models(models, boms)
+        all_boms: Boms = load_boms(BOATS_FOLDER, all_resources.resources)
+        status_msg(f"{len(all_boms.boms)} boms loaded", 0)
+        generate_sheets_for_all_models(all_models.models, all_boms.boms)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
