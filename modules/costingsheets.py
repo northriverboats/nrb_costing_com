@@ -25,7 +25,7 @@ class Xlsx():
         None
     """
     workbook: Any
-    # bom: Bom
+    bom: Bom
     sheet: Any = field(default=None)
     styles: dict = field(init=False, default_factory=dict)
     worksheets: dict = field(init=False, default_factory=dict)
@@ -44,7 +44,10 @@ class Xlsx():
         Returns:
             None
         """
-        worksheet = self.workbook.add_worksheet(name)
+        if name:
+            worksheet = self.workbook.add_worksheet(name)
+        else:
+            worksheet = self.workbook.add_worksheet()
         self.worksheets[worksheet.get_name()] = worksheet
 
     def set_active(self, name):
@@ -224,7 +227,10 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
 
     # create new workbook / xlsx file
     with Workbook(file_name_info['file_name']) as workbook:
-        sheet = workbook.add_sheet()
+        xlsx: Xlsx = Xlsx(workbook, filtered_bom)
+        xlsx.add_worksheet()
+        xlsx.set_active('Sheet1')
+
 
 
 
