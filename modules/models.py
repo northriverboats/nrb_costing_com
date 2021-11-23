@@ -7,23 +7,21 @@ Pass in master_file return data structure
 """
 from dataclasses import dataclass
 from pathlib import Path
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 from openpyxl  import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from .utilities import status_msg
 
-@dataclass_json
 @dataclass
-class Model:
+class Model(DataClassJsonMixin):
     """Information on which sheets make a boat costing sheet"""
     sheet1: str
     sheet2: str
     folder: str
 
-@dataclass_json
 @dataclass
-class Models:
+class Models(DataClassJsonMixin):
     """Dictionary of all models"""
     models: dict[str, Model]
 

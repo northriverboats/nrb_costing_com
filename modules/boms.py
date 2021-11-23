@@ -9,16 +9,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.workbook.workbook import Workbook
 from .resources import Resource
 from .utilities import status_msg
 
-@dataclass_json
 @dataclass(order=True)
-class BomPart:
+class BomPart(DataClassJsonMixin):
     """Part Information from Section of a BOM Parts Sheet"""
     # pylint: disable=too-many-instance-attributes
     part: str
@@ -34,16 +33,14 @@ class BomPart:
     vendor: str = field(compare=False)
     updated: datetime = field(compare=False)
 
-@dataclass_json
 @dataclass(order=True)
-class BomSection:
+class BomSection(DataClassJsonMixin):
     """Group of BOM Parts"""
     name: str
     parts: dict[str, BomPart] = field(compare=False)
 
-@dataclass_json
 @dataclass(order=True)
-class Bom:
+class Bom(DataClassJsonMixin):
     """BOM sheet"""
     name: str
     beam: str = field(compare=False)
@@ -52,9 +49,8 @@ class Bom:
     sizes: list[float] = field(compare=False)
     sections: list[BomSection] = field(compare=False)
 
-@dataclass_json
 @dataclass(order=True)
-class Boms:
+class Boms(DataClassJsonMixin):
     """BOM sheets"""
     boms: dict[str, Bom]
 
