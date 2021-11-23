@@ -22,6 +22,7 @@ from pathlib import Path
 import click
 from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
+from modules.databases import load_from_database, save_to_database
 from modules.models import load_models, Models
 from modules.resources import load_resources, Resources
 from modules.utilities import (enable_logging, logger, options, status_msg,
@@ -45,6 +46,9 @@ def main(load: str, save: str, verbose: int) -> None:
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
     load_file: Path = Path()
     save_file: Path = Path()
+    boms: Boms
+    models: Models
+    resources: Resources
     if load == "DATABASE":
         load = str(DATABASE.resolve())
     if save == "DATABASE":
@@ -52,23 +56,23 @@ def main(load: str, save: str, verbose: int) -> None:
     try:
         if load:
             load_file = Path(load)
-            print(f"future home of loading: {load_file.resolve()}")
+            models, resources, boms = load_from_database(load_file)
         else:
             # load information from spreadsheets
-            all_models: Models = load_models(MODELS_FILE)
-            status_msg(f"{len(all_models.models)} models loaded", 0)
+            models = load_models(MODELS_FILE)
+            status_msg(f"{len(models.models)} models loaded", 0)
 
             # resources is only needed to build BomPart
-            all_resources: Resources = load_resources(RESOURCES_FOLDER)
-            status_msg(f"{len(all_resources.resources)} resources loaded", 0)
+            resources = load_resources(RESOURCES_FOLDER)
+            status_msg(f"{len(resources.resources)} resources loaded", 0)
 
             # build BOM information
-            all_boms: Boms = load_boms(BOATS_FOLDER, all_resources.resources)
-            status_msg(f"{len(all_boms.boms)} boms loaded", 0)
-        # generate_sheets_for_all_models(all_models.models, all_boms.boms)
+            boms = load_boms(BOATS_FOLDER, resources.resources)
+            status_msg(f"{len(boms.boms)} boms loaded", 0)
+        generate_sheets_for_all_models(models.models, boms.boms)
         if save:
             save_file = Path(save)
-            print(f"future home of saving: {save_file.resolve()}")
+            save_to_database(save_file, models, resources, boms)
     except Exception:
         logger.critical(traceback.format_exc())
         raise
