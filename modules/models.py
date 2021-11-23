@@ -7,6 +7,7 @@ Pass in master_file return data structure
 """
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from dataclasses_json import DataClassJsonMixin
 from openpyxl  import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
@@ -17,7 +18,7 @@ from .utilities import status_msg
 class Model(DataClassJsonMixin):
     """Information on which sheets make a boat costing sheet"""
     sheet1: str
-    sheet2: str
+    sheet2: Optional[str]
     folder: str
 
 @dataclass
