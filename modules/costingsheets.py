@@ -4,17 +4,61 @@
 Generate Costing Sheets
 """
 from copy import deepcopy
-# from datetime import datetime
-# from dataclasses import dataclass, field
-from typing import TypedDict
+from dataclasses import dataclass, field
+from typing import Any, Optional, TypedDict
 from pathlib import Path
-import os
-from openpyxl import Workbook
-from openpyxl.worksheet.worksheet import Worksheet
-# from openpyxl.workbook.workbook import Workbook
+from xlsxwriter import Workbook # type: ignore
 from .boms import Bom, BomPart
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER)
+
+
+# DATA CLASSES ================================================================
+@dataclass
+class Xlsx():
+    """Bundle up xlsxwriter information
+
+    Arguments:
+        workbook: obj -- xlswriter workbook class object
+
+    Returns:
+        None
+    """
+    workbook: Any
+    # bom: Bom
+    sheet: Any = field(default=None)
+    styles: dict = field(init=False, default_factory=dict)
+    worksheets: dict = field(init=False, default_factory=dict)
+
+    def add_worksheet(self, name: Optional[str] = None) -> None:
+        """add new sheet to workbook
+
+        Arguments:
+            name: str -- name of worksheet, if None system will name
+
+        Raise:
+            uplicateWorksheetName -– if a duplicate worksheet name is used.
+            InvalidWorksheetName -– if an invalid worksheet name is used.
+            ReservedWorksheetName -– if a reserved worksheet name is used.
+
+        Returns:
+            None
+        """
+        worksheet = self.workbook.add_worksheet(name)
+        self.worksheets[worksheet.get_name()] = worksheet
+
+    def set_active(self, name):
+        """set active worksheet"""
+        self.sheet = self.worksheets[name]
+
+    def write(self, *args):
+        """write value to sheet"""
+        return self.sheet.write(*args)
+
+    def add_format(self, name, *args):
+        """add new formatter"""
+        style = self.sheet.add_format(*args)
+        self.styles[name] = style
 
 
 
@@ -178,12 +222,10 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
     # caculate the size of each section
 
-    # open templeate file
-    xlsx: Workbook = Workbook()
-    sheet: Worksheet = xlsx.active
-    status_msg(f"{len(filtered_bom.sections)} {sheet.row_dimensions}", 0)
+    # create new workbook / xlsx file
+    with Workbook(file_name_info['file_name']) as workbook:
+        sheet = workbook.add_sheet()
 
-    xlsx.save(os.path.abspath(str(file_name_info['file_name'])))
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
