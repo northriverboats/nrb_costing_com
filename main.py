@@ -19,36 +19,56 @@ CRITICAL to log file, screen and email
 import sys
 import traceback
 import click
+from pathlib import Path
 from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
 from modules.models import load_models, Models
 from modules.resources import load_resources, Resources
 from modules.utilities import (enable_logging, logger, options, status_msg,
-                               BOATS_FOLDER, MODELS_FILE, MAIL_SERVER,
-                               MAIL_FROM, MAIL_TO, RESOURCES_FOLDER,)
+                               BOATS_FOLDER, DATABASE, MODELS_FILE,
+                               MAIL_SERVER, MAIL_FROM, MAIL_TO,
+                               RESOURCES_FOLDER,)
 
 #
 # ==================== Main Entry Point
 #
 @click.command()
-@click.option('-v', '--verbose', count=True)
-def main(verbose: int) -> None:
+@click.option('-l', '--load', is_flag=False, flag_value="DATABASE",
+              default="", help="Load data from sqlite database")
+@click.option('-s', '--save', is_flag=False, flag_value="DATABASE",
+              default="", help="Save data to sqlite database")
+@click.option('-v', '--verbose', count=True,
+              help="Increase verbosity")
+def main(load: str, save: str, verbose: int) -> None:
     """ main program entry point """
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
+    load_file: Path = Path()
+    save_file: Path = Path()
+    if load == "DATABASE":
+        load = DATABASE
+    if save == "DATABASE":
+        save = DATABASE
     try:
-        # load information from spreadsheets
-        all_models: Models = load_models(MODELS_FILE)
-        status_msg(f"{len(all_models.models)} models loaded", 0)
+        if load:
+            load_file = Path(load)
+            print(f"future home of loading: {load_file.resolve()}")
+        else:
+            # load information from spreadsheets
+            all_models: Models = load_models(MODELS_FILE)
+            status_msg(f"{len(all_models.models)} models loaded", 0)
 
-        # resources is only needed to build BomPart
-        all_resources: Resources = load_resources(RESOURCES_FOLDER)
-        status_msg(f"{len(all_resources.resources)} resources loaded", 0)
+            # resources is only needed to build BomPart
+            all_resources: Resources = load_resources(RESOURCES_FOLDER)
+            status_msg(f"{len(all_resources.resources)} resources loaded", 0)
 
-        # build BOM information
-        all_boms: Boms = load_boms(BOATS_FOLDER, all_resources.resources)
-        status_msg(f"{len(all_boms.boms)} boms loaded", 0)
-        generate_sheets_for_all_models(all_models.models, all_boms.boms)
+            # build BOM information
+            all_boms: Boms = load_boms(BOATS_FOLDER, all_resources.resources)
+            status_msg(f"{len(all_boms.boms)} boms loaded", 0)
+        # generate_sheets_for_all_models(all_models.models, all_boms.boms)
+        if save:
+            save_file = Path(save)
+            print(f"future home of saving: {save_file.resolve()}")
     except Exception:
         logger.critical(traceback.format_exc())
         raise
