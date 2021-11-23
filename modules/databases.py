@@ -87,7 +87,7 @@ def load_from_database(db_file: Path)-> tuple[Models, Resources, Boms]:
         # pylint: disable=no-member
         models = Models.from_json(deserialized(cursor, 'models'))
         resources = Resources.from_json(deserialized(cursor, 'resources'))
-        boms = Boms.from_json(deserialized(cursor, 'models'))
+        boms = Boms.from_json(deserialized(cursor, 'boms'))
     print()
     return models, resources, boms
 
