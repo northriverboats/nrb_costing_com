@@ -82,7 +82,7 @@ def deserialized(cursor: Cursor, name: str) -> Any:
 
 def load_from_database(db_file: Path)-> tuple[Models, Resources, Boms]:
     """read data from database into objects"""
-    status_msg("Reading Data from {str(db_file.resolve())}", 1)
+    status_msg(f"Reading Data from {str(db_file.resolve())}", 1)
     with dbopen(db_file) as cursor:
         # pylint: disable=no-member
         models = Models.from_json(deserialized(cursor, 'models'))
@@ -105,7 +105,7 @@ def save_to_database(db_file: Path,
     Return:
         None
     """
-    status_msg("Saving Data to {str(db_file.resolve())}", 1)
+    status_msg(f"Saving Data to {str(db_file.resolve())}", 1)
     with dbopen(db_file) as cursor:
         create_schema(cursor)
         serialize(cursor, 'models', models)
