@@ -8,6 +8,7 @@ Pass in master_file return data structure
 from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 from dataclasses_json import DataClassJsonMixin
 from openpyxl import load_workbook # pylint: disable=import-error
 from openpyxl.worksheet.worksheet import Worksheet
@@ -21,13 +22,13 @@ class Resource(DataClassJsonMixin):
     # pylint: disable=too-many-instance-attributes
     # Eight is reasonable in this case.
     oempart: str
-    description: str = field(compare=False)
+    description: Optional[str] = field(compare=False)
     uom: str = field(compare=False)
     unitprice: float = field(compare=False)
     oem: str = field(compare=False)
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
-    updated: datetime = field(compare=False)
+    updated: Optional[datetime] = field(compare=False)
 
 @dataclass
 class Resources(DataClassJsonMixin):
