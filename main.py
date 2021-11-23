@@ -18,8 +18,8 @@ CRITICAL to log file, screen and email
 """
 import sys
 import traceback
-import click
 from pathlib import Path
+import click
 from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
 from modules.models import load_models, Models
@@ -46,9 +46,9 @@ def main(load: str, save: str, verbose: int) -> None:
     load_file: Path = Path()
     save_file: Path = Path()
     if load == "DATABASE":
-        load = DATABASE
+        load = str(DATABASE.resolve())
     if save == "DATABASE":
-        save = DATABASE
+        save = str(DATABASE.resolve())
     try:
         if load:
             load_file = Path(load)
