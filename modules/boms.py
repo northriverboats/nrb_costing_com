@@ -25,13 +25,13 @@ class BomPart(DataClassJsonMixin):
     smallest:float = field(compare=False)
     biggest: float = field(compare=False)
     percent: float = field(compare=False)  # FT field
-    description: str = field(compare=False)
+    description: Optional[str] = field(compare=False)
     uom: str = field(compare=False)
     unitprice: float = field(compare=False)
     oem: str = field(compare=False)
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
-    updated: datetime = field(compare=False)
+    updated: Optional[datetime] = field(compare=False)
 
 @dataclass(order=True)
 class BomSection(DataClassJsonMixin):
