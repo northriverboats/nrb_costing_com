@@ -12,6 +12,19 @@ from .boms import Bom, BomPart
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER)
 
+COLUMNS = [
+    {'columns': 'A:A', 'width': 17.40, 'style': 'generic1'},
+    {'columns': 'B:B', 'width': 18.10, 'style': 'generic1'},
+    {'columns': 'C:C', 'width': 44.56, 'style': 'generic1'},
+    {'columns': 'D:D', 'width': 15.29, 'style': 'generic1'},
+    {'columns': 'E:E', 'width': 4.86, 'style': 'generic1'},
+    {'columns': 'F:F', 'width': 13.14, 'style': 'generic1'},
+    {'columns': 'G:G', 'width': 12.86, 'style': 'generic1'},
+    {'columns': 'H:H', 'width': 9.86, 'style': 'generic1'},
+    {'columns': 'I:I', 'width': 17.00, 'style': 'generic1'},
+    {'columns': 'J:T', 'width': 13.00, 'style': 'generic1'},
+]
+
 
 # DATA CLASSES ================================================================
 @dataclass
@@ -60,7 +73,7 @@ class Xlsx():
 
     def add_format(self, name, *args):
         """add new formatter"""
-        style = self.sheet.add_format(*args)
+        style = self.workbook.add_format(*args)
         self.styles[name] = style
 
 
@@ -120,7 +133,6 @@ def ordered_parts(parts: dict[str, BomPart], name: str) -> list[str]:
     if name != 'OUTFITTING':
         return sorted(parts)
     return sorted(parts, key=lambda k: (parts[k].vendor, k))
-
 
 def bom_merge_section(target_parts: dict[str, BomPart],
                       source_parts: dict[str, BomPart]) -> None:
@@ -209,6 +221,29 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
+def create_formats(xlsx) -> None:
+    """create necessary cell formatting"""
+    xlsx.add_format('generic1', {
+        'font_name': 'Arial',
+        'font_size': 10})
+
+    xlsx.add_format('headingCustomer1', {
+        'font_name': 'Arial',
+        'font_size': 18,
+        'bold': True})
+
+    xlsx.add_format('headingCustomer2', {
+        'font_name': 'Arial',
+        'font_size': 20,
+        'bold': True,
+        'pattern': 1,
+        'bg_color': 'yellow'})
+
+def set_column_widths(xlsx) -> None:
+    """set column width and default style"""
+    for col in COLUMNS:
+        xlsx.sheet.set_column(col['columns'], col['width'])
+
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
@@ -230,8 +265,18 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx: Xlsx = Xlsx(workbook, filtered_bom)
         xlsx.add_worksheet()
         xlsx.set_active('Sheet1')
-
-
+        create_formats(xlsx)
+        set_column_widths(xlsx)
+        xlsx.sheet.set_row(1, 26.25)
+        xlsx.write('B2', 'Customer:', xlsx.styles['headingCustomer1'])
+        xlsx.write('C2', '', xlsx.styles['headingCustomer2'])
+        # write custom header
+        # create necessary formats
+        # dump formats
+        # setup column defaults
+        # write header
+        # write sections
+        # write footer
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
