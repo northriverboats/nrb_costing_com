@@ -92,11 +92,11 @@ class Xlsx():
         """apply column formatting"""
         for col in self.columns:
             if col.style:
-                self.sheet.set_column(col.columns,
-                                      col.width,
-                                      self.styles[col.style])
+                self.sheet.set_column_pixels(col.columns,
+                                             col.width,
+                                             self.styles[col.style])
             else:
-                self.sheet.set_column(col.columns, col.width)
+                self.sheet.set_column_pixels(col.columns, col.width)
 
     def load_formats(self, styles):
         """ load styles from a list of  Format objects"""
@@ -106,17 +106,17 @@ class Xlsx():
 
 
 # SHEET DATA ==================================================================
-COLUMNS = [
-    Columns('A:A', 17.40, 'generic1'),
-    Columns('B:B', 18.30, 'generic1'),
-    Columns('C:C', 34.92, 'generic1'),
-    Columns('D:D', 11.40, 'generic1'),
-    Columns('E:E', 4.86, 'generic1'),
-    Columns('F:F', 13.14, 'generic1'),
-    Columns('G:G', 12.86, 'generic1'),
-    Columns('H:H', 9.86, 'generic1'),
-    Columns('I:I', 17.00, 'generic1'),
-    Columns('J:T', 6.36, 'generic1'),
+COLUMNS = [                             # POINTS   PIXELS
+    Columns('A:A', 126.50, 'generic1'), # 126.50   100.80
+    Columns('B:B', 132, 'generic1'),    # 132.00   104.75
+    Columns('C:C', 314.00, 'generic1'), # 314.00   249.20
+    Columns('D:D', 106.50, 'generic1'), # 106.50    84.95
+    Columns('E:E', 34, 'generic1'),     #  34.00    27.00
+    Columns('F:F', 92, 'generic1'),     #  92.00    73.00
+    Columns('G:G', 90, 'generic1'),     #  90.00    71.45
+    Columns('H:H', 69, 'generic1'),     #  69.00    54.75
+    Columns('I:I', 119, 'generic1'),    # 119.00    94.47
+    Columns('J:T', 62, 'generic1'),     #  62.00    49.20
 ]
 
 STYLES = [
@@ -132,6 +132,12 @@ STYLES = [
                                 'bold': True,
                                 'pattern': 1,
                                 'bg_color': 'yellow'}),
+    Format('bgYellow', {'pattern':1, 'bg_color': 'yellow'}),
+    Format('bgSilver', {'pattern':1, 'bg_color': 'silver'}),
+    Format('bgLime', {'pattern':1, 'bg_color': 'lime'}),
+    Format('bgPurple', {'pattern':1, 'bg_color': '#CC99FF'}),
+    Format('bgCyan', {'pattern':1, 'bg_color': '#99CCFF'}),
+    Format('bgOrange', {'pattern':1, 'bg_color': 'FF9900'}),
 ]
 
 
@@ -281,6 +287,21 @@ def properties(xlsx):
         'comments': 'Created with Python and XlsxWriter',
     }
 
+def generate_header(xlsx: Xlsx) -> None:
+    """generate header on costing sheet"""
+
+    xlsx.write('B2', 'Customer:', xlsx.styles['headingCustomer1'])
+    xlsx.write('C2', None, xlsx.styles['headingCustomer2'])
+    xlsx.write('G2', 'Salesperson:')
+    xlsx.write('H2', None, xlsx.styles['bgYellow'])
+    xlsx.write('B4', 'Boat Model:')
+    xlsx.write('C4', 'Length:')
+    xlsx.write('B5', 'Beam:')
+    xlsx.write('C5', '', xlsx.styles['bgYellow'])
+    xlsx.write('B6', '', xlsx.styles['bgYellow'])
+    xlsx.write('C6', '', xlsx.styles['bgYellow'])
+
+
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
@@ -300,6 +321,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     # create new workbook / xlsx file
     with Workbook(file_name_info['file_name']) as workbook:
         xlsx: Xlsx = Xlsx(workbook, filtered_bom)
+
         xlsx.file_name_info = file_name_info
         xlsx.workbook.set_properties(properties(xlsx))
         xlsx.add_worksheet()
@@ -307,14 +329,8 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.load_formats(STYLES)
         xlsx.columns = COLUMNS
         xlsx.apply_columns()
-        xlsx.sheet.set_row(1, 26.25)
-        xlsx.write('B2', 'Customer:', xlsx.styles['headingCustomer1'])
-        xlsx.write('C2', '', xlsx.styles['headingCustomer2'])
-        # write custom header
-        # create necessary formats
-        # dump formats
-        # setup column defaults
-        # write header
+
+        generate_header(xlsx)
         # write sections
         # write footer
 
