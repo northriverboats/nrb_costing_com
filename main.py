@@ -44,8 +44,8 @@ def main(load: str, save: str, verbose: int) -> None:
     """ main program entry point """
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
-    load_file: Path = Path()
-    save_file: Path = Path()
+    load_file: Path
+    save_file: Path
     boms: Boms
     models: Models
     resources: Resources
@@ -56,7 +56,13 @@ def main(load: str, save: str, verbose: int) -> None:
     try:
         if load:
             load_file = Path(load)
-            models, resources, boms = load_from_database(load_file)
+            json = load_from_database(load_file, [
+                'models',
+                'resources',
+                'boms'])
+            models = Models.from_json(json['models'])
+            resources = Resources.from_json(json['resources'])
+            boms = Boms.from_json(json['boms'])
         else:
             # load information from spreadsheets
             models = load_models(MODELS_FILE)
@@ -72,7 +78,10 @@ def main(load: str, save: str, verbose: int) -> None:
         generate_sheets_for_all_models(models.models, boms.boms)
         if save:
             save_file = Path(save)
-            save_to_database(save_file, models, resources, boms)
+            save_to_database(save_file, {
+                'models': models.to_json(),
+                'resources': resources.to_json(),
+                'boms':  boms.to_json()})
     except Exception:
         logger.critical(traceback.format_exc())
         raise
