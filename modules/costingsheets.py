@@ -83,6 +83,10 @@ class Xlsx():
         """write value to sheet"""
         return self.sheet.write(*args)
 
+    def merge_range(self, *args):
+        """write value to sheet"""
+        return self.sheet.merge_range(*args)
+
     def add_format(self, name, *args):
         """add new formatter"""
         style = self.workbook.add_format(*args)
@@ -121,23 +125,88 @@ COLUMNS = [                             # POINTS   PIXELS
 
 STYLES = [
      Format('generic1', {'font_name': 'Arial',
-                        'font_size': 10}),
+                        'font_size': 10,}),
 
     Format('headingCustomer1', {'font_name': 'Arial',
                                 'font_size': 18,
-                                'bold': True}),
+                                'bold': True,}),
 
     Format('headingCustomer2', {'font_name': 'Arial',
                                 'font_size': 20,
                                 'bold': True,
                                 'pattern': 1,
-                                'bg_color': 'yellow'}),
-    Format('bgYellow', {'pattern':1, 'bg_color': 'yellow'}),
-    Format('bgSilver', {'pattern':1, 'bg_color': 'silver'}),
-    Format('bgLime', {'pattern':1, 'bg_color': 'lime'}),
-    Format('bgPurple', {'pattern':1, 'bg_color': '#CC99FF'}),
-    Format('bgCyan', {'pattern':1, 'bg_color': '#99CCFF'}),
-    Format('bgOrange', {'pattern':1, 'bg_color': 'FF9900'}),
+                                'bg_color': '#FCF305',
+                                'bottom': 1,}),
+
+    Format('bgSilver', {'pattern':1,
+                        'bg_color': 'silver',
+                        'align': 'center',
+                        'bold': True,}),
+
+    Format('bgYellow1', {'pattern': 1,
+                         'bg_color': '#FCF305',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,}),
+    Format('bgYellow2', {'pattern':1,
+                         'bg_color': '#FCF305',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,
+                         'align': 'center',}),
+
+    Format('bgGreen1', {'pattern':1,
+                       'bg_color': '#1FB714',
+                       'font_name': 'Arial',
+                       'font_size': 10,
+                       'bottom': 1,}),
+    Format('bgGreen2', {'pattern':1,
+                       'bg_color': '#1FB714',
+                       'font_name': 'Arial',
+                       'font_size': 10,
+                       'bottom': 1,
+                       'align': 'center',}),
+
+    Format('bgPurple1', {'pattern':1,
+                         'bg_color': '#CC99FF',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,}),
+    Format('bgPurple2', {'pattern':1,
+                         'bg_color': '#CC99FF',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,
+                         'align': 'center',}),
+
+    Format('bgCyan1', {'pattern': 1,
+                       'bg_color': '#99CCFF',
+                       'font_name': 'Arial',
+                       'font_size': 10,
+                       'bottom': 1,}),
+    Format('bgCyan2', {'pattern':1,
+                       'bg_color': '#99CCFF',
+                       'font_name': 'Arial',
+                       'font_size': 10,
+                       'bottom': 1,
+                       'align': 'center',}),
+
+    Format('bgOrange1', {'pattern':1,
+                         'bg_color': 'FF9900',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,}),
+
+    Format('bgOrange2', {'pattern':1,
+                         'bg_color': 'FF9900',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'bottom': 1,
+                         'align': 'center',}),
+
+    Format('rightJustified', {'align': 'right',
+                              'font_name': 'Arial',
+                              'font_size': 10,}),
 ]
 
 
@@ -290,16 +359,45 @@ def properties(xlsx):
 def generate_header(xlsx: Xlsx) -> None:
     """generate header on costing sheet"""
 
+    xlsx.sheet.set_row(1, 26.25)
+
     xlsx.write('B2', 'Customer:', xlsx.styles['headingCustomer1'])
     xlsx.write('C2', None, xlsx.styles['headingCustomer2'])
     xlsx.write('G2', 'Salesperson:')
-    xlsx.write('H2', None, xlsx.styles['bgYellow'])
+    xlsx.merge_range('H2:I2', None, xlsx.styles['bgYellow2'])
+
     xlsx.write('B4', 'Boat Model:')
-    xlsx.write('C4', 'Length:')
+    xlsx.write('C4', xlsx.bom.name, xlsx.styles['bgYellow1'])
     xlsx.write('B5', 'Beam:')
-    xlsx.write('C5', '', xlsx.styles['bgYellow'])
-    xlsx.write('B6', '', xlsx.styles['bgYellow'])
-    xlsx.write('C6', '', xlsx.styles['bgYellow'])
+    xlsx.write('C5', xlsx.bom.beam, xlsx.styles['bgYellow1'])
+    xlsx.write('B6', 'Length:')
+    xlsx.write('C6', xlsx.file_name_info['size'], xlsx.styles['bgYellow1'])
+
+    xlsx.write('H4', 'Original Date Quoted:', xlsx.styles['rightJustified'])
+    xlsx.write('I4', None, xlsx.styles['bgYellow1'])
+
+    xlsx.merge_range('E5:G5',
+                     'Indicate changes here',
+                     xlsx.styles['bgGreen2'])
+    xlsx.merge_range('E6:G6',
+                     'Indicate changes here',
+                     xlsx.styles['bgPurple2'])
+    xlsx.merge_range('E7:G7',
+                     'Indicate changes here',
+                     xlsx.styles['bgCyan2'])
+    xlsx.merge_range('E8:G8',
+                     'Indicate changes here',
+                     xlsx.styles['bgOrange2'])
+
+    xlsx.write('H5', 'Rev1', xlsx.styles['rightJustified'])
+    xlsx.write('H6', 'Rev2', xlsx.styles['rightJustified'])
+    xlsx.write('H7', 'Rev3', xlsx.styles['rightJustified'])
+    xlsx.write('H8', 'Rev4', xlsx.styles['rightJustified'])
+
+    xlsx.write('I5', None, xlsx.styles['bgGreen1'])
+    xlsx.write('I6', None, xlsx.styles['bgPurple1'])
+    xlsx.write('I7', None, xlsx.styles['bgCyan1'])
+    xlsx.write('I8', None, xlsx.styles['bgOrange1'])
 
 
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
@@ -326,6 +424,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.workbook.set_properties(properties(xlsx))
         xlsx.add_worksheet()
         xlsx.set_active('Sheet1')
+        xlsx.sheet.set_default_row(12.75)
         xlsx.load_formats(STYLES)
         xlsx.columns = COLUMNS
         xlsx.apply_columns()
