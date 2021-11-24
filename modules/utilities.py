@@ -42,6 +42,7 @@ MARK_UPS_FILE: Path = Path(os.environ.get('MARK_UPS_FILE', ''))
 MAIL_SERVER: str = str(os.environ.get("MAIL_SERVER", ''))
 MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
 MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
+SUBJECT: str = str(os.environ.get("SUBJECT", 'Current Model Year Costing Sheets'))
 
 
 
