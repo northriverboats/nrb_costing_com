@@ -3,28 +3,32 @@
 """
 Save/restore dataclasses from sqlite3
 
-All dataclasses decorated with @dataclass_json will implement the .to_json()
-and .from_json() methods
+Will save/restore a dictionary of name/json_representation of objects
 
-Other objects and data structures could be comitted to the sqlite database if
-they can be converted to/from json.
-
-Currently the three objects are hardcoded by name an in the oredr of:
-    save_to_database(models, resources, boms)
-    load_from_database(models, resources, boms)
-
-To Do:
-* put the burden on the caller to serialize/deserialize json
-* save(filename, {'key': json, 'key2': josn....})
-* load(filename, ['key1', key2'...])
+Can be called multiple times. There is less overhead with fewer calls and
+larger dictionaries
 """
 from sqlite3 import connect, Connection, Cursor
 from pathlib import Path
-from typing import Any, Optional, Union
-from .boms import Boms
-from .models import Models
-from .resources import Resources
+from typing import Optional, Union
 from .utilities import status_msg
+
+# LOW LEVEL FUNCTIONS =========================================================
+def file_message(message: str, file_name: Union[Path, str]) -> None:
+    """output file related message
+
+    Arguments:
+        message: str -- text with {file_name} slot in it
+        file_name: Path|str  --  path object or text of file name
+
+    Returns:
+        None
+    """
+    text = (file_name
+            if isinstance(file_name, str)
+            else str(file_name.resolve()))
+    status_msg(message.format(file_name=text), 1)
+
 
 class dbopen():  # pylint: disable=invalid-name
     """
@@ -70,78 +74,74 @@ def create_schema(cursor: Cursor) -> None:
             name  varchar(50) primary key not null,
             value jsonify)""")
 
-def serialize(cursor: Cursor, name: str, value: Any) -> None:
+def serialize(cursor: Cursor, objects: dict[str, str]) -> None:
     """convert object to json and save in database
 
     Arguements:
         cursor: Cursor -- active database cursor
-        name: str -- name of object to save
-        value: Any -- object that has a to_json() method
+        objects: dict[str, str] -- name_of_object, json_representation
 
     Returns:
         None
     """
-    cursor.execute("""
-                   INSERT OR REPLACE INTO storage(name, value)
-                   VALUES(?, ?)""", (name, value.to_json()))
+    for name in objects:
+        cursor.execute("""
+                       INSERT OR REPLACE INTO storage(name, value)
+                       VALUES(?, ?)""", (name, objects[name]))
 
-
-def deserialized(cursor: Cursor, name: str) -> Any:
+def deserialized(cursor: Cursor, names: list[str]) -> dict[str, str]:
     """convert json from database into object
 
     Arguements:
         cursor: Cursor -- active database cursor
-        name: str -- name of object to save
+        name: str -- name of object to fetch json_representation
 
     Returns:
-        any -- desearilized object
+        objects: dict[str, str] -- name_of_object, json_representation
     """
-    cursor.execute("""SELECT value from storage WHERE name = ?""", [name])
-    row = cursor.fetchone()
-    return row[0] if row else ""
+    objects = {}
+    for name in names:
+        cursor.execute("""SELECT value from storage WHERE name = ?""", [name])
+        row = cursor.fetchone()
+        objects[name] = row[0] if row else ""
+    return objects
 
 
-
-def load_from_database(db_file: Path)-> tuple[Models, Resources, Boms]:
+# High Level FunctionsA =======================================================
+def load_from_database(db_file: Union[Path, str],
+                       names: list[str])-> dict[str, str]:
     """read data from database into objects
 
     Arguments:
         db_file: Path -- name of file to save objects to
+        names: list[str] -- names of json_representations to fetch
 
     Raise:
 
     Return:
-        None
+        dict[str, str] -- name_of_object, json_representation
     """
-    status_msg(f"Reading Data from {str(db_file.resolve())}", 1)
+    file_message("Reading Data from {file_name}", db_file)
     with dbopen(db_file) as cursor:
-        # pylint: disable=no-member
-        models = Models.from_json(deserialized(cursor, 'models'))
-        resources = Resources.from_json(deserialized(cursor, 'resources'))
-        boms = Boms.from_json(deserialized(cursor, 'boms'))
-    print()
-    return models, resources, boms
+        create_schema(cursor)
+        return deserialized(cursor, names)
 
-def save_to_database(db_file: Path,
-                     models: Models,
-                     resources: Resources,
-                     boms: Boms)-> None:
+def save_to_database(db_file: Union[Path, str],
+                     objects: dict[str, str])-> None:
     """jsonify and save save objects to database
 
     Arguments:
         db_file: Path -- name of file to save objects to
-
-    Raise:
+        objects: dict[str, str] -- name_of_object, json_representation
 
     Return:
         None
     """
-    status_msg(f"Saving Data to {str(db_file.resolve())}", 1)
+    file_message("Reading Data from {file_name}", db_file)
     with dbopen(db_file) as cursor:
         create_schema(cursor)
-        serialize(cursor, 'models', models)
-        serialize(cursor, 'resources', resources)
-        serialize(cursor, 'boms', boms)
+        serialize(cursor, objects)
+
 
 if __name__ == "__main__":
     pass
