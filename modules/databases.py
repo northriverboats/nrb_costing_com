@@ -1,9 +1,22 @@
 #!/usr/bin/env python
 # vim expandtab shiftwidth=4 softtabstop=4 tabstop=8
 """
-save/restore data from sqlite3
+Save/restore dataclasses from sqlite3
 
-Pass in master_file return data structure
+All dataclasses decorated with @dataclass_json will implement the .to_json()
+and .from_json() methods
+
+Other objects and data structures could be comitted to the sqlite database if
+they can be converted to/from json.
+
+Currently the three objects are hardcoded by name an in the oredr of:
+    save_to_database(models, resources, boms)
+    load_from_database(models, resources, boms)
+
+To Do:
+* put the burden on the caller to serialize/deserialize json
+* save(filename, {'key': json, 'key2': josn....})
+* load(filename, ['key1', key2'...])
 """
 from sqlite3 import connect, Connection, Cursor
 from pathlib import Path
@@ -15,7 +28,16 @@ from .utilities import status_msg
 
 class dbopen():  # pylint: disable=invalid-name
     """
-    Simple context manager for sqlite3 databases. Commits everything at exit.
+    Simple context manager for sqlite3 databases. Connenction will
+    automatically close when exiting the contxet managers scope, even if the
+    exit happens due to a raised exception. Use as:
+
+        with dbopen(fileanme) as db:
+            # any commands or function calls here can ues db
+       # anything here will happen after db has been closed
+
+    Returns:
+        cursor -- databse cursor
     """
     def __init__(self, path: Union[Path, str]) -> None:
         self.path: Union[Path,str] = path
@@ -81,7 +103,16 @@ def deserialized(cursor: Cursor, name: str) -> Any:
 
 
 def load_from_database(db_file: Path)-> tuple[Models, Resources, Boms]:
-    """read data from database into objects"""
+    """read data from database into objects
+
+    Arguments:
+        db_file: Path -- name of file to save objects to
+
+    Raise:
+
+    Return:
+        None
+    """
     status_msg(f"Reading Data from {str(db_file.resolve())}", 1)
     with dbopen(db_file) as cursor:
         # pylint: disable=no-member
