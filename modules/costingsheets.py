@@ -35,7 +35,7 @@ class Columns():
 class Format():
     """format/style name and contents"""
     name: str
-    style: str
+    style: dict[str, Any]
 
 @dataclass
 class Xlsx():
