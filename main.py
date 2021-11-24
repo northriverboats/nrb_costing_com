@@ -38,7 +38,7 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 @click.option('-l', '--load', 'load_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Load data from sqlite database")
-@click.option('-s', '--save', 'save_filename', is_flag=False,
+@click.option('-s', '--save', 'save_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Save data to sqlite database")
 @click.option('-v', '--verbose', count=True,
