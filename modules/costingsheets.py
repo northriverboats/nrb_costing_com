@@ -5,20 +5,37 @@ Generate Costing Sheets
 """
 from copy import deepcopy
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Optional, TypedDict
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
 from .boms import Bom, BomPart
 from .models import Model
-from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER)
+from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
+                        SUBJECT)
 
 # DATA CLASSES ================================================================
+class FileNameInfo(TypedDict):
+    """file name info"""
+    size: str
+    model: str
+    option: str
+    with_options: str
+    size_with_options: str
+    file_name: Path
+
 @dataclass
 class Columns():
     """column layout data and functions"""
     columns: str
     width: float
     style: Optional[str]
+
+@dataclass
+class Format():
+    """format/style name and contents"""
+    name: str
+    style: str
 
 @dataclass
 class Xlsx():
@@ -35,7 +52,7 @@ class Xlsx():
     sheet: Any = field(default=None)
     styles: dict = field(init=False, default_factory=dict)
     worksheets: dict = field(init=False, default_factory=dict)
-    # formats: list[Formats] = field(init=False, default_factory=list)
+    file_name_info: FileNameInfo = field(init=False)
     columns: list[Columns] = field(init=False, default_factory=list)
 
     def add_worksheet(self, name: Optional[str] = None) -> None:
@@ -81,6 +98,11 @@ class Xlsx():
             else:
                 self.sheet.set_column(col.columns, col.width)
 
+    def load_formats(self, styles):
+        """ load styles from a list of  Format objects"""
+        # can parse styles.style and extract and do other processing
+        for style in styles:
+            self.add_format(style.name, style.style)
 
 
 # SHEET DATA ==================================================================
@@ -96,32 +118,24 @@ COLUMNS = [
     Columns('I:I', 17.00, 'generic1'),
     Columns('J:T', 6.36, 'generic1'),
 ]
-"""
+
 STYLES = [
-    Format('generic1', {'font_name': 'Arial',
-                        'font_size': 10})
+     Format('generic1', {'font_name': 'Arial',
+                        'font_size': 10}),
 
     Format('headingCustomer1', {'font_name': 'Arial',
                                 'font_size': 18,
-                                'bold': True})
+                                'bold': True}),
 
     Format('headingCustomer2', {'font_name': 'Arial',
                                 'font_size': 20,
                                 'bold': True,
                                 'pattern': 1,
-                                'bg_color': 'yellow'})
+                                'bg_color': 'yellow'}),
 ]
-"""
+
 
 # UTILITY FUNCTIONS ===========================================================
-class FileNameInfo(TypedDict):
-    """file name info"""
-    size: str
-    model: str
-    option: str
-    with_options: str
-    size_with_options: str
-    file_name: Path
 
 def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
     """build file name for sheet
@@ -256,29 +270,22 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
-def create_formats(xlsx) -> None:
-    """create necessary cell formatting"""
-    xlsx.add_format('generic1', {
-        'font_name': 'Arial',
-        'font_size': 10})
-
-    xlsx.add_format('headingCustomer1', {
-        'font_name': 'Arial',
-        'font_size': 18,
-        'bold': True})
-
-    xlsx.add_format('headingCustomer2', {
-        'font_name': 'Arial',
-        'font_size': 20,
-        'bold': True,
-        'pattern': 1,
-        'bg_color': 'yellow'})
+def properties(xlsx):
+    """set sheet properties"""
+    return {
+        'title': xlsx.file_name_info['size_with_options'],
+        'subject': SUBJECT,
+        'author': 'Sara Lynn',
+        'company': 'North River Boats Inc.',
+        'created': date.today(),
+        'comments': 'Created with Python and XlsxWriter',
+    }
 
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
     Arguments:
-        filterd_bom: Bom -- bom with only parts fr the current size
+        filterd_bom: Bom -- bom with only parts from the current size
         name: dict -- parts and full name of current sheet
         file_name: Path -- filename with full pathing to xls sheet to be
                            created
@@ -293,9 +300,11 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     # create new workbook / xlsx file
     with Workbook(file_name_info['file_name']) as workbook:
         xlsx: Xlsx = Xlsx(workbook, filtered_bom)
+        xlsx.file_name_info = file_name_info
+        xlsx.workbook.set_properties(properties(xlsx))
         xlsx.add_worksheet()
         xlsx.set_active('Sheet1')
-        create_formats(xlsx)
+        xlsx.load_formats(STYLES)
         xlsx.columns = COLUMNS
         xlsx.apply_columns()
         xlsx.sheet.set_row(1, 26.25)
