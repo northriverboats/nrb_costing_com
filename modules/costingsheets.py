@@ -12,21 +12,14 @@ from .boms import Bom, BomPart
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER)
 
-COLUMNS = [
-    {'columns': 'A:A', 'width': 17.40, 'style': 'generic1'},
-    {'columns': 'B:B', 'width': 18.10, 'style': 'generic1'},
-    {'columns': 'C:C', 'width': 44.56, 'style': 'generic1'},
-    {'columns': 'D:D', 'width': 15.29, 'style': 'generic1'},
-    {'columns': 'E:E', 'width': 4.86, 'style': 'generic1'},
-    {'columns': 'F:F', 'width': 13.14, 'style': 'generic1'},
-    {'columns': 'G:G', 'width': 12.86, 'style': 'generic1'},
-    {'columns': 'H:H', 'width': 9.86, 'style': 'generic1'},
-    {'columns': 'I:I', 'width': 17.00, 'style': 'generic1'},
-    {'columns': 'J:T', 'width': 13.00, 'style': 'generic1'},
-]
-
-
 # DATA CLASSES ================================================================
+@dataclass
+class Columns():
+    """column layout data and functions"""
+    columns: str
+    width: float
+    style: Optional[str]
+
 @dataclass
 class Xlsx():
     """Bundle up xlsxwriter information
@@ -42,6 +35,8 @@ class Xlsx():
     sheet: Any = field(default=None)
     styles: dict = field(init=False, default_factory=dict)
     worksheets: dict = field(init=False, default_factory=dict)
+    # formats: list[Formats] = field(init=False, default_factory=list)
+    columns: list[Columns] = field(init=False, default_factory=list)
 
     def add_worksheet(self, name: Optional[str] = None) -> None:
         """add new sheet to workbook
@@ -76,7 +71,47 @@ class Xlsx():
         style = self.workbook.add_format(*args)
         self.styles[name] = style
 
+    def apply_columns(self):
+        """apply column formatting"""
+        for col in self.columns:
+            if col.style:
+                self.sheet.set_column(col.columns,
+                                      col.width,
+                                      self.styles[col.style])
+            else:
+                self.sheet.set_column(col.columns, col.width)
 
+
+
+# SHEET DATA ==================================================================
+COLUMNS = [
+    Columns('A:A', 17.40, 'generic1'),
+    Columns('B:B', 18.30, 'generic1'),
+    Columns('C:C', 34.92, 'generic1'),
+    Columns('D:D', 11.40, 'generic1'),
+    Columns('E:E', 4.86, 'generic1'),
+    Columns('F:F', 13.14, 'generic1'),
+    Columns('G:G', 12.86, 'generic1'),
+    Columns('H:H', 9.86, 'generic1'),
+    Columns('I:I', 17.00, 'generic1'),
+    Columns('J:T', 6.36, 'generic1'),
+]
+"""
+STYLES = [
+    Format('generic1', {'font_name': 'Arial',
+                        'font_size': 10})
+
+    Format('headingCustomer1', {'font_name': 'Arial',
+                                'font_size': 18,
+                                'bold': True})
+
+    Format('headingCustomer2', {'font_name': 'Arial',
+                                'font_size': 20,
+                                'bold': True,
+                                'pattern': 1,
+                                'bg_color': 'yellow'})
+]
+"""
 
 # UTILITY FUNCTIONS ===========================================================
 class FileNameInfo(TypedDict):
@@ -239,11 +274,6 @@ def create_formats(xlsx) -> None:
         'pattern': 1,
         'bg_color': 'yellow'})
 
-def set_column_widths(xlsx) -> None:
-    """set column width and default style"""
-    for col in COLUMNS:
-        xlsx.sheet.set_column(col['columns'], col['width'])
-
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     """genereate costing sheet
 
@@ -266,7 +296,8 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.add_worksheet()
         xlsx.set_active('Sheet1')
         create_formats(xlsx)
-        set_column_widths(xlsx)
+        xlsx.columns = COLUMNS
+        xlsx.apply_columns()
         xlsx.sheet.set_row(1, 26.25)
         xlsx.write('B2', 'Customer:', xlsx.styles['headingCustomer1'])
         xlsx.write('C2', '', xlsx.styles['headingCustomer2'])
