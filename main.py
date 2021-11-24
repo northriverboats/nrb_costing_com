@@ -19,6 +19,7 @@ CRITICAL to log file, screen and email
 import sys
 import traceback
 from pathlib import Path
+from typing import Union
 import click
 from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
@@ -34,28 +35,29 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 # ==================== Main Entry Point
 #
 @click.command()
-@click.option('-l', '--load', is_flag=False, flag_value="DATABASE",
+@click.option('-l', '--load', 'load_file', is_flag=False,
+              flag_value="DATABASE",
               default="", help="Load data from sqlite database")
-@click.option('-s', '--save', is_flag=False, flag_value="DATABASE",
+@click.option('-s', '--save', 'save_filename', is_flag=False,
+              flag_value="DATABASE",
               default="", help="Save data to sqlite database")
 @click.option('-v', '--verbose', count=True,
               help="Increase verbosity")
-def main(load: str, save: str, verbose: int) -> None:
+def main(load_file: Union[Path, str],
+         save_file: Union[Path, str],
+         verbose: int) -> None:
     """ main program entry point """
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
-    load_file: Path
-    save_file: Path
     boms: Boms
     models: Models
     resources: Resources
-    if load == "DATABASE":
-        load = str(DATABASE.resolve())
-    if save == "DATABASE":
-        save = str(DATABASE.resolve())
+    if load_file == "DATABASE":
+        load_file = DATABASE
+    if save_file == "DATABASE":
+        save_file = DATABASE
     try:
-        if load:
-            load_file = Path(load)
+        if load_file:
             json = load_from_database(load_file, [
                 'models',
                 'resources',
@@ -76,8 +78,7 @@ def main(load: str, save: str, verbose: int) -> None:
             boms = load_boms(BOATS_FOLDER, resources.resources)
             status_msg(f"{len(boms.boms)} boms loaded", 0)
         generate_sheets_for_all_models(models.models, boms.boms)
-        if save:
-            save_file = Path(save)
+        if save_file:
             save_to_database(save_file, {
                 'models': models.to_json(),
                 'resources': resources.to_json(),
