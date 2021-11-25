@@ -38,6 +38,14 @@ class Format():
     style: dict[str, Any]
 
 @dataclass
+class SectionInfo():
+    """Additional Section Information"""
+    start: int
+    finish: int
+    subtotal: int
+    value: float
+
+@dataclass
 class Xlsx():
     """Bundle up xlsxwriter information
 
@@ -126,6 +134,9 @@ COLUMNS = [                             # POINTS   PIXELS
 STYLES = [
      Format('generic1', {'font_name': 'Arial',
                         'font_size': 10,}),
+     Format('generic2', {'font_name': 'Arial',
+                        'font_size': 10,
+                        'bold': True,}),
 
     Format('headingCustomer1', {'font_name': 'Arial',
                                 'font_size': 18,
@@ -143,6 +154,11 @@ STYLES = [
                         'align': 'center',
                         'bold': True,}),
 
+    Format('bgYellow0', {'pattern':1,
+                         'bg_color': '#FCF305',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'align': 'center',}),
     Format('bgYellow1', {'pattern': 1,
                          'bg_color': '#FCF305',
                          'font_name': 'Arial',
@@ -153,6 +169,12 @@ STYLES = [
                          'font_name': 'Arial',
                          'font_size': 10,
                          'bottom': 1,
+                         'align': 'center',}),
+    Format('bgYellow3', {'pattern':1,
+                         'bg_color': '#FCF305',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                         'border': 1,
                          'align': 'center',}),
 
     Format('bgGreen1', {'pattern':1,
@@ -204,10 +226,26 @@ STYLES = [
                          'bottom': 1,
                          'align': 'center',}),
 
-    Format('rightJustified', {'align': 'right',
-                              'font_name': 'Arial',
-                              'font_size': 10,}),
+    Format('rightJust1', {'align': 'right',
+                          'font_name': 'Arial',
+                          'font_size': 10,}),
+    Format('rightJust2', {'align': 'right',
+                          'font_name': 'Arial',
+                          'font_size': 10,
+                          'bold': True}),
 ]
+
+SECTION_TEST = {
+    'FABRICATION': SectionInfo(20, 28, 29,10),
+    'PAINT': SectionInfo(30, 38, 39,12),
+    'UNUSED': SectionInfo(40, 48, 49,0),
+    'OUTFITTING': SectionInfo(50, 58, 59,16),
+    'BIG TICKET ITEMS': SectionInfo(60, 68, 69,18),
+    'OUTBOARD MOTORS': SectionInfo(70, 78, 79,20),
+    'INBOARD MOTORS & JETS': SectionInfo(80, 88, 89,22),
+    'TRAILER': SectionInfo(90, 98, 99,24),
+    'TOTALS': SectionInfo(100, 150, 152, 0),
+}
 
 
 # UTILITY FUNCTIONS ===========================================================
@@ -373,7 +411,7 @@ def generate_header(xlsx: Xlsx) -> None:
     xlsx.write('B6', 'Length:')
     xlsx.write('C6', xlsx.file_name_info['size'], xlsx.styles['bgYellow1'])
 
-    xlsx.write('H4', 'Original Date Quoted:', xlsx.styles['rightJustified'])
+    xlsx.write('H4', 'Original Date Quoted:', xlsx.styles['rightJust1'])
     xlsx.write('I4', None, xlsx.styles['bgYellow1'])
 
     xlsx.merge_range('E5:G5',
@@ -389,15 +427,160 @@ def generate_header(xlsx: Xlsx) -> None:
                      'Indicate changes here',
                      xlsx.styles['bgOrange2'])
 
-    xlsx.write('H5', 'Rev1', xlsx.styles['rightJustified'])
-    xlsx.write('H6', 'Rev2', xlsx.styles['rightJustified'])
-    xlsx.write('H7', 'Rev3', xlsx.styles['rightJustified'])
-    xlsx.write('H8', 'Rev4', xlsx.styles['rightJustified'])
+    xlsx.write('H5', 'Rev1', xlsx.styles['rightJust1'])
+    xlsx.write('H6', 'Rev2', xlsx.styles['rightJust1'])
+    xlsx.write('H7', 'Rev3', xlsx.styles['rightJust1'])
+    xlsx.write('H8', 'Rev4', xlsx.styles['rightJust1'])
 
     xlsx.write('I5', None, xlsx.styles['bgGreen1'])
     xlsx.write('I6', None, xlsx.styles['bgPurple1'])
     xlsx.write('I7', None, xlsx.styles['bgCyan1'])
     xlsx.write('I8', None, xlsx.styles['bgOrange1'])
+
+def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet"""
+    offset = section_info['TRAILER'].subtotal + 2
+
+    # COLUMN B ================================================================
+
+
+    # COLUMN C ================================================================
+    xlsx.write(offset + 0, 2, 'MATERIALS', xlsx.styles['rightJust2'])
+    xlsx.write(offset + 12, 2, 'Labor', xlsx.styles['rightJust2'])
+    xlsx.write(offset + 20, 2,
+               'Indicate boat referenced for labor hours if used',
+               xlsx.styles['bgYellow0'])
+    xlsx.write(offset + 23, 2, 'Other Costs', xlsx.styles['rightJust2'])
+    xlsx.write(offset + 32, 2, 'NO MARGIN ITEMS', xlsx.styles['rightJust2'])
+    xlsx.write(offset + 35, 2, 'Voyager/Custom - 10%, Guide/Lodge - 3%',
+               xlsx.styles['bgYellow3'])
+
+    xlsx.sheet.set_row(offset + 32, 23.85)
+    xlsx.write(offset + 42, 2, 'Mark up per pricing policy: ',
+               xlsx.styles['generic2'])
+    xlsx.write(offset + 43, 2, 'Boat and options:',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 44, 2, 'Big Ticket Items',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 45, 2, 'OB Motors',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 46, 2, 'Inboard Motors & Jets',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 47, 2, 'Trailer',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 48, 2, 'No margin items: ',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 50, 2,
+               'Total Cost (equals total cost of project box)',
+               xlsx.styles['rightJust2'])
+
+    xlsx.write(offset + 59, 2, 'Pricing Policy References: ',
+               xlsx.styles['generic2'])
+    xlsx.write(offset + 60, 2, 'Boat MSRP = C / .61 / 0.7',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 61, 2, 'Options MSRP = C / .8046 / .48',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 62, 2, 'Trailers MSRP = C / 0.80 / 0.7',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 63, 2, 'Inboard Motors MSRP = C / 0.85 / 0.7',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 64, 2,
+               'Big Ticket Items MSRP = C / (range from 0.80 – 0.85) / 0.7',
+               xlsx.styles['generic1'])
+
+    xlsx.write(offset + 78, 2,
+               'Cost estimate check list - complete prior to sending quote '
+               'or submitting bid',
+               xlsx.styles['generic2'])
+    xlsx.write(offset + 79, 2,
+               'Verify all formulas are correct and all items are included '
+               'in cost total',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 80, 2,
+               'Verify aluminum calculated with total lbs included. Include '
+               'metal costing sheet separate if completed',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 81, 2,
+               'Verify paint costing equals paint description',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 82, 2, 'Cost estimate includes all components on '
+               'sales quote', xlsx.styles['generic1'])
+    xlsx.write(offset + 83, 2,
+               'Pricing policy discounts and minimum margins are met',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 84, 2,
+               'Vendor quotes received and included in costing folder',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 85, 2,
+               'Labor hours reviewed and correct to best knowledge of project',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 86, 2,
+               'Name of peer who reviewed prior to submission to customer',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 87, 2,
+               'Customer signed sales quotation',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 88, 2,
+               'Customer provided terms and conditions, including payment '
+               'schedule',
+               xlsx.styles['generic1'])
+
+    # COLUMN C ================================================================
+    xlsx.write(offset + 0, 3, 'Fabrication',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 1, 3, 'Fab Consumables',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 2, 3, 'Paint',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 3, 3, 'Paint Consumables',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 4, 3, 'Outfitting',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 5, 3, 'Big Ticket Items',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 6, 3, 'OB Motors',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 7, 3, 'IB Motors & Jets',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 8, 3, 'Trailer',
+               xlsx.styles['generic1'])
+
+    xlsx.write(offset + 14, 3, 'Fabrication ',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 15, 3, 'Paint',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 16, 3, 'Outfitting',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 17, 3, 'Design / Drafting',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 20, 3, None, xlsx.styles['bgYellow3'])
+
+    xlsx.write(offset + 25, 3, 'Test Fuel',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 26, 3, 'Trials',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 27, 3, 'Engineering',
+               xlsx.styles['generic1'])
+
+    xlsx.write(offset + 34, 3, 'Trucking',
+               xlsx.styles['generic1'])
+    xlsx.write(offset + 35, 3, 'Dealer commission',
+               xlsx.styles['generic1'])
+
+
+    xlsx.write(offset + 0, 42, 'Cost',
+               xlsx.styles['generic2'])
+
+
+    # COLUMN D ================================================================
+    xlsx.write(offset + 19, 4, 'Total Hours',
+               xlsx.styles['rightJust1'])
+    # COLUMN E ================================================================
+    # COLUMN F ================================================================
+    # COLUMN G ================================================================
+    # COLUMN H ================================================================
+    # COLUMN I ================================================================
+    # COLUMN J ================================================================
 
 
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
@@ -430,6 +613,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.apply_columns()
 
         generate_header(xlsx)
+        generate_totals(xlsx, SECTION_TEST)
         # write sections
         # write footer
 
