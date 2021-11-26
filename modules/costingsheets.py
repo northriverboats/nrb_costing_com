@@ -45,6 +45,7 @@ class SectionInfo():
     finish: int
     subtotal: int
     value: float
+    extra: float = 0
 
 @dataclass
 class Xlsx():
@@ -991,15 +992,25 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
     row = str(offset + 1)
     formula1 = "=I" + str(offset - 38)
     value1 = section_info['OUTBOARD MOTORS'].value
+    formula2 = "=Q" + str(section_info['OUTBOARD MOTORS'].subtotal)
+    value2 = section_info['OUTBOARD MOTORS'].extra
     formula3 = "=G" + str(offset + 1) + "*(1-H" + str(offset + 1 ) + ')'
-    value3 = 0 # value2
+    value3 = value2
+    formula4 = ("=IF(I" + row +
+                "=0,0,(I" + row +
+                "-D" + row +
+                ")/I" + row +
+                ")")
+    value4 = (value3 - value1) / value3 if value3 else 0
 
     xlsx.write(offset, 2, 'OB Motors', xlsx.styles['generic1'])
     xlsx.write(offset, 3, formula1, xlsx.styles['currencyBordered'], value1)
     xlsx.merge_range(offset, 4, offset, 5, 'See PP',
                      xlsx.styles['bgSilverBorderCetner'])
+    xlsx.write(offset, 6, formula2, xlsx.styles['currencyBordered'], value2)
     xlsx.write(offset, 7, None, xlsx.styles['percentBorderYellow'])
     xlsx.write(offset, 8, formula3, xlsx.styles['currencyBordered'], value3)
+    xlsx.write(offset, 9, formula4, xlsx.styles['percentBorder'], value4)
 
 def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
     """fill out line at row offset 46 from the bottom of the sheet"""
@@ -1095,7 +1106,8 @@ def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
                    xlsx.styles['currency'],
                   )
     xlsx.sheet.set_top_left_cell("A144")
-
+    xlsx.write(section_info['OUTBOARD MOTORS'].subtotal -1, 16, 30.0)
+    section_info['OUTBOARD MOTORS'].extra = 30
     # END OF TEMP STUFF
     skip = [10, 11, 18, 21, 22, 24, 31, 33,
             39, 41, 49, 51, 53, 55, 57, 58, 77]
