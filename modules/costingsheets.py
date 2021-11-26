@@ -9,6 +9,7 @@ from datetime import date
 from typing import Any, Optional, TypedDict
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
+# from xlsxwriter.utility import xl_rowcol_to_cell # type: ignore
 from .boms import Bom, BomPart
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
@@ -105,7 +106,7 @@ class Xlsx():
         for col in self.columns:
             if col.style:
                 self.sheet.set_column_pixels(col.columns,
-                                             col.width,
+                                             col.width * (100.8/127 + .00077),
                                              self.styles[col.style])
             else:
                 self.sheet.set_column_pixels(col.columns, col.width)
@@ -131,119 +132,207 @@ COLUMNS = [                             # POINTS   PIXELS
     Columns('J:T', 62, 'generic1'),     #  62.00    49.20
 ]
 
+
+# pylint: disable=anomalous-backslash-in-string
 STYLES = [
-     Format('generic1', {'font_name': 'Arial',
-                        'font_size': 10,}),
+     Format('generic1', {'font_name': 'arial',
+                         'font_size': 10,
+                        }),
      Format('generic2', {'font_name': 'Arial',
-                        'font_size': 10,
-                        'bold': True,}),
+                         'font_size': 10,
+                         'bold': True,
+                        }),
+
+     Format('currency', {'font_name': 'arial',
+                                 'font_size': 10,
+                                 'num_format': '_("$"* #,##0.00_);_("$"*'
+                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                        }),
+
+     Format('currencyBold', {'font_name': 'arial',
+                                 'font_size': 10,
+                                 'num_format': '_("$"* #,##0.00_);_("$"*'
+                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                 'bold': True,
+                            }),
+
+     Format('currencyBoldYellow', {'pattern':1,
+                                   'bg_color': '#FCF305',
+                                   'font_name': 'arial',
+                                   'font_size': 10,
+                                   'num_format': '_("$"* #,##0.00_);_("$"*'
+                                   '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                   'bold': True,
+                                  }),
+
+     Format('currencyBordered', {'font_name': 'arial',
+                                 'font_size': 10,
+                                 'num_format': '_("$"* #,##0.00_);_("$"*'
+                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                 'border':1,
+                                }),
+
+     Format('percent', {'font_name': 'arial',
+                         'font_size': 10,
+                        'num_format': '0%',
+                       }),
 
     Format('headingCustomer1', {'font_name': 'Arial',
                                 'font_size': 18,
-                                'bold': True,}),
+                                'bold': True,
+                               }),
 
     Format('headingCustomer2', {'font_name': 'Arial',
                                 'font_size': 20,
                                 'bold': True,
                                 'pattern': 1,
                                 'bg_color': '#FCF305',
-                                'bottom': 1,}),
+                                'bottom': 1,
+                               }),
 
     Format('bgSilver', {'pattern':1,
                         'bg_color': 'silver',
                         'align': 'center',
-                        'bold': True,}),
+                        'bold': True,
+                       }),
 
     Format('bgYellow0', {'pattern':1,
                          'bg_color': '#FCF305',
                          'font_name': 'Arial',
                          'font_size': 10,
-                         'align': 'center',}),
+                         'align': 'center',
+                        }),
     Format('bgYellow1', {'pattern': 1,
                          'bg_color': '#FCF305',
                          'font_name': 'Arial',
                          'font_size': 10,
-                         'bottom': 1,}),
+                         'bottom': 1,
+                        }),
     Format('bgYellow2', {'pattern':1,
                          'bg_color': '#FCF305',
                          'font_name': 'Arial',
                          'font_size': 10,
                          'bottom': 1,
-                         'align': 'center',}),
+                         'align': 'center',
+                        }),
     Format('bgYellow3', {'pattern':1,
                          'bg_color': '#FCF305',
                          'font_name': 'Arial',
                          'font_size': 10,
                          'border': 1,
-                         'align': 'center',}),
+                         'align': 'center',
+                        }),
+    Format('bgYellow4', {'pattern':1,
+                         'bg_color': '#FCF305',
+                         'font_name': 'Arial',
+                         'font_size': 10,
+                        }),
 
     Format('bgGreen1', {'pattern':1,
-                       'bg_color': '#1FB714',
-                       'font_name': 'Arial',
-                       'font_size': 10,
-                       'bottom': 1,}),
+                        'bg_color': '#1FB714',
+                        'font_name': 'Arial',
+                        'font_size': 10,
+                        'bottom': 1,
+                       }),
     Format('bgGreen2', {'pattern':1,
-                       'bg_color': '#1FB714',
-                       'font_name': 'Arial',
-                       'font_size': 10,
-                       'bottom': 1,
-                       'align': 'center',}),
+                        'bg_color': '#1FB714',
+                        'font_name': 'Arial',
+                        'font_size': 10,
+                        'bottom': 1,
+                        'align': 'center',
+                       }),
+    Format('bgGreen3', {'pattern':1,
+                        'bg_color': '#92D050',
+                        'font_name': 'Arial',
+                        'font_size': 10,
+                       }),
 
     Format('bgPurple1', {'pattern':1,
                          'bg_color': '#CC99FF',
                          'font_name': 'Arial',
                          'font_size': 10,
-                         'bottom': 1,}),
+                         'bottom': 1,
+                        }),
     Format('bgPurple2', {'pattern':1,
                          'bg_color': '#CC99FF',
                          'font_name': 'Arial',
                          'font_size': 10,
                          'bottom': 1,
-                         'align': 'center',}),
+                         'align': 'center',
+                        }),
 
     Format('bgCyan1', {'pattern': 1,
                        'bg_color': '#99CCFF',
                        'font_name': 'Arial',
                        'font_size': 10,
-                       'bottom': 1,}),
+                       'bottom': 1,
+                      }),
     Format('bgCyan2', {'pattern':1,
                        'bg_color': '#99CCFF',
                        'font_name': 'Arial',
                        'font_size': 10,
                        'bottom': 1,
-                       'align': 'center',}),
+                       'align': 'center',
+                      }),
 
     Format('bgOrange1', {'pattern':1,
                          'bg_color': 'FF9900',
                          'font_name': 'Arial',
                          'font_size': 10,
-                         'bottom': 1,}),
+                         'bottom': 1,
+                        }),
 
     Format('bgOrange2', {'pattern':1,
                          'bg_color': 'FF9900',
                          'font_name': 'Arial',
                          'font_size': 10,
                          'bottom': 1,
-                         'align': 'center',}),
+                         'align': 'center',
+                        }),
 
     Format('rightJust1', {'align': 'right',
                           'font_name': 'Arial',
-                          'font_size': 10,}),
+                          'font_size': 10,
+                         }),
     Format('rightJust2', {'align': 'right',
                           'font_name': 'Arial',
                           'font_size': 10,
-                          'bold': True}),
+                          'bold': True
+                         }),
+
+    Format('centerJust1', {'align': 'center',
+                           'font_name': 'Arial',
+                           'font_size': 10,
+                           'bold': True
+                          }),
+
+    Format('centerJust2', {'align': 'center',
+                           'font_name': 'Arial',
+                           'font_size': 10,
+                          }),
+    Format('centerJust3', {'align': 'center',
+                           'font_name': 'Arial',
+                           'font_size': 10,
+                           'bold': True,
+                           'text_wrap': True,
+                          }),
+    Format('centerJust4', {'align': 'center',
+                           'font_name': 'Arial',
+                           'font_size': 6,
+                           'bold': True,
+                           'text_wrap': True,
+                          }),
 ]
 
 SECTION_TEST = {
     'FABRICATION': SectionInfo(20, 28, 29,10),
-    'PAINT': SectionInfo(30, 38, 39,12),
-    'UNUSED': SectionInfo(40, 48, 49,0),
+    'PAINT': SectionInfo(30, 38, 39, 12),
+    'UNUSED': SectionInfo(40, 48, 49, 0),
     'OUTFITTING': SectionInfo(50, 58, 59,16),
-    'BIG TICKET ITEMS': SectionInfo(60, 68, 69,18),
-    'OUTBOARD MOTORS': SectionInfo(70, 78, 79,20),
-    'INBOARD MOTORS & JETS': SectionInfo(80, 88, 89,22),
-    'TRAILER': SectionInfo(90, 98, 99,24),
+    'BIG TICKET ITEMS': SectionInfo(60, 68, 69, 18),
+    'OUTBOARD MOTORS': SectionInfo(70, 78, 79, 20),
+    'INBOARD MOTORS & JETS': SectionInfo(80, 88, 89, 22),
+    'TRAILER': SectionInfo(90, 98, 99, 24),
     'TOTALS': SectionInfo(100, 150, 152, 0),
 }
 
@@ -416,16 +505,21 @@ def generate_header(xlsx: Xlsx) -> None:
 
     xlsx.merge_range('E5:G5',
                      'Indicate changes here',
-                     xlsx.styles['bgGreen2'])
+                     xlsx.styles['bgGreen2']
+                    )
     xlsx.merge_range('E6:G6',
                      'Indicate changes here',
-                     xlsx.styles['bgPurple2'])
+                     xlsx.styles['bgPurple2']
+                    )
+
     xlsx.merge_range('E7:G7',
                      'Indicate changes here',
-                     xlsx.styles['bgCyan2'])
+                     xlsx.styles['bgCyan2']
+                    )
     xlsx.merge_range('E8:G8',
                      'Indicate changes here',
-                     xlsx.styles['bgOrange2'])
+                     xlsx.styles['bgOrange2']
+                    )
 
     xlsx.write('H5', 'Rev1', xlsx.styles['rightJust1'])
     xlsx.write('H6', 'Rev2', xlsx.styles['rightJust1'])
@@ -437,150 +531,549 @@ def generate_header(xlsx: Xlsx) -> None:
     xlsx.write('I7', None, xlsx.styles['bgCyan1'])
     xlsx.write('I8', None, xlsx.styles['bgOrange1'])
 
-def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
-    """generate header on costing sheet"""
+
+def generate_totals_b(xlsx: Xlsx,
+                      section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet column b"""
     offset = section_info['TRAILER'].subtotal + 2
 
     # COLUMN B ================================================================
+    for row in range(offset + 79, offset + 86):
+        xlsx.write(row, 1, None, xlsx.styles['bgYellow4'])
+    for row in range(offset + 86, offset + 89):
+        xlsx.write(row, 1, None, xlsx.styles['bgGreen3'])
+    xlsx.sheet.data_validation(offset + 79, 1, offset + 85, 1, {
+        'validate': 'list',
+        'source': ['Yes', 'No'],
+    })
+    xlsx.sheet.data_validation(offset + 86, 1, offset + 86, 1, {
+        'validate': 'list',
+        'source': ['Mike', 'Jordan', 'Jesse', 'Jay', 'Brent'],
+    })
+    xlsx.sheet.data_validation(offset + 87, 1, offset + 88, 1, {
+        'validate': 'list',
+        'source': ['Yes', 'No'],
+    })
 
 
+def totals_00(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 00 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 0
+    formula = "=I" + str(section_info['FABRICATION'].subtotal)
+    value = section_info['FABRICATION'].value
+
+    xlsx.write(offset, 2, 'MATERIALS', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 3, 'Fabrication', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_01(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 01 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 1
+    formula = "=I" + str(offset) + '*H' + str(offset + 1)
+    value = section_info['FABRICATION'].value * 0.08
+
+    xlsx.write(offset, 3, 'Fab Consumables', xlsx.styles['generic1'])
+    xlsx.write(offset, 7, 0.08, xlsx.styles['percent'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_02(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 02 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 2
+    formula = "=I" + str(section_info['PAINT'].subtotal)
+    value = section_info['PAINT'].value
+
+    xlsx.write(offset, 3, 'Paint', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_03(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 03 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 3
+    formula = "=I" + str(offset) + '*H' + str(offset+1)
+    value = section_info['PAINT'].value * 0.50
+
+    xlsx.write(offset, 3, 'Paint Consumables', xlsx.styles['generic1'])
+    xlsx.write(offset, 7, 0.50, xlsx.styles['percent'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_04(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 04 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 4
+    formula = "=I" + str(section_info['OUTFITTING'].subtotal)
+    value = section_info['OUTFITTING'].value
+
+    xlsx.write(offset, 3, 'Outfitting', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_05(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 05 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 5
+    formula = "=I" + str(section_info['BIG TICKET ITEMS'].subtotal)
+    value = section_info['BIG TICKET ITEMS'].value
+
+    xlsx.write(offset, 3, 'Big Ticket Items', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_06(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 06 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 6
+    formula = "=I" + str(section_info['OUTBOARD MOTORS'].subtotal)
+    value = section_info['OUTBOARD MOTORS'].value
+
+    xlsx.write(offset, 3, 'OB Motors', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_07(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 07 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 7
+    formula = "=I" + str(section_info['INBOARD MOTORS & JETS'].subtotal)
+    value = section_info['INBOARD MOTORS & JETS'].value
+
+    xlsx.write(offset, 3, 'IB Motors & Jets', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_08(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 08 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 8
+    formula = "=I" + str(section_info['TRAILER'].subtotal)
+    value = section_info['TRAILER'].value
+
+    xlsx.write(offset, 3, 'Trailer', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currency'], value)
+
+def totals_09(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 09 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 9
+    formula = "=SUM(I" + str(offset - 8) +":I" + str(offset)
+    # value used in totals_40
+    value = (sum([section_info[section].value for section in section_info]) +
+                section_info['FABRICATION'].value * 0.08 +
+                section_info['PAINT'].value * 0.50)
+
+    xlsx.write(offset, 7, 'Total All Materials', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currencyBoldYellow'], value)
+
+def totals_12(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 12 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 12
+
+    xlsx.write(offset, 2, 'Labor', xlsx.styles['rightJust2'])
+
+def totals_13(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 13 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 13
+
+    xlsx.write(offset, 5, 'BOAT HOURS', xlsx.styles['centerJust1'])
+    xlsx.write(offset, 6, 'TOTAL HOURS', xlsx.styles['centerJust1'])
+    xlsx.write(offset, 7, 'RATE', xlsx.styles['centerJust1'])
+
+def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 14 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 14
+    formula1 = "=F" + str(offset + 1) + "+SUM(L:L)"
+    value1 = 0
+    formula2 = "=H" +str(offset +1 ) +  "*G" + str(offset + 1)
+    value2 = 0
+
+    xlsx.write(offset, 3, 'Fabrication', xlsx.styles['generic1'])
+    xlsx.write(offset, 5, 0.0 , xlsx.styles['centerJust2'])
+    xlsx.write(offset, 6, formula1, xlsx.styles['centerJust2'], value1)
+    xlsx.write(offset, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(offset, 8, formula2, xlsx.styles['currency'], value2)
+
+def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 15 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 15
+    formula1 = "=F" + str(offset + 1) + "+SUM(M:M)"
+    value1 = 0
+    formula2 = "=H" +str(offset +1 ) +  "*G" + str(offset + 1)
+    value2 = 0
+
+    xlsx.write(offset, 3, 'Paint', xlsx.styles['generic1'])
+    xlsx.write(offset, 5, 0.0 , xlsx.styles['centerJust2'])
+    xlsx.write(offset, 6, formula1, xlsx.styles['centerJust2'], value1)
+    xlsx.write(offset, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(offset, 8, formula2, xlsx.styles['currency'], value2)
+
+def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 16 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 16
+    formula1 = "=F" + str(offset + 1) + "+SUM(N:N)"
+    value1 = 0
+    formula2 = "=H" +str(offset +1 ) +  "*G" + str(offset + 1)
+    value2 = 0
+
+    xlsx.write(offset, 3, 'Outfitting', xlsx.styles['generic1'])
+    xlsx.write(offset, 5, 0.0 , xlsx.styles['centerJust2'])
+    xlsx.write(offset, 6, formula1, xlsx.styles['centerJust2'], value1)
+    xlsx.write(offset, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(offset, 8, formula2, xlsx.styles['currency'], value2)
+
+def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 17 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 17
+    formula1 = "=F" + str(offset + 1) + "+SUM(O:O)"
+    value1 = 0
+    formula2 = "=H" +str(offset +1 ) +  "*G" + str(offset + 1)
+    value2 = 0
+
+    xlsx.write(offset, 3, 'Design / Drafting', xlsx.styles['generic1'])
+    xlsx.write(offset, 5, 0.0 , xlsx.styles['centerJust2'])
+    xlsx.write(offset, 6, formula1, xlsx.styles['centerJust2'], value1)
+    xlsx.write(offset, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(offset, 8, formula2, xlsx.styles['currency'], value2)
+
+def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 19 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 19
+    formula1 = "=SUM(F" + str(offset - 4) + ":F" + str(offset - 1)
+    value1 = 0
+    formula2 = "=SUM(I" + str(offset - 4) + ":I" + str(offset - 1)
+    value2 = 0
+
+    xlsx.write(offset, 4, 'Total Hours', xlsx.styles['rightJust1'])
+    xlsx.write(offset, 5, formula1, xlsx.styles['bgYellow0'], value1)
+    xlsx.write(offset, 7, 'Total Labor Costs', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 8, formula2, xlsx.styles['currencyBoldYellow'], value1)
+
+def totals_20(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 20 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 20
+    text = 'Indicate boat referenced for labor hours if used'
+
+    xlsx.write(offset, 2, text, xlsx.styles['bgYellow4'])
+    xlsx.write(offset, 3, None, xlsx.styles['bgYellow4'])
+
+def totals_23(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 23 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 23
+
+    xlsx.write(offset, 2, 'Other Costs', xlsx.styles['rightJust2'])
+
+def totals_25(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 25 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 25
+
+    xlsx.write(offset, 3, 'Test Fuel', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_26(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 26 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 26
+
+    xlsx.write(offset, 3, 'Trials', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_27(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 27 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 27
+
+    xlsx.write(offset, 3, 'Engineering', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_28(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 28 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 28
+
+    xlsx.write(offset, 3, None, xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_29(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 29 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 29
+
+    xlsx.write(offset, 3, None, xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_30(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 30 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 30
+
+    formula = "=SUM(I" + str(offset - 5) + ":I" + str(offset)
+    value = 0
+
+    xlsx.write(offset, 7, 'Total Other Costs', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currencyBoldYellow'], value)
+
+def totals_32(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 32 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 32
+
+    xlsx.write(offset, 2, 'NO MARGIN ITEMS', xlsx.styles['rightJust2'])
+
+def totals_34(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 34 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 34
+
+    xlsx.write(offset, 3, 'Trucking', xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_35(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 35 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 35
+    text = "Voyager/Custom - 10%, Guide/Lodge - 3%"
+
+    xlsx.write(offset, 2, text, xlsx.styles['bgYellow4'])
+    xlsx.write(offset, 3, 'Dealer commission', xlsx.styles['generic1'])
+    xlsx.write(offset, 5, 'Dealer', xlsx.styles['centerJust2'])
+    xlsx.write(offset, 6, None, xlsx.styles['bgYellow4'])
+    xlsx.sheet.data_validation(offset, 6, offset, 6, {
+        'validate': 'list',
+        'source': ['Clemens',
+                   '3Rivers',
+                   'Y Marina',
+                   'Boat Country',
+                   'AFF',
+                   'Bay Co.',
+                   'PBH',
+                   'Erie Marine',
+                   'Valley',
+                  ],
+    })
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_36(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 36 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 36
+
+    xlsx.write(offset, 3, None, xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_37(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 37 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 37
+
+    xlsx.write(offset, 3, None, xlsx.styles['generic1'])
+    xlsx.write(offset, 8, 0.0, xlsx.styles['currency'])
+
+def totals_38(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 38 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 38
+
+    formula = "=SUM(I" + str(offset - 3) + ":I" + str(offset)
+    value = 0
+
+    xlsx.write(offset, 7, 'Total No Margin Items', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currencyBoldYellow'], value)
+
+def totals_40(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 40 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 40
+    formula = ("=I" + str(offset - 30) +
+               "+I" + str(offset - 20) +
+               "+I" + str(offset - 9) +
+               "+I" + str(offset - 1))
+    # value used in totals_40
+    value = (sum([section_info[section].value for section in section_info]) +
+                section_info['FABRICATION'].value * 0.08 +
+                section_info['PAINT'].value * 0.50)
+
+    xlsx.write(offset, 6, 'TOTAL COST OF PROJECT', xlsx.styles['rightJust2'])
+    xlsx.write(offset, 8, formula, xlsx.styles['currencyBoldYellow'], value)
+
+
+def totals_42(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 42 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 42
+    text = "Mark up per pricing policy: "
+
+    xlsx.sheet.set_row(offset, 23.85)
+    xlsx.write(offset, 2, text, xlsx.styles['generic2'])
+    xlsx.write(offset, 3, 'Cost ', xlsx.styles['centerJust1'])
+    xlsx.merge_range(offset, 4, offset, 5,
+                     'Markup',  xlsx.styles['centerJust3'])
+    xlsx.write(offset, 6, 'MSRP ', xlsx.styles['centerJust3'])
+    xlsx.write(offset, 7, 'Discount ', xlsx.styles['centerJust3'])
+    xlsx.write(offset, 8, 'Calculated Selling Price',
+               xlsx.styles['centerJust3'])
+    xlsx.write(offset, 9, 'Contribution Margin', xlsx.styles['centerJust4'])
+
+def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 43 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 43
+    formula = ("=I" + str(offset - 2) +
+               "+I" + str(offset - 4) +
+               "+I" + str(offset - 37) +
+               "+I" + str(offset - 36) +
+               "+I" + str(offset - 35) +
+               "+I" + str(offset - 34))
+    # value used in totals_40
+    value = (section_info['FABRICATION'].value +
+             section_info['FABRICATION'].value * 0.08 +
+             section_info['PAINT'].value +
+             section_info['PAINT'].value * 0.50 +
+             section_info['OUTFITTING'].value)
+
+    xlsx.write(offset, 2, 'Boat and options:', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 44 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 44
+    formula = "=I" + str(offset - 38)
+    value = section_info['BIG TICKET ITEMS'].value
+
+    xlsx.write(offset, 2, 'Big Ticket Items', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 45 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 45
+    formula = "=I" + str(offset - 38)
+    value = section_info['OUTBOARD MOTORS'].value
+
+    xlsx.write(offset, 2, 'OB Motors', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 46 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 46
+    formula = "=I" + str(offset - 38)
+    value = section_info['INBOARD MOTORS & JETS'].value
+
+    xlsx.write(offset, 2, 'Inboard Motors & Jets', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 47 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 47
+    formula = "=I" + str(offset - 38)
+    value = section_info['TRAILER'].value
+
+    xlsx.write(offset, 2, 'Trailer', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def totals_48(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
+    """fill out line at row offset 48 from the bottom of the sheet"""
+    offset = section_info['TRAILER'].subtotal + 2 + 48
+    formula = "=I" + str(offset - 9)
+    value = 0.0
+
+    xlsx.write(offset, 2, 'No margin items: ', xlsx.styles['generic1'])
+    xlsx.write(offset, 3, formula, xlsx.styles['currencyBordered'], value)
+
+def generate_totals_c(xlsx: Xlsx,
+                      section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet column c"""
     # COLUMN C ================================================================
-    xlsx.write(offset + 0, 2, 'MATERIALS', xlsx.styles['rightJust2'])
-    xlsx.write(offset + 12, 2, 'Labor', xlsx.styles['rightJust2'])
-    xlsx.write(offset + 20, 2,
-               'Indicate boat referenced for labor hours if used',
-               xlsx.styles['bgYellow0'])
-    xlsx.write(offset + 23, 2, 'Other Costs', xlsx.styles['rightJust2'])
-    xlsx.write(offset + 32, 2, 'NO MARGIN ITEMS', xlsx.styles['rightJust2'])
-    xlsx.write(offset + 35, 2, 'Voyager/Custom - 10%, Guide/Lodge - 3%',
-               xlsx.styles['bgYellow3'])
-
-    xlsx.sheet.set_row(offset + 32, 23.85)
-    xlsx.write(offset + 42, 2, 'Mark up per pricing policy: ',
-               xlsx.styles['generic2'])
-    xlsx.write(offset + 43, 2, 'Boat and options:',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 44, 2, 'Big Ticket Items',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 45, 2, 'OB Motors',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 46, 2, 'Inboard Motors & Jets',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 47, 2, 'Trailer',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 48, 2, 'No margin items: ',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 50, 2,
-               'Total Cost (equals total cost of project box)',
+    xlsx.write(offset + 50, 2, 'Total Cost (equals total cost of project box)',
                xlsx.styles['rightJust2'])
-
     xlsx.write(offset + 59, 2, 'Pricing Policy References: ',
-               xlsx.styles['generic2'])
+               xlsx.styles['generic2']
+              )
     xlsx.write(offset + 60, 2, 'Boat MSRP = C / .61 / 0.7',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 61, 2, 'Options MSRP = C / .8046 / .48',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 62, 2, 'Trailers MSRP = C / 0.80 / 0.7',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 63, 2, 'Inboard Motors MSRP = C / 0.85 / 0.7',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 64, 2,
                'Big Ticket Items MSRP = C / (range from 0.80 – 0.85) / 0.7',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
 
     xlsx.write(offset + 78, 2,
                'Cost estimate check list - complete prior to sending quote '
                'or submitting bid',
-               xlsx.styles['generic2'])
+               xlsx.styles['generic2']
+              )
     xlsx.write(offset + 79, 2,
                'Verify all formulas are correct and all items are included '
                'in cost total',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 80, 2,
                'Verify aluminum calculated with total lbs included. Include '
                'metal costing sheet separate if completed',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 81, 2,
                'Verify paint costing equals paint description',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 82, 2, 'Cost estimate includes all components on '
-               'sales quote', xlsx.styles['generic1'])
+               'sales quote', xlsx.styles['generic1']
+              )
     xlsx.write(offset + 83, 2,
                'Pricing policy discounts and minimum margins are met',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 84, 2,
                'Vendor quotes received and included in costing folder',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 85, 2,
                'Labor hours reviewed and correct to best knowledge of project',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 86, 2,
                'Name of peer who reviewed prior to submission to customer',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 87, 2,
                'Customer signed sales quotation',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
     xlsx.write(offset + 88, 2,
                'Customer provided terms and conditions, including payment '
                'schedule',
-               xlsx.styles['generic1'])
+               xlsx.styles['generic1']
+              )
 
-    # COLUMN C ================================================================
-    xlsx.write(offset + 0, 3, 'Fabrication',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 1, 3, 'Fab Consumables',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 2, 3, 'Paint',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 3, 3, 'Paint Consumables',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 4, 3, 'Outfitting',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 5, 3, 'Big Ticket Items',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 6, 3, 'OB Motors',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 7, 3, 'IB Motors & Jets',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 8, 3, 'Trailer',
-               xlsx.styles['generic1'])
+def generate_totals_e(xlsx: Xlsx,
+                      section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet column e"""
+    offset = section_info['TRAILER'].subtotal + 2
 
-    xlsx.write(offset + 14, 3, 'Fabrication ',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 15, 3, 'Paint',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 16, 3, 'Outfitting',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 17, 3, 'Design / Drafting',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 20, 3, None, xlsx.styles['bgYellow3'])
-
-    xlsx.write(offset + 25, 3, 'Test Fuel',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 26, 3, 'Trials',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 27, 3, 'Engineering',
-               xlsx.styles['generic1'])
-
-    xlsx.write(offset + 34, 3, 'Trucking',
-               xlsx.styles['generic1'])
-    xlsx.write(offset + 35, 3, 'Dealer commission',
-               xlsx.styles['generic1'])
-
-
-    xlsx.write(offset + 0, 42, 'Cost',
-               xlsx.styles['generic2'])
-
-
-    # COLUMN D ================================================================
-    xlsx.write(offset + 19, 4, 'Total Hours',
-               xlsx.styles['rightJust1'])
     # COLUMN E ================================================================
+    xlsx.write(offset + 19, 4, 'Total Hours',
+               xlsx.styles['rightJust1']
+              )
+
+def generate_totals_f(xlsx: Xlsx,
+                      section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet column e"""
+    offset = section_info['TRAILER'].subtotal + 2
+
     # COLUMN F ================================================================
+    xlsx.write(offset + 19, 5, 'Total Hours',
+               xlsx.styles['rightJust1']
+              )
+
+def generate_totals_g(xlsx: Xlsx,
+                      section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet column e"""
+    offset = section_info['TRAILER'].subtotal + 2
+
     # COLUMN G ================================================================
-    # COLUMN H ================================================================
-    # COLUMN I ================================================================
-    # COLUMN J ================================================================
+    xlsx.write(offset + 19, 6, 'Total Hours',
+               xlsx.styles['rightJust1']
+              )
+
+def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
+    """generate header on costing sheet"""
+    # START OF TEMP STUFF
+    for section in section_info:
+        if section in ['UNUSED', 'TOTALS']:
+            continue
+        xlsx.write(section_info[section].subtotal - 1, 8,
+                   section_info[section].value,
+                   xlsx.styles['currency'],
+                  )
+    xlsx.sheet.set_top_left_cell("A144")
+
+    # END OF TEMP STUFF
+    skip = [10, 11, 18, 21, 22, 24, 31, 33,
+            39, 41, 49, 51, 53, 55, 57, 58, 77]
+    for row in range(0, 49):
+        if row in skip:
+            continue
+        eval(f"totals_{row:02}(xlsx, section_info)")
 
 
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
