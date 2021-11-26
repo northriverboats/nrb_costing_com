@@ -45,7 +45,6 @@ class SectionInfo():
     finish: int
     subtotal: int
     value: float
-    extra: float = 0
 
 @dataclass
 class Xlsx():
@@ -993,7 +992,7 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo])-> None:
     formula1 = "=I" + str(offset - 38)
     value1 = section_info['OUTBOARD MOTORS'].value
     formula2 = "=Q" + str(section_info['OUTBOARD MOTORS'].subtotal)
-    value2 = section_info['OUTBOARD MOTORS'].extra
+    value2 = 0.0
     formula3 = "=G" + str(offset + 1) + "*(1-H" + str(offset + 1 ) + ')'
     value3 = value2
     formula4 = ("=IF(I" + row +
@@ -1107,7 +1106,6 @@ def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
                   )
     xlsx.sheet.set_top_left_cell("A144")
     xlsx.write(section_info['OUTBOARD MOTORS'].subtotal -1, 16, 30.0)
-    section_info['OUTBOARD MOTORS'].extra = 30
     # END OF TEMP STUFF
     skip = [10, 11, 18, 21, 22, 24, 31, 33,
             39, 41, 49, 51, 53, 55, 57, 58, 77]
