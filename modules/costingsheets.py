@@ -135,6 +135,10 @@ COLUMNS = [                             # POINTS   PIXELS
 ]
 
 
+CURRENCY = (
+    '_("$"* #,##0.00_);_("$"* (#,##0.00);_("$"* "-"??_);_(@_)'
+)
+
 # pylint: disable=anomalous-backslash-in-string
 STYLES = [
      Format('generic1', {'font_name': 'arial',
@@ -147,31 +151,27 @@ STYLES = [
 
      Format('currency', {'font_name': 'arial',
                                  'font_size': 10,
-                                 'num_format': '_("$"* #,##0.00_);_("$"*'
-                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                 'num_format': CURRENCY,
                         }),
 
      Format('currencyYellow', {'pattern':1,
                                'bg_color': '#FCF305',
                                'font_name': 'arial',
                                'font_size': 10,
-                               'num_format': '_("$"* #,##0.00_);_("$"*'
-                               '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                               'num_format': CURRENCY,
                               }),
 
      Format('currencyBold', {'font_name': 'arial',
-                                 'font_size': 10,
-                                 'num_format': '_("$"* #,##0.00_);_("$"*'
-                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
-                                 'bold': True,
+                             'font_size': 10,
+                             'bold': True,
+                             'num_format':  CURRENCY,
                             }),
 
      Format('currencyBoldYellow', {'pattern':1,
                                    'bg_color': '#FCF305',
                                    'font_name': 'arial',
                                    'font_size': 10,
-                                   'num_format': '_("$"* #,##0.00_);_("$"*'
-                                   '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                   'num_format': CURRENCY,
                                    'bold': True,
                                   }),
 
@@ -179,8 +179,7 @@ STYLES = [
                                          'bg_color': '#FCF305',
                                          'font_name': 'arial',
                                          'font_size': 10,
-                                         'num_format': '_("$"* #,##0.00_);_("$"*'
-                                         '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                         'num_format': CURRENCY,
                                          'bold': True,
                                          'border': 2,
                                        }),
@@ -195,8 +194,7 @@ STYLES = [
 
      Format('currencyBordered', {'font_name': 'arial',
                                  'font_size': 10,
-                                 'num_format': '_("$"* #,##0.00_);_("$"*'
-                                 '\(#,##0.00\);_("$"* "-"??_);_(@_)',
+                                 'num_format': CURRENCY,
                                  'border':1,
                                 }),
 
@@ -204,6 +202,11 @@ STYLES = [
                         'font_size': 10,
                         'num_format': '0%',
                        }),
+
+     Format('percent1', {'font_name': 'arial',
+                         'font_size': 10,
+                         'num_format': '0.00%',
+                        }),
 
      Format('percentBorder', {'font_name': 'arial',
                               'font_size': 10,
@@ -376,6 +379,19 @@ STYLES = [
                                     'border': 1,
                                     'align': 'center',
                                    }),
+
+    Format('italicsNote', {'font_name': 'Arial',
+                           'font_size': 8,
+                           'italic': True,
+                           'text_wrap': True,
+                           'valign': 'top',
+                          }),
+
+    Format('red', {'font_name': 'Arial',
+                   'font_size': 10,
+                   'font_color': '#FF0000',
+                   'bold': True,
+                  }),
 ]
 
 SECTION_TEST = {
@@ -952,10 +968,10 @@ def totals_40(xlsx: Xlsx, section_info: dict[str, SectionInfo],
                "+I" + str(row - 20) +
                "+I" + str(row - 9) +
                "+I" + str(row - 1))
-    # value used in totals_40
+    # value used in totals_40 and totals_54
     value1 = (sum([section_info[section].value for section in section_info]) +
-                section_info['FABRICATION'].value * 0.08 +
-                section_info['PAINT'].value * 0.50)
+                   section_info['FABRICATION'].value * 0.08 +
+                   section_info['PAINT'].value * 0.50)
 
     xlsx.write(row, 6, 'TOTAL COST OF PROJECT', xlsx.styles['rightJust2'])
     xlsx.write(row, 8, formula1, xlsx.styles['currencyBoldYellow'], value1)
@@ -1170,32 +1186,270 @@ def totals_50(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_52(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 52 from the bottom of the sheet"""
+    _ = section_info
 
     xlsx.write(row, 6, 'SELLING PRICE', xlsx.styles['rightJust2'])
     xlsx.write(row, 8, None, xlsx.styles['currencyBoldYellowBorder'])
 
+def totals_54(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 54 from the bottom of the sheet"""
+    text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
+    formula1 = "=I" + str(row - 1) + "-I" + str(row - 13)
+    value1 = -(sum([section_info[section].value for section in section_info]) +
+                    section_info['FABRICATION'].value * 0.08 +
+                    section_info['PAINT'].value * 0.50)
+
+    xlsx.write(row, 6, text1, xlsx.styles['rightJust2'])
+    xlsx.write(row, 8, formula1, xlsx.styles['currencyBold'], value1)
+
+def totals_56(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 56 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "CONTRIBUTION MARGIN"
+    formula1 = ("=IF(I" + str(row -3) + "=0,0,SUM(I" + str(row -3) + "-I" +
+                str(row -15) + ")/I" + str(row -3) + ")")
+
+    value1 =  0.0
+
+    xlsx.write(row, 6, text1, xlsx.styles['rightJust2'])
+    xlsx.write(row, 8, formula1, xlsx.styles['percent1'], value1)
+
+
+def totals_59(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 59 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Pricing Policy References: "
+    text2 = "Discounts / Minimum contribution margins: "
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic2'])
+    xlsx.write(row, 5, text2, xlsx.styles['generic2'])
+
+def totals_60(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 60 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Boat MSRP = C / .61 / 0.7"
+    text2 = ("Government/Commercial Discounts - Max discount 30% / "
+             "Minimum margin 35%")
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 5, text2, xlsx.styles['generic1'])
+
+def totals_61(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 61 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Options MSRP = C / .8046 / .48"
+    text2 = ("Guide / Lodge Program - Commercial Markup- Max discount "
+             "30% / Minimum margin 35%")
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 5, text2, xlsx.styles['generic1'])
+
+def totals_62(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 62 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Trailers MSRP = C / 0.80 / 0.7"
+    text2 = ("Guide / Lodge Program - Recreational Retail Price list- "
+             "Max discount 20%")
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 5, text2, xlsx.styles['generic1'])
+
+def totals_63(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 63 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Inboard Motors MSRP = C / 0.85 / 0.7"
+    text2 = ("Non-Commercial Direct Sales - Max discount 26% / Minimum "
+             "margin 38.5%")
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 5, text2, xlsx.styles['generic1'])
+
+def totals_64(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 64 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Big Ticket Items MSRP = C / (range from 0.80 – 0.85) / 0.7"
+
+    xlsx.write(row, 2, text1, xlsx.styles['generic1'])
+    xlsx.sheet.write_rich_string(
+        row, 5, xlsx.styles['generic1'], 'Voyager - ',
+        xlsx.styles['red'],
+        "SEE MIKE ON ALL VOYAGER OR CUSTOM DEALER REFERRAL PRICING")
+
+def totals_65(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 60 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "GSA Pricing"
+    text2 = "1 - 2 boats"
+    text3 = "30% discount"
+
+    xlsx.write(row, 5, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 7, text2, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text3, xlsx.styles['generic1'])
+
+def totals_66(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 66 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "3 boats"
+    text2 = "30.5% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+def totals_67(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 67 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "4 boats"
+    text2 = "31% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+def totals_68(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 68 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "5 boats"
+    text2 = "31.5% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+def totals_69(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 69 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "6 - 10 bts"
+    text2 = "32% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+def totals_70(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 70 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "11 - 20 bts"
+    text2 = "32.25% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+def totals_71(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 71 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "20+ boats"
+    text2 = "32.5% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 8, text2, xlsx.styles['generic1'])
+
+
+def totals_72(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 72 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Outboard motors"
+    text2 = "Government agencies - 15% discount"
+
+    xlsx.write(row, 5, text1, xlsx.styles['generic1'])
+    xlsx.write(row, 7, text2, xlsx.styles['generic1'])
+
+def totals_73(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 73 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "(approval req. for greater discount, no more than addl. 3%)"
+    text2 = "GSA Pricing - 18% discount"
+
+    xlsx.merge_range(row, 5, row + 2, 6, text1, xlsx.styles['italicsNote'])
+    xlsx.write(row, 7, text2, xlsx.styles['generic1'])
+
+def totals_74(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 74 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Guides / Lodges - 10% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+
+def totals_75(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 75 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Commercial sales - 5% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+
+def totals_76(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 76 from the bottom of the sheet"""
+    _ = section_info
+    text1 = "Voyager - 5% discount"
+
+    xlsx.write(row, 7, text1, xlsx.styles['generic1'])
+
+def totals_78(xlsx: Xlsx, section_info: dict[str, SectionInfo],
+              row: int)-> None:
+    """fill out line at row 78 from the bottom of the sheet"""
+    _ = section_info
+    style1 = xlsx.styles['generic1']
+    style2 = xlsx.styles['generic2']
+
+    xlsx.write(row + 0, 2,
+               'Cost estimate check list - complete prior to sending quote i'
+               'or submitting bid', style2)
+    xlsx.write(row + 1, 2,
+               'Verify all formulas are correct and all items are included '
+               'in cost total', style1)
+    xlsx.write(row + 2, 2,
+               'Verify aluminum calculated with total lbs included. Include '
+               'metal costing sheet separate if completed', style1)
+    xlsx.write(row + 3, 2,
+               'Verify paint costing equals paint description', style1)
+    xlsx.write(row + 4, 2,
+               'Cost estimate includes all components on sales quote', style1)
+    xlsx.write(row + 5, 2,
+               'Pricing policy discounts and minimum margins are met', style1)
+    xlsx.write(row + 6, 2,
+               'Vendor quotes received and included in costing folder', style1)
+    xlsx.write(row + 7, 2,
+               'Labor hours reviewed and correct to best knowledge of project',
+               style1)
+    xlsx.write(row + 8, 2,
+               'Name of peer who reviewed prior to submission to customer',
+               style1)
+    xlsx.write(row + 9, 2,
+               'Customer signed sales quotation', style1)
+    xlsx.write(row + 10, 2,
+               'Customer provided terms and conditions, including payment '
+               'schedule', style1)
+
+
+
 def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
     """generate header on costing sheet"""
-    # START OF TEMP STUFF
-    for section in section_info:
-        if section in ['UNUSED', 'TOTALS']:
-            continue
-        xlsx.write(section_info[section].subtotal - 1, 8,
-                   section_info[section].value,
-                   xlsx.styles['currency'],
-                  )
-    xlsx.sheet.set_top_left_cell("A144")
-    xlsx.write(section_info['OUTBOARD MOTORS'].subtotal -1, 16, 30.0)
-    # END OF TEMP STUFF
     skip = [10, 11, 18, 21, 22, 24, 31, 33,
             39, 41, 49, 51, 53, 55, 57, 58, 77]
     # pylint: disable=unused-variable
     offset = section_info['TRAILER'].subtotal + 2
-    for row in range(0, 53):
+    for row in range(0, 79):
         if row in skip:
             continue
         # pylint: disable=eval-used
         eval(f"totals_{row:02}(xlsx, section_info, row + offset)")
+    generate_totals_b(xlsx, section_info)
 
 
 def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
