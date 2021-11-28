@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim expandtab shiftwidth=4 softtabstop=4
 """
-Generate Costing Sheets
+Generate Costing Sheet Headers at top of sheet
 """
 from .costing_data import Xlsx
 
