@@ -142,6 +142,11 @@ STYLES = [
                          'bold': True,
                         }),
 
+     Format('thickBottom', {'font_name': 'arial',
+                            'font_size': 10,
+                            'bottom': 2,
+                           }),
+
      Format('currency', {'font_name': 'arial',
                                  'font_size': 10,
                                  'num_format': CURRENCY,
@@ -219,6 +224,22 @@ STYLES = [
                                 'pattern': 1,
                                 'bg_color': '#FCF305',
                                 'bottom': 1,
+                               }),
+
+    Format('bgSilverBold12pt', {'pattern':1,
+                                'bg_color': 'silver',
+                                'font_name': 'Arial',
+                                'font_size': 12,
+                                'align': 'center',
+                                'bold': True,
+                               }),
+
+    Format('bgSilverBold10pt', {'pattern':1,
+                                'bg_color': 'silver',
+                                'align': 'center',
+                                'font_name': 'Arial',
+                                'font_size': 10,
+                                'bold': True,
                                }),
 
     Format('bgSilver', {'pattern':1,
