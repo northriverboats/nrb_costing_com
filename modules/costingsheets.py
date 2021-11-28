@@ -10,8 +10,9 @@ from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
 # from xlsxwriter.utility import xl_rowcol_to_cell # type: ignore
 from .boms import Bom, BomPart
-from .costing_data import FileNameInfo, Xlsx, COLUMNS, SECTIONS, STYLES
+from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
 from .costing_headers import generate_header
+from .costing_sections import generate_sections
 from .costing_totals import generate_totals
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
@@ -179,6 +180,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
 
     # create new workbook / xlsx file
+    sections: dict[str, SectionInfo] =  {}
     with Workbook(file_name_info['file_name']) as workbook:
         xlsx: Xlsx = Xlsx(workbook, filtered_bom)
 
@@ -192,8 +194,8 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.apply_columns()
 
         generate_header(xlsx)
-        # write sections
-        generate_totals(xlsx, SECTIONS)
+        generate_sections(xlsx, sections)
+        generate_totals(xlsx, sections)
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
