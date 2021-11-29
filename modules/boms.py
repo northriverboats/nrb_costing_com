@@ -21,7 +21,7 @@ class BomPart(DataClassJsonMixin):
     """Part Information from Section of a BOM Parts Sheet"""
     # pylint: disable=too-many-instance-attributes
     part: str
-    qty: float = field(compare=False)
+    qty: Optional[float] = field(compare=False)
     smallest:float = field(compare=False)
     biggest: float = field(compare=False)
     percent: float = field(compare=False)  # FT field
@@ -94,7 +94,7 @@ def section_add_part(parts: dict[str, BomPart], part: BomPart) -> None:
     """Insert new part or add qty to existing part"""
     try:
         item: BomPart = parts[part.part]
-        item.qty += part.qty
+        item.qty = (item.qty or 0) + (part.qty or 0)
     except KeyError:
         parts[part.part] = part
 

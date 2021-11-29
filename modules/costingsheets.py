@@ -82,7 +82,8 @@ def bom_merge_section(target_parts: dict[str, BomPart],
     for key in source_parts:
         try:
             target_part: BomPart = target_parts[key]
-            target_part.qty += source_parts[key].qty
+            target_part.qty = ((target_part.qty  or 0) +
+                               (source_parts[key].qty or 0))
         except KeyError:
             target_parts[key] = deepcopy(source_parts[key])
 
@@ -180,8 +181,9 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
 
     # create new workbook / xlsx file
-    sections: dict[str, SectionInfo] =  {}
-    with Workbook(file_name_info['file_name']) as workbook:
+    section_info: dict[str, SectionInfo] =  {}
+    with Workbook(file_name_info['file_name'],
+                  {'remove_timezone': True}) as workbook:
         xlsx: Xlsx = Xlsx(workbook, filtered_bom)
 
         xlsx.file_name_info = file_name_info
@@ -194,8 +196,8 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
         xlsx.apply_columns()
 
         generate_header(xlsx)
-        generate_sections(xlsx, sections)
-        generate_totals(xlsx, sections)
+        generate_sections(xlsx, section_info)
+        generate_totals(xlsx, section_info)
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
