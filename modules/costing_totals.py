@@ -382,7 +382,7 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     value2 = value1 / 0.61 / 0.7
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals = value3
 
@@ -404,7 +404,7 @@ def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     value2 = value1 / 0.8 / 0.85
     formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -426,7 +426,7 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     value2 = 0.0
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -448,7 +448,7 @@ def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     value2 = value1 / 0.85 / 0.7
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -470,7 +470,7 @@ def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     value2 = value1 / 0.8 / 0.7
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
