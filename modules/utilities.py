@@ -125,7 +125,7 @@ def enable_logging(logger1: logging.Logger,
 
     logger1.addHandler(console_handler)
     logger1.addHandler(file_handler)
-    # logger1.addHandler(smtp_handler)
+    logger1.addHandler(smtp_handler)
 
 if __name__ == "__main__":
     pass
