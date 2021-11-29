@@ -124,8 +124,9 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
     if bom1.name == "":
         logger.debug("bom1 not found error %s", model.sheet1)
     if bom2.name == "":
-        logger.debug("bom2 not found error %s %s  %s",
-                     model.sheet1, model.sheet2, model.folder)
+        # logger.debug("bom2 not found error %s %s  %s",
+        #             model.sheet1, model.sheet2, model.folder)
+        return bom1
     return bom_merge(bom1, bom2)
 
 def filter_bom(original_bom: Bom, size: float) -> Bom:
@@ -237,13 +238,10 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         None
     """
     status_msg("Merging", 1)
-    # for model in models:  # fww
-    for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
-        # merge "model" sheet 1 Bom with "option" sheet 2 Bom
-        bom: Bom = get_bom(boms, models[key])
-        generate_sheets_for_model(models[key], bom)
-        # for section in bom.sections:
-        #   print(f"{section.name:25} {len(section.parts)}")
+    # for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
+    for model in models:  # fww
+        bom: Bom = get_bom(boms, models[model])
+        generate_sheets_for_model(models[model], bom)
 
 if __name__ == "__main__":
     pass
