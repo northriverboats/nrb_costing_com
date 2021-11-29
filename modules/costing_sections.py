@@ -172,6 +172,9 @@ def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
     """write out one part to sheet"""
     for column, column_info in enumerate(columns_info):
         if  isinstance(column_info.name, str) and column_info.name[0] == "=":
+            if part.qty is None:
+                xlsx.write(row, column, None, xlsx.styles[column_info.style])
+                continue
             formula = column_info.name.format(row + 1, row + 1)
             # both formulas have the same value
             total = (part.qty or 0) * (part.unitprice or 0)
