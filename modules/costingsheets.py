@@ -144,12 +144,12 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
         section.parts = {
             k:v
             for k, v in section.parts.items()
-            if (v.smallest == 0 or size >= v.smallest) and
-            (v.biggest == 0 or size <= v.biggest)
+            if ((v.smallest or 0) == 0 or size >= (v.smallest or 0)) and
+            ((v.biggest or 0) == 0 or size <= (v.biggest or 0))
         }
         for v in section.parts.values():
             if v.percent:
-                v.unitprice = size / v.percent * v.unitprice
+                v.unitprice = size / (v.percent or 8) * (v.unitprice or 0)
     return bom
 
 

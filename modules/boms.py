@@ -22,15 +22,15 @@ class BomPart(DataClassJsonMixin):
     # pylint: disable=too-many-instance-attributes
     part: str
     qty: Optional[float] = field(compare=False)
-    smallest:float = field(compare=False)
-    biggest: float = field(compare=False)
-    percent: float = field(compare=False)  # FT field
+    smallest:Optional[float] = field(compare=False)
+    biggest: Optional[float] = field(compare=False)
+    percent: Optional[float] = field(compare=False)  # FT field
     description: Optional[str] = field(compare=False)
-    uom: str = field(compare=False)
-    unitprice: float = field(compare=False)
-    oem: str = field(compare=False)
-    vendorpart: str = field(compare=False)
-    vendor: str = field(compare=False)
+    uom: Optional[str] = field(compare=False)
+    unitprice: Optional[float] = field(compare=False)
+    oem: Optional[str] = field(compare=False)
+    vendorpart: Optional[str] = field(compare=False)
+    vendor: Optional[str] = field(compare=False)
     updated: Optional[datetime] = field(compare=False)
 
 @dataclass(order=True)
