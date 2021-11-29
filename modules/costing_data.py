@@ -197,6 +197,17 @@ STYLES = [
         },
     ),
     Format(
+        'currencyYellowBorder',
+        {
+            'pattern': 1,
+            'bg_color': '#FCF305',
+            'font_name': 'arial',
+            'font_size': 10,
+            'num_format': CURRENCY,
+            'border': 1,
+        },
+    ),
+    Format(
         'currencyBoldYellowBorder',
         {
             'pattern': 1,
@@ -618,6 +629,17 @@ STYLES = [
             'font_color': '#FF0000',
             'bold': True,
         },
+    ),
+    Format(
+        'redMerged',
+        {
+            'font_name': 'Arial',
+            'font_size': 12,
+            'font_color': '#FF0000',
+            'bold': True,
+            'underline': True,
+            'text_wrap': True,
+        }
     ),
     Format(
         'heading1',
