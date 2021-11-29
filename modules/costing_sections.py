@@ -108,6 +108,10 @@ ROW_PART = [
     ColumnInfo('=H{}+G{}', 'normalBordered'),
     ColumnInfo('updated', 'updated'),
     ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
 ]
 
 BLANK_PART = [
@@ -121,6 +125,10 @@ BLANK_PART = [
     ColumnInfo(None, 'normalBordered'),
     ColumnInfo('=H{}+G{}', 'normalBordered'),
     ColumnInfo(None, 'updated'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
+    ColumnInfo(None, 'normalBordered'),
     ColumnInfo(None, 'normalBordered'),
 ]
 
@@ -136,9 +144,15 @@ GREEN_BLANK_PART = [
     ColumnInfo('=H{}+G{}', 'bgGreenNormalBordered'),
     ColumnInfo(None, 'bgGreenUpdated'),
     ColumnInfo(None, 'bgGreenNormalBordered'),
+    ColumnInfo(None, 'bgGreenNormalBordered'),
+    ColumnInfo(None, 'bgGreenNormalBordered'),
+    ColumnInfo(None, 'bgGreenNormalBordered'),
+    ColumnInfo(None, 'bgGreenNormalBordered'),
 ]
 
 BLANK_BOM_PART = BomPart('', None, 0, 0, 0, '', '', 0, '', '', '', None)
+EMPTY_BOM_PART = BomPart('', None, None, None, None, None,
+                         None, None, None, None, None, None)
 
 
 # WRITING SECTION FUNCTIONS ===================================================
