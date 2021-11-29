@@ -114,7 +114,7 @@ class Xlsx():
 
 
 # SHEET DATA ==================================================================
-COLUMNS = [                             # POINTS   PIXELS
+COLUMNS = [                             # PIXELS   POINTS
     Columns('A:A', 126.50, 'generic1'), # 126.50   100.80
     Columns('B:B', 132, 'generic1'),    # 132.00   104.75
     Columns('C:C', 314.00, 'generic1'), # 314.00   249.20
@@ -238,6 +238,16 @@ STYLES = [
         },
     ),
     Format(
+        'currencyBorderedBold',
+        {
+            'font_name': 'arial',
+            'font_size': 10,
+            'num_format': CURRENCY,
+            'border': 1,
+            'bold': True,
+        },
+    ),
+    Format(
         'normalBordered',
         {
             'font_name': 'arial',
@@ -249,7 +259,7 @@ STYLES = [
         'bgGreenCurrencyBordered',
         {
             'pattern': 1,
-            'bg_color': '#92D050',
+            'bg_color': '#1FB714',
             'font_name': 'arial',
             'font_size': 10,
             'num_format': CURRENCY,
@@ -260,7 +270,7 @@ STYLES = [
         'bgGreenNormalBordered',
         {
             'pattern': 1,
-            'bg_color': '#92D050',
+            'bg_color': '#1FB714',
             'font_name': 'arial',
             'font_size': 10,
             'border': 1,
@@ -340,6 +350,16 @@ STYLES = [
             'bg_color': 'silver',
             'align': 'center',
             'bold': True,
+        },
+    ),
+    Format(
+        'bgSilverBorderedCurrency',
+        {
+            'pattern': 1,
+            'bg_color': 'silver',
+            'num_format': CURRENCY,
+            'bold': True,
+            'border': 1,
         },
     ),
     Format(
