@@ -32,7 +32,7 @@ def totals_column_b(xlsx: Xlsx,
 def totals_00(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 00 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['FABRICATION'].subtotal)
+    formula1 = f"=I{section_info['FABRICATION'].subtotal}"
     value1 = section_info['FABRICATION'].value
 
     xlsx.write(row, 2, 'MATERIALS', xlsx.styles['rightJust2'])
@@ -42,7 +42,7 @@ def totals_00(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_01(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 01 from the bottom of the sheet"""
-    formula1 = "=I" + str(row) + '*H' + str(row + 1)
+    formula1 = f"=I{row}*H{row + 1}"
     value1 = section_info['FABRICATION'].value * 0.08
 
     xlsx.write(row, 3, 'Fab Consumables', xlsx.styles['generic1'])
@@ -52,7 +52,7 @@ def totals_01(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_02(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 02 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['PAINT'].subtotal)
+    formula1 = f"=I{section_info['PAINT'].subtotal}"
     value1 = section_info['PAINT'].value
 
     xlsx.write(row, 3, 'Paint', xlsx.styles['generic1'])
@@ -61,7 +61,7 @@ def totals_02(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_03(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 03 from the bottom of the sheet"""
-    formula1 = "=I" + str(row) + '*H' + str(row+1)
+    formula1 = f"=I{row}*H{row+1}"
     value1 = section_info['PAINT'].value * 0.50
 
     xlsx.write(row, 3, 'Paint Consumables', xlsx.styles['generic1'])
@@ -71,7 +71,7 @@ def totals_03(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_04(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 04 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['OUTFITTING'].subtotal)
+    formula1 = f"=I{section_info['OUTFITTING'].subtotal}"
     value1 = section_info['OUTFITTING'].value
 
     xlsx.write(row, 3, 'Outfitting', xlsx.styles['generic1'])
@@ -80,7 +80,7 @@ def totals_04(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_05(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 05 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['BIG TICKET ITEMS'].subtotal)
+    formula1 = f"=I{section_info['BIG TICKET ITEMS'].subtotal}"
     value1 = section_info['BIG TICKET ITEMS'].value
 
     xlsx.write(row, 3, 'Big Ticket Items', xlsx.styles['generic1'])
@@ -89,7 +89,7 @@ def totals_05(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_06(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 06 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['OUTBOARD MOTORS'].subtotal)
+    formula1 = f"=I{section_info['OUTBOARD MOTORS'].subtotal}"
     value1 = section_info['OUTBOARD MOTORS'].value
 
     xlsx.write(row, 3, 'OB Motors', xlsx.styles['generic1'])
@@ -98,7 +98,7 @@ def totals_06(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_07(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 07 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['INBOARD MOTORS & JETS'].subtotal)
+    formula1 = f"=I{section_info['INBOARD MOTORS & JETS'].subtotal}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
 
     xlsx.write(row, 3, 'IB Motors & Jets', xlsx.styles['generic1'])
@@ -107,7 +107,7 @@ def totals_07(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_08(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 08 from the bottom of the sheet"""
-    formula1 = "=I" + str(section_info['TRAILER'].subtotal)
+    formula1 = f"=I{section_info['TRAILER'].subtotal}"
     value1 = section_info['TRAILER'].value
 
     xlsx.write(row, 3, 'Trailer', xlsx.styles['generic1'])
@@ -116,7 +116,7 @@ def totals_08(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_09(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 09 from the bottom of the sheet"""
-    formula1 = "=SUM(I" + str(row - 8) +":I" + str(row)
+    formula1 = f"=SUM(I{row - 8}:I{row})"
     # value used in totals_40
     value1 = (sum([section_info[section].value for section in section_info]) +
                    section_info['FABRICATION'].value * 0.08 +
@@ -145,9 +145,9 @@ def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 14 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=F" + str(row + 1) + "+SUM(L:L)"
+    formula1 = f"=F{row + 1}+SUM(L:L)"
     value1 = 0
-    formula2 = "=H" +str(row +1 ) +  "*G" + str(row + 1)
+    formula2 = f"=H{row +1}*G{row + 1}"
     value2 = 0
 
     xlsx.write(row, 3, 'Fabrication', xlsx.styles['generic1'])
@@ -160,9 +160,9 @@ def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 15 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=F" + str(row + 1) + "+SUM(M:M)"
+    formula1 = f"=F{row + 1}+SUM(M:M)"
     value1 = 0
-    formula2 = "=H" +str(row +1 ) +  "*G" + str(row + 1)
+    formula2 = f"=H{row +1}*G{row + 1}"
     value2 = 0
 
     xlsx.write(row, 3, 'Paint', xlsx.styles['generic1'])
@@ -175,9 +175,9 @@ def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 16 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=F" + str(row + 1) + "+SUM(N:N)"
+    formula1 = f"=F{row + 1}+SUM(N:N)"
     value1 = 0
-    formula2 = "=H" +str(row +1 ) +  "*G" + str(row + 1)
+    formula2 = f"=H{row +1}*G{row + 1}"
     value2 = 0
 
     xlsx.write(row, 3, 'Outfitting', xlsx.styles['generic1'])
@@ -190,9 +190,9 @@ def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 17 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=F" + str(row + 1) + "+SUM(O:O)"
+    formula1 = f"=F{row + 1}+SUM(O:O)"
     value1 = 0
-    formula2 = "=H" +str(row +1 ) +  "*G" + str(row + 1)
+    formula2 = f"=H{row +1}*G{row + 1}"
     value2 = 0
 
     xlsx.write(row, 3, 'Design / Drafting', xlsx.styles['generic1'])
@@ -205,9 +205,9 @@ def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 19 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=SUM(F" + str(row - 4) + ":F" + str(row - 1)
+    formula1 = f"=SUM(F{row - 4}:F{row - 1})"
     value1 = 0
-    formula2 = "=SUM(I" + str(row - 4) + ":I" + str(row - 1)
+    formula2 = f"=SUM(I{row - 4}:I{row - 1})"
     value2 = 0
 
     xlsx.write(row, 4, 'Total Hours', xlsx.styles['rightJust1'])
@@ -276,7 +276,7 @@ def totals_30(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 30 from the bottom of the sheet"""
     _ = section_info
 
-    formula1 = "=SUM(I" + str(row - 5) + ":I" + str(row)
+    formula1 = f"=SUM(I{row - 5}:I{row})"
     value1 = 0
 
     xlsx.write(row, 7, 'Total Other Costs', xlsx.styles['rightJust2'])
@@ -334,7 +334,7 @@ def totals_38(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 38 from the bottom of the sheet"""
     _ = section_info
 
-    formula1 = "=SUM(I" + str(row - 3) + ":I" + str(row)
+    formula1 = f"=SUM(I{row - 3}:I{row})"
     value1 = 0
 
     xlsx.write(row, 7, 'Total No Margin Items', xlsx.styles['rightJust2'])
@@ -343,11 +343,8 @@ def totals_38(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_40(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 40 from the bottom of the sheet"""
-    formula1 = ("=I" + str(row - 30) +
-               "+I" + str(row - 20) +
-               "+I" + str(row - 9) +
-               "+I" + str(row - 1))
-    # value used in totals_40 and totals_54
+    formula1 = f"=I{row -30}+I{row - 20}+I{row - 9}+I{row - 1}"
+    # value used in totals_40 and totals_43
     value1 = (sum([section_info[section].value for section in section_info]) +
                    section_info['FABRICATION'].value * 0.08 +
                    section_info['PAINT'].value * 0.50)
@@ -373,27 +370,19 @@ def totals_42(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
-    formula1 = ("=I" + str(row - 2) +
-                "-I" + str(row - 4) +
-                "-I" + str(row - 37) +
-                "-I" + str(row - 36) +
-                "-I" + str(row - 35) +
-                "-I" + str(row - 34))
+    formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
+                f"-I{row - 34}")
     # value used in totals_40
     value1 = (section_info['FABRICATION'].value +
               section_info['FABRICATION'].value * 0.08 +
               section_info['PAINT'].value +
               section_info['PAINT'].value * 0.50 +
               section_info['OUTFITTING'].value)
-    formula2 = "=D" + str(row + 1)  + "/E" + str(row + 1) + "/F" + str(row + 1)
+    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / 0.61 / 0.7
-    formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
+    formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = ("=IF(I" + str(row + 1) +
-                "=0,0,(I" + str(row + 1) +
-                "-D" + str(row + 1) +
-                ")/I" + str(row + 1) +
-                ")")
+    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals = value3
 
@@ -409,19 +398,13 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 44 from the bottom of the sheet"""
-    formula1 = "=I" + str(row - 38)
+    formula1 = f"=I{row - 38}"
     value1 = section_info['BIG TICKET ITEMS'].value
-    formula2 = ("=D" + str(row + 1) +
-                "/E" + str(row + 1) +
-                "/F" + str(row + 1))
+    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / 0.8 / 0.85
     formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
     value3 = value2
-    formula4 = ("=IF(I" + str(row + 1) +
-                "=0,0,(I" + str(row + 1) +
-                "-D" + str(row + 1) +
-                ")/I" + str(row + 1) +
-                ")")
+    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -437,14 +420,13 @@ def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 45 from the bottom of the sheet"""
-    formula1 = "=I" + str(row - 38)
+    formula1 = f"=I{row - 38}"
     value1 = section_info['OUTBOARD MOTORS'].value
-    formula2 = "=Q" + str(section_info['OUTBOARD MOTORS'].subtotal)
+    formula2 = f"=Q{section_info['OUTBOARD MOTORS'].subtotal}"
     value2 = 0.0
-    formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
+    formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = ("=IF(I" + str(row + 1) + "=0,0,(I" + str(row +1) + "-D" +
-                str(row +1)  + ")/I" + str(row + 1) + ")")
+    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -460,19 +442,13 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 46 from the bottom of the sheet"""
-    formula1 = "=I" + str(row - 38)
+    formula1 = f"=I{row - 38}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
-    formula2 = ("=D" + str(row + 1) +
-                "/E" + str(row + 1) +
-                "/F" + str(row + 1))
+    formula2 = f"=D{row + 1}/E{row +1}/F{row +1}"
     value2 = value1 / 0.85 / 0.7
-    formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
+    formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = ("=IF(I" + str(row +1) +
-                "=0,0,(I" + str(row +1) +
-                "-D" + str(row +1) +
-                ")/I" + str(row +1) +
-                ")")
+    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -488,19 +464,13 @@ def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 47 from the bottom of the sheet"""
-    formula1 = "=I" + str(row - 38)
+    formula1 = f"=I{row - 38}"
     value1 = section_info['TRAILER'].value
-    formula2 = ("=D" + str(row + 1) +
-                "/E" + str(row + 1) +
-                "/F" + str(row + 1))
+    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / 0.8 / 0.7
-    formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
+    formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
-    formula4 = ("=IF(I" + str(row + 1) +
-                "=0,0,(I" + str(row + 1) +
-                "-D" + str(row + 1) +
-                ")/I" + str(row + 1) +
-                ")")
+    formula4 = f"=IF(I{row + 1}=0,0,I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -517,17 +487,13 @@ def totals_48(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 48 from the bottom of the sheet"""
     _ = section_info
-    formula1 = "=I" + str(row - 9)
+    formula1 = f"=I{row - 9}"
     value1 = 0.0
-    formula2 = "=D" + str(row + 1)
+    formula2 = f"=D{row + 1}"
     value2 = 0.0
-    formula3 = "=G" + str(row + 1)
+    formula3 = f"=G{row + 1}"
     value3 = value2
-    formula4 = ("=IF(I" + str(row + 1) +
-                "=0,0,(I" + str(row + 1) +
-                "-D" + str(row + 1) +
-                ")/I" + str(row + 1) +
-                ")")
+    formula4 = f"=IF(I{row +1}=0,0,(I{row + 1}-D{row + 1})/I{row +1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -544,7 +510,7 @@ def totals_50(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 50 from the bottom of the sheet"""
     text1 = "Total Cost (equals total cost of project box)"
-    formula1 = "=SUM(D" + str(row - 6) + ":D" + str(row -1) + ")"
+    formula1 = f"=SUM(D{row - 6}:D{row -1})"
     value1 = (section_info['FABRICATION'].value +
               section_info['FABRICATION'].value * 0.08 +
               section_info['PAINT'].value +
@@ -554,7 +520,7 @@ def totals_50(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               section_info['OUTBOARD MOTORS'].value +
               section_info['INBOARD MOTORS & JETS'].value +
               section_info['TRAILER'].value)
-    formula2 = "=SUM(I" + str(row - 6) + ":I" + str(row -1) + ")"
+    formula2 = f"=SUM(I{row - 6}:I{row - 1})"
     value2 = section_info['TOTALS'].totals
 
     xlsx.write(row, 2, text1, xlsx.styles['rightJust2'])
@@ -574,7 +540,7 @@ def totals_54(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 54 from the bottom of the sheet"""
     text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
-    formula1 = "=I" + str(row - 1) + "-I" + str(row - 13)
+    formula1 = f"=I{row - 1}-I{row - 13}"
     value1 = -(sum([section_info[section].value for section in section_info]) +
                     section_info['FABRICATION'].value * 0.08 +
                     section_info['PAINT'].value * 0.50)
@@ -587,8 +553,7 @@ def totals_56(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 56 from the bottom of the sheet"""
     _ = section_info
     text1 = "CONTRIBUTION MARGIN"
-    formula1 = ("=IF(I" + str(row -3) + "=0,0,SUM(I" + str(row -3) + "-I" +
-                str(row -15) + ")/I" + str(row -3) + ")")
+    formula1 = f"=IF(I{row - 3}=0,0,SUM(I{row - 3}-I{row - 15})/I{row - 3})"
 
     value1 =  0.0
 
