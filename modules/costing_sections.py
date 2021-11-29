@@ -105,7 +105,7 @@ ROW_PART = [
     ColumnInfo('qty', 'normalBordered'),
     ColumnInfo('=D{}*F{}', 'currencyBordered'),
     ColumnInfo(None, 'normalBordered'),
-    ColumnInfo('=H{}+G{}', 'normalBordered'),
+    ColumnInfo('=H{}+G{}', 'currencyBordered'),
     ColumnInfo('updated', 'updated'),
     ColumnInfo(None, 'normalBordered'),
     ColumnInfo(None, 'normalBordered'),
@@ -150,7 +150,8 @@ GREEN_BLANK_PART = [
     ColumnInfo(None, 'bgGreenNormalBordered'),
 ]
 
-BLANK_BOM_PART = BomPart('', None, 0, 0, 0, '', '', 0, '', '', '', None)
+
+BLANK_BOM_PART = BomPart('', 0, 0, 0, 0, '', '', 0, '', '', '', None)
 EMPTY_BOM_PART = BomPart('', None, None, None, None, None,
                          None, None, None, None, None, None)
 
@@ -205,10 +206,10 @@ def section_subtotal(xlsx: Xlsx, row: int, section_info: SectionInfo,
                      text: str) -> None:
     """write subtoal"""
     formula = (f"=SUM(I{str(section_info.start + 1)}"
-               f":I{str(section_info.finish + 1)}")
+               f":I{str(section_info.finish + 1)})")
     value = section_info.value
     xlsx.write(row, 7, text, xlsx.styles['rightJust2'])
-    xlsx.write(row, 8, formula, xlsx.styles['currencyBordered'], value)
+    xlsx.write(row, 8, formula, xlsx.styles['currencyBorderedBold'], value)
 
 def section_fabrication(xlsx: Xlsx, row: int,
                         section_info: dict[str, SectionInfo]) -> int:
@@ -225,9 +226,8 @@ def section_fabrication(xlsx: Xlsx, row: int,
         total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
         row += 1
     section_part(xlsx, row, ROW_PAINTFAB_PART, BLANK_BOM_PART)
-    row += 1
-    finish = row - 1
-    row += 1
+    finish = row
+    row += 2
     xlsx.write(row, 2, 'Material sheet provided Y/N',
                xlsx.styles['bgYellowRight'])
     xlsx.write(row, 3,  None, xlsx.styles['bgYellow4'])
@@ -238,7 +238,7 @@ def section_fabrication(xlsx: Xlsx, row: int,
                xlsx.styles['bgYellowRight'])
     xlsx.write(row, 3,  None, xlsx.styles['bgYellow4'])
     subtotal = row
-    section = SectionInfo(start, finish, subtotal, total)
+    section = SectionInfo(start, finish, subtotal + 1, total)
     section_subtotal(xlsx, row, section, 'TOTAL ALLOY COST')
     section_info['FABRICATION'] = section
     row += 1
@@ -261,11 +261,11 @@ def section_paint(xlsx: Xlsx, row: int,
         total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
         row += 1
     section_part(xlsx, row, ROW_PAINTFAB_PART, BLANK_BOM_PART)
-    row += 1
-    finish = row - 1
-    row += 1
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 2
     subtotal = row
-    section = SectionInfo(start, finish, subtotal, total)
+    section = SectionInfo(start, finish, subtotal + 1, total)
     section_subtotal(xlsx, row, section, 'TOTAL PAINT COST')
     section_info['PAINT'] = section
     row += 1
@@ -273,9 +273,11 @@ def section_paint(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_unused(xlsx: Xlsx, row: int,
+def section_green(xlsx: Xlsx, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
-    """write paint section"""
+    """write green unused section"""
+    _ = section_info
+    total : float = 0
     section_heading_large(xlsx, row, 'Outfitting Materials')
     row += 2
     section_heading_small(
@@ -285,10 +287,210 @@ def section_unused(xlsx: Xlsx, row: int,
         'Labor Change add/delete')
     row += 1
     section_titles(xlsx, row, TITLES)
+    row += 1
+    section_part(xlsx, row, GREEN_BLANK_PART, EMPTY_BOM_PART)
+    row += 1
+    start = row
+    for row1 in range(row, row + 22):
+        section_part(xlsx, row1, GREEN_BLANK_PART, BLANK_BOM_PART)
+    finish = row + 21
+    row += 23
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'REVISIONS TOTAL')
+    row += 1
+    return row
+
+def section_outfitting(xlsx: Xlsx, row: int,
+                   section_info: dict[str, SectionInfo]) -> int:
+    """write outfitting section"""
     _ = section_info
+    total : float = 0
+    section_heading_small(
+        xlsx,
+        row,
+        'Components / Materials',
+        'Labor Change add/delete')
+    row += 1
+    section_titles(xlsx, row, TITLES)
+    row += 1
+    section_part(xlsx, row, BLANK_PART, EMPTY_BOM_PART)
+    row += 1
+    start = row
+    parts = xlsx.bom.sections[2].parts
+    for part in parts:
+        section_part(xlsx, row, ROW_PART, parts[part])
+        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+        row += 1
+    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 2
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'MATERIALS TOTAL')
+    section.subtotal += 2
+    section_info['OUTFITTING'] = section
+    row += 2
+    formula = f"=I{start - 3}+I{subtotal + 1}"
+    xlsx.write(
+        row,
+        8,
+        formula,
+        xlsx.styles['bgSilverBorderedCurrency'],
+        total)
+    xlsx.write(
+        row,
+        7,
+        "Total All Outfitting Components",
+        xlsx.styles['rightJust2'])
+    row += 2
+    return row
+
+def section_bigticket(xlsx: Xlsx, row: int,
+                   section_info: dict[str, SectionInfo]) -> int:
+    """write big ticket section"""
+    _ = section_info
+    total: float = 0
+    section_heading_small(
+        xlsx,
+        row,
+        'BIG TICKET ITEMS (generator, Seakeeper, hyd pumps)',
+        'Labor Change add/delete')
+    row += 2
+    section_titles(xlsx, row, TITLES)
+    row += 1
+    start = row
+    parts = xlsx.bom.sections[3].parts
+    for part in parts:
+        section_part(xlsx, row, ROW_PART, parts[part])
+        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+        row += 1
+    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 1
+    if not parts:
+        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+        finish = row
+        row += 1
+    row += 1
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'BIG TICKET ITEMS TOTAL')
+    section_info['BIG TICKET ITEMS'] = section
+    row += 2
+    return row
+
+def section_outboard(xlsx: Xlsx, row: int,
+                   section_info: dict[str, SectionInfo]) -> int:
+    """write outboard motors section"""
+    _ = section_info
+    total: float = 0
+    section_heading_small(
+        xlsx,
+        row,
+        'OB Motors',
+        'Labor Change add/delete')
+    row += 2
+    section_titles(xlsx, row, TITLES)
+    row += 1
+    start = row
+    parts = xlsx.bom.sections[4].parts
+    for part in parts:
+        section_part(xlsx, row, ROW_PART, parts[part])
+        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+        row += 1
+    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 1
+    if not parts:
+        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+        finish = row
+        row += 1
+    row += 1
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'OB MOTORS TOTAL')
+    section_info['OUTBOARD MOTORS'] = section
+    row += 2
+    return row
+
+def section_inboard(xlsx: Xlsx, row: int,
+                   section_info: dict[str, SectionInfo]) -> int:
+    """write inborad motors section"""
+    _ = section_info
+    total: float = 0
+    section_heading_small(
+        xlsx,
+        row,
+        'Inboard Motors & Jets',
+        'Labor Change add/delete')
+    row += 2
+    section_titles(xlsx, row, TITLES)
+    row += 1
+    start = row
+    parts = xlsx.bom.sections[5].parts
+    for part in parts:
+        section_part(xlsx, row, ROW_PART, parts[part])
+        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+        row += 1
+    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 1
+    if not parts:
+        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+        finish = row
+        row += 1
+    row += 1
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'INBOARD MOTORS & JETS TOTAL')
+    section_info['INBOARD MOTORS & JETS'] = section
+    row += 2
     return row
 
 
+def section_trailer(xlsx: Xlsx, row: int,
+                   section_info: dict[str, SectionInfo]) -> int:
+    """write trailer section"""
+    _ = section_info
+    total: float = 0
+    section_heading_small(
+        xlsx,
+        row,
+        'Trailer'
+        'Labor Change add/delete')
+    row += 2
+    section_titles(xlsx, row, TITLES)
+    row += 1
+    start = row
+    parts = xlsx.bom.sections[6].parts
+    for part in parts:
+        section_part(xlsx, row, ROW_PART, parts[part])
+        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+        row += 1
+    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+    finish = row
+    row += 1
+    if not parts:
+        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
+        finish = row
+        row += 1
+    row += 1
+    subtotal = row
+    section = SectionInfo(start, finish, subtotal + 1, total)
+    section_subtotal(xlsx, row, section, 'TRAILER TOTAL')
+    section_info['TRAILER'] = section
+    row += 2
+    return row
 
 def generate_sections(xlsx: Xlsx,
                       section_info: dict[str, SectionInfo]) -> None:
@@ -304,9 +506,14 @@ def generate_sections(xlsx: Xlsx,
     row: int = 10
     row = section_fabrication(xlsx, row, section_info)
     row = section_paint(xlsx, row, section_info)
-    row = section_unused(xlsx, row, section_info)
-
-
+    row = section_green(xlsx, row, section_info)
+    row = section_outfitting(xlsx, row, section_info)
+    row = section_bigticket(xlsx, row, section_info)
+    row = section_outboard(xlsx, row, section_info)
+    row = section_inboard(xlsx, row, section_info)
+    row = section_trailer(xlsx, row, section_info)
+    section = SectionInfo(row, row + 5, row + 8, 0)
+    section_info['TOTALS'] = section
 
 
 if __name__ == "__main__":
