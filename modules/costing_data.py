@@ -124,7 +124,9 @@ COLUMNS = [                             # PIXELS   POINTS
     Columns('G:G', 90, 'generic1'),     #  90.00    71.45
     Columns('H:H', 69, 'generic1'),     #  69.00    54.75
     Columns('I:I', 119, 'generic1'),    # 119.00    94.47
-    Columns('J:T', 62, 'generic1'),     #  62.00    49.20
+    Columns('J:P', 62, 'generic1'),     #  62.00    49.20
+    Columns('Q:Q', 90, 'generic1'),     #  90.00    71.45
+    Columns('R:T', 62, 'generic1'),     #  62.00    49.20
 ]
 
 
