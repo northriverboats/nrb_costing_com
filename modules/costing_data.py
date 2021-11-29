@@ -101,7 +101,7 @@ class Xlsx():
         for col in self.columns:
             if col.style:
                 self.sheet.set_column_pixels(col.columns,
-                                             col.width * (100.8/127 + .00077),
+                                             col.width * (100.8/100.8 + .00077),
                                              self.styles[col.style])
             else:
                 self.sheet.set_column_pixels(col.columns, col.width)
