@@ -395,6 +395,7 @@ def section_outboard(xlsx: Xlsx, row: int,
         'Labor Change add/delete')
     row += 2
     section_titles(xlsx, row, TITLES)
+    xlsx.write(row, 16, 'Dealer Net Price', xlsx.styles['heading1'])
     row += 1
     start = row
     parts = xlsx.bom.sections[4].parts
@@ -402,20 +403,22 @@ def section_outboard(xlsx: Xlsx, row: int,
         section_part(xlsx, row, ROW_PART, parts[part])
         total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
-    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
-    finish = row
-    row += 1
-    if not parts:
+    for row1 in range(max(3 - len(parts), 1)):
+        _ = row1
         section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
-        finish = row
         row += 1
+    finish = row - 1
     row += 1
     subtotal = row
     section = SectionInfo(start, finish, subtotal + 1, total)
     section_subtotal(xlsx, row, section, 'OB MOTORS TOTAL')
     section_info['OUTBOARD MOTORS'] = section
+    for row1 in range(start, finish + 1):
+        xlsx.write(row1, 16, None, xlsx.styles['currencyYellowBorder'])
+    formula = f"=SUM(Q{start + 1}:Q{finish +1})"
+    xlsx.write(row, 15, 'Dealer Net Total', xlsx.styles['rightJust2'])
+    xlsx.write(row, 16, formula, xlsx.styles['currencyBorderedBold'], 0)
     row += 2
     return row
 
@@ -438,15 +441,12 @@ def section_inboard(xlsx: Xlsx, row: int,
         section_part(xlsx, row, ROW_PART, parts[part])
         total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
-    xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
-    finish = row
-    row += 1
-    if not parts:
+    for row1 in range(max(4 - len(parts), 1)):
+        _ = row1
         section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
-        finish = row
         row += 1
+    finish = row - 1
     row += 1
     subtotal = row
     section = SectionInfo(start, finish, subtotal + 1, total)
@@ -460,12 +460,15 @@ def section_trailer(xlsx: Xlsx, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write trailer section"""
     _ = section_info
+    text1 = ("NOTE: IF EZ LOADER, ADD 12% TO PRICING FROM JULY 2021 PRICE "
+             "LIST. OTHERWISE RE-QUOTE WITH REVISED PRICING")
     total: float = 0
     section_heading_small(
         xlsx,
         row,
-        'Trailer'
+        'Trailer',
         'Labor Change add/delete')
+    xlsx.merge_range(row, 16, row + 3, 20, text1, xlsx.styles['redMerged'])
     row += 2
     section_titles(xlsx, row, TITLES)
     row += 1
