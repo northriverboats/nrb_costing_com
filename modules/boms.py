@@ -63,11 +63,17 @@ def make_bom_part(row, resources: dict[str, Resource]) -> BomPart:
     """Create bom part from row in spreadsheet"""
     qty: float = float(row[0].value)
     smallest: float = (
-        0.0 if row[1].value is None else float(row[1].value))
+        0.0
+        if row[1].value is None or row[1].value == ''
+        else float(row[1].value))
     biggest: float = (
-        0.0 if row[2].value is None else float(row[2].value))
+        0.0
+        if row[2].value is None or row[1].value == ''
+        else float(row[2].value))
     percent: float = (
-        0.0 if row[3].value is None else float(row[3].value))
+        0.0
+        if row[3].value is None or row[1].value == ''
+        else float(row[3].value))
     part: str = str(row[5].value)
 
     # fww resolve at later point, we need to throw errors on fail
