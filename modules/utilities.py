@@ -83,7 +83,7 @@ def status_msg(msg: str, level: int, nl: bool = True) -> None:
 def normalize_size(size: float) -> str:
     """convert float to proper feet inchs"""
     if size > int(size):
-        return f"{int(size)}' 6\""
+        return f"{int(size)}' 6''"
     return f"{int(size)}'"
 
 
