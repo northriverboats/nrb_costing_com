@@ -37,13 +37,15 @@ def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
     """
     option: str = "" if model.sheet2 is None else ' ' + model.sheet2
     size_with_options: str = normalize_size(size) + ' ' + model.sheet1 + option
-    file_name: Path = SHEETS_FOLDER / folder / (size_with_options + '.xlsx')
+    size_with_folder: str = normalize_size(size) + ' ' + folder
+    file_name: Path = SHEETS_FOLDER / folder / (size_with_folder + '.xlsx')
     name: FileNameInfo = {
         'size': normalize_size(size),
         'model': model.sheet1,
         'option': option,
         'with_options': model.sheet1 + option,
         'size_with_options': size_with_options,
+        'size_with_folder': size_with_folder,
         'file_name': file_name,
     }
     return name
