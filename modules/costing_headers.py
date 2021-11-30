@@ -18,7 +18,7 @@ def generate_header(xlsx: Xlsx) -> None:
     xlsx.merge_range('H2:I2', None, xlsx.styles['bgYellow2'])
 
     xlsx.write('B4', 'Boat Model:')
-    xlsx.write('C4', xlsx.bom.name, xlsx.styles['bgYellow1'])
+    xlsx.write('C4', xlsx.file_name_info['folder'], xlsx.styles['bgYellow1'])
     xlsx.write('B5', 'Beam:')
     xlsx.write('C5', xlsx.bom.beam, xlsx.styles['bgYellow1'])
     xlsx.write('B6', 'Length:')

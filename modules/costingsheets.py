@@ -43,6 +43,7 @@ def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
         'size': normalize_size(size),
         'model': model.sheet1,
         'option': option,
+        'folder': folder,
         'with_options': model.sheet1 + option,
         'size_with_options': size_with_options,
         'size_with_folder': size_with_folder,
