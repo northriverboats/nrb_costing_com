@@ -137,7 +137,7 @@ def save_to_database(db_file: Union[Path, str],
     Return:
         None
     """
-    file_message("Reading Data from {file_name}", db_file)
+    file_message("Saving Data to {file_name}", db_file)
     with dbopen(db_file) as cursor:
         create_schema(cursor)
         serialize(cursor, objects)
