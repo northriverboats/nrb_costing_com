@@ -40,7 +40,7 @@ def load_models(xlsx_file: Path) -> Models:
             row[0].value,
             row[1].value,
             row[2].value)
-        all_models.models[model.sheet1] = model
+        all_models.models[model.folder] = model
         status_msg(f"    {model}", 3)
     xlsx.close()
     return all_models
