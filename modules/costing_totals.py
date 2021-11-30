@@ -168,7 +168,7 @@ def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.write(row, 3, 'Paint', xlsx.styles['generic1'])
     xlsx.write(row, 5, 0.0 , xlsx.styles['centerJust2'])
     xlsx.write(row, 6, formula1, xlsx.styles['centerJust2'], value1)
-    xlsx.write(row, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(row, 7, 32.97, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
@@ -183,7 +183,7 @@ def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.write(row, 3, 'Outfitting', xlsx.styles['generic1'])
     xlsx.write(row, 5, 0.0 , xlsx.styles['centerJust2'])
     xlsx.write(row, 6, formula1, xlsx.styles['centerJust2'], value1)
-    xlsx.write(row, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(row, 7, 36.91, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
@@ -198,7 +198,7 @@ def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.write(row, 3, 'Design / Drafting', xlsx.styles['generic1'])
     xlsx.write(row, 5, 0.0 , xlsx.styles['centerJust2'])
     xlsx.write(row, 6, formula1, xlsx.styles['centerJust2'], value1)
-    xlsx.write(row, 7, 59.22, xlsx.styles['currency'])
+    xlsx.write(row, 7, 43.03, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
