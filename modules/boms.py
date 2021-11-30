@@ -48,12 +48,20 @@ class Bom(DataClassJsonMixin):
     biggest: float = field(compare=False)
     sizes: list[float] = field(compare=False)
     sections: list[BomSection] = field(compare=False)
+    hours: dict[str, float] = field(default_factory=dict, compare=False)
 
 @dataclass(order=True)
 class Boms(DataClassJsonMixin):
     """BOM sheets"""
     boms: dict[str, Bom]
 
+HOURTYPES = {
+    'Design Hours': 'Design / Drafting',
+	'Fabrication Hours': 'Fabrication',
+	'Paint Hours': 'Paint',
+	'Outfitting Hours': 'Outfitting',
+	'Canvas Hours': 'Canvas',
+}
 
 def find_excel_files_in_dir(base: Path) -> list[Path]:
     """get list of spreadsheets in folder"""
@@ -134,6 +142,17 @@ def get_bom_sections(sheet: Worksheet,
     sections.append(section)
     return sections
 
+def bom_labor(sheet: Worksheet ) -> dict[str, float]:
+    """read in labor """
+    labor: dict[str, float] = {}
+    for row in sheet.iter_rows(min_row=14,max_col=8):
+        name: Optional[str] = row[6].value
+        hours: Optional[Union[str, int, float]] = row[7].value
+        if isinstance(name, str) and "Hours" in (name or ''):
+            labor[HOURTYPES[(name or '')]] = float(hours or 0.0)
+    return labor
+
+
 def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
     """load individual BOM sheet"""
     status_msg(f'  {xlsx_file.name}', 2)
@@ -148,7 +167,8 @@ def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
         0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
     sizes = [] if smallest == 0 else get_hull_sizes(sheet)
     sections: list[BomSection] = get_bom_sections(sheet, resources)
-    bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections)
+    hours: dict[str, float]  = bom_labor(sheet)
+    bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections, hours)
     xlsx.close()
     return bom
 
