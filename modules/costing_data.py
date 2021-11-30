@@ -15,8 +15,10 @@ class FileNameInfo(TypedDict):
     size: str
     model: str
     option: str
+    folder: str
     with_options: str
     size_with_options: str
+    size_with_folder: str
     file_name: Path
 
 @dataclass
