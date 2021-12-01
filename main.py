@@ -24,11 +24,12 @@ import click
 from modules.boms import load_boms, Boms
 from modules.costingsheets import generate_sheets_for_all_models
 from modules.databases import load_from_database, save_to_database
+from modules.hourlyrates import load_hourly_rates, HourlyRates
 from modules.models import load_models, Models
 from modules.resources import load_resources, Resources
 from modules.utilities import (enable_logging, logger, options, status_msg,
-                               BOATS_FOLDER, DATABASE, MODELS_FILE,
-                               MAIL_SERVER, MAIL_FROM, MAIL_TO,
+                               BOATS_FOLDER, DATABASE, HOURLY_RATES_FILE,
+                               MODELS_FILE, MAIL_SERVER, MAIL_FROM, MAIL_TO,
                                RESOURCES_FOLDER,)
 
 #
@@ -51,6 +52,7 @@ def main(load_file: Union[Path, str],
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
     boms: Boms
     models: Models
+    hourly_rates: HourlyRates
     resources: Resources
     if load_file == "DATABASE":
         load_file = DATABASE
@@ -61,10 +63,12 @@ def main(load_file: Union[Path, str],
             json = load_from_database(load_file, [
                 'models',
                 'resources',
-                'boms'])
+                'boms',
+                'hourly_rates'])
             models = Models.from_json(json['models'])
             resources = Resources.from_json(json['resources'])
             boms = Boms.from_json(json['boms'])
+            hourly_rates = HourlyRates.from_json(json['hourly_rates'])
         else:
             # load information from spreadsheets
             models = load_models(MODELS_FILE)
@@ -77,12 +81,19 @@ def main(load_file: Union[Path, str],
             # build BOM information
             boms = load_boms(BOATS_FOLDER, resources.resources)
             status_msg(f"{len(boms.boms)} boms loaded", 0)
-        generate_sheets_for_all_models(models.models, boms.boms)
+
+            hourly_rates = load_hourly_rates(HOURLY_RATES_FILE)
+            status_msg(
+                f"{len(hourly_rates.hourly_rates)} hourly rates loaded", 0)
+        generate_sheets_for_all_models(models.models,
+                                       boms.boms,
+                                       hourly_rates.hourly_rates)
         if save_file:
             save_to_database(save_file, {
                 'models': models.to_json(),
                 'resources': resources.to_json(),
-                'boms':  boms.to_json()})
+                'boms':  boms.to_json(),
+                'hourly_rates': hourly_rates.to_json()})
     except Exception:
         logger.critical(traceback.format_exc())
         raise
