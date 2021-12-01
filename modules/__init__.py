@@ -16,5 +16,6 @@ from .utilities import (enable_logging, logging, noop, normalize_size,
                         BOATS_FOLDER, CONSUMABLES_FILE, MARK_UPS_FILE,
                         MAIL_SERVER, MAIL_FROM, MAIL_TO, HOURLY_RATES_FILE,
                         MODELS_FILE, RESOURCES_FOLDER, SHEETS_FOLDER,
-                        TEMPLATE_FILE,
+                        LABOR_FABRICATION, LABOR_PAINT, LABOR_OUTFITTING,
+                        LABOR_DESIGN
                        )

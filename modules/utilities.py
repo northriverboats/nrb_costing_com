@@ -34,7 +34,6 @@ DATABASE: Path = Path(os.environ.get('DATABASE', ''))
 SHEETS_FOLDER: Path = Path(os.environ.get('SHEETS_FOLDER', ''))
 BOATS_FOLDER: Path = Path(os.environ.get('BOATS_FOLDER', ''))
 RESOURCES_FOLDER: Path = Path(os.environ.get('RESOURCES_FOLDER', ''))
-TEMPLATE_FILE: Path = Path(os.environ.get('TEMPLATE_FILE', ''))
 MODELS_FILE: Path = Path(os.environ.get('MODELS_FILE', ''))
 CONSUMABLES_FILE: Path = Path(os.environ.get('CONSUMABLES_FILE', ''))
 HOURLY_RATES_FILE: Path = Path(os.environ.get('HOURLY_RATES_FILE', ''))
@@ -44,6 +43,10 @@ MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
 MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
 SUBJECT: str = str(
     os.environ.get("SUBJECT", 'Current Model Year Costing Sheets'))
+LABOR_FABRICATION: float = float(os.environ.get("LABOR_FABRICATION", '0.0'))
+LABOR_PAINT: float = float(os.environ.get("LABOR_PAINT", '0.0'))
+LABOR_OUTFITTING: float = float(os.environ.get("LABOR_OUFITTING", '0.0'))
+LABOR_DESIGN: float = float(os.environ.get("LABOR_DESIGn", '0.0'))
 
 
 
