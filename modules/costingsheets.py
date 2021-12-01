@@ -14,6 +14,7 @@ from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
 from .costing_headers import generate_header
 from .costing_sections import generate_sections
 from .costing_totals import generate_totals
+from .hourlyrates import HourlyRate
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
                         SUBJECT)
@@ -172,6 +173,7 @@ def properties(xlsx):
 
 def generate_sheet(filtered_bom: Bom,
                    file_name_info: FileNameInfo,
+                   hourly_rates,
                    size: str) -> None:
     """genereate costing sheet
 
@@ -180,6 +182,8 @@ def generate_sheet(filtered_bom: Bom,
         name: dict -- parts and full name of current sheet
         file_name: Path -- filename with full pathing to xls sheet to be
                            created
+        hourly_rates: dict[str, HourlyRate] -- labor rates
+        size: str -- size of boat as text from float 18.5, 21, etc
 
     Returns:
         None
@@ -191,7 +195,7 @@ def generate_sheet(filtered_bom: Bom,
     section_info: dict[str, SectionInfo] =  {}
     with Workbook(file_name_info['file_name'],
                   {'remove_timezone': True}) as workbook:
-        xlsx: Xlsx = Xlsx(workbook, filtered_bom, size)
+        xlsx: Xlsx = Xlsx(workbook, filtered_bom, size, hourly_rates)
 
         xlsx.file_name_info = file_name_info
         xlsx.workbook.set_properties(properties(xlsx))
@@ -208,7 +212,9 @@ def generate_sheet(filtered_bom: Bom,
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
-def generate_sheets_for_model(model: Model, bom: Bom) -> None:
+def generate_sheets_for_model(model: Model,
+                              bom: Bom,
+                              hourly_rates: dict[str, HourlyRate]) -> None:
     """"cycle through each size to create sheets
     * build the filname and size as as a text name
     * filter out parts that are not needed for this size of boat and correct
@@ -218,6 +224,7 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     Arguments:
         model: Model -- Model of boat to process
         bom: Bom -- Base Bom for model
+        hourly_rates: dict[str, HourlyRate] -- labor rates
 
     Returns:
         None
@@ -228,11 +235,13 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
         file_name_info = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
         filtered_bom = filter_bom(bom, size)
-        generate_sheet(filtered_bom, file_name_info, str(size))
+        generate_sheet(filtered_bom, file_name_info, hourly_rates, str(size))
 
 
-def generate_sheets_for_all_models(models: dict[str, Model],
-                                   boms: dict[str, Bom]) -> None:
+def generate_sheets_for_all_models(
+        models: dict[str, Model],
+        boms: dict[str, Bom],
+        hourly_rates: dict[str, HourlyRate]) -> None:
     """" cycle through each sheet/option combo to create sheets
 
     Arguments:
@@ -240,6 +249,7 @@ def generate_sheets_for_all_models(models: dict[str, Model],
                                             to or merge part with
         source_parts: dict[str, BomPart] -- shorter dict of BomParts to add or
                                             merge parts from
+        hourly_rates: dict[str, HourlyRate] -- labor rates
 
     Returns:
         None
@@ -248,7 +258,7 @@ def generate_sheets_for_all_models(models: dict[str, Model],
     # for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
     for model in models:  # fww
         bom: Bom = get_bom(boms, models[model])
-        generate_sheets_for_model(models[model], bom)
+        generate_sheets_for_model(models[model], bom, hourly_rates)
 
 if __name__ == "__main__":
     pass
