@@ -9,7 +9,7 @@ from datetime import date
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
 # from xlsxwriter.utility import xl_rowcol_to_cell # type: ignore
-from .boms import Bom, BomPart
+from .boms import Bom, BomPart, BomSection
 from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
 from .costing_headers import generate_header
 from .costing_sections import generate_sections
@@ -55,21 +55,21 @@ def build_name(size: str, model: Model, folder: str) -> FileNameInfo:
 
 
 # BOM MANIPULATION FUNCTIONS ==================================================
-def ordered_parts(parts: dict[str, BomPart], name: str) -> list[str]:
+def ordered_parts(section: BomSection) -> None:
     """set correct sort order for parts for each section. Outftting is sorted
     by vender then part number. All other sections are ordered by part number
 
     Arguments:
-        parts: dict[str, BomPart] -- dictionary of parts with the key being a
-                                     part number
-        name: str -- name of section
+        section: BomSection -- section name and parts
 
     Returns:
         list[str] -- Correctly ordered list of keys
     """
-    if name != 'OUTFITTING':
-        return sorted(parts)
-    return sorted(parts, key=lambda k: (parts[k].vendor, k))
+    if section.name != 'OUTFITTING':
+        section.parts = dict(sorted(section.parts.items(), key=lambda k: (k)))
+        return
+    section.parts = dict(sorted(section.parts.items(),
+                           key=lambda k: (k[1].vendor, k[1].part)))
 
 def bom_merge_section(target_parts: dict[str, BomPart],
                       source_parts: dict[str, BomPart]) -> None:
@@ -155,7 +155,9 @@ def filter_bom(original_bom: Bom, size: str) -> Bom:
         }
         for v in section.parts.values():
             if v.percent:
-                v.unitprice = float(size) / (v.percent or 8) * (v.unitprice or 0)
+                v.unitprice = (
+                    float(size) / (v.percent or 8) * (v.unitprice or 0))
+        ordered_parts(section)
     return bom
 
 
