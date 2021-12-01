@@ -18,6 +18,7 @@ from .hourlyrates import HourlyRate
 from .models import Model
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
                         SUBJECT)
+from pprint import pprint
 
 # UTILITY FUNCTIONS ===========================================================
 
@@ -92,6 +93,18 @@ def bom_merge_section(target_parts: dict[str, BomPart],
         except KeyError:
             target_parts[key] = deepcopy(source_parts[key])
 
+def hours_merge(sizes: dict[str, dict[str, float]],
+               hours: dict[str, float]) -> None:
+    """Merge the hours from the cabin BOM into the hours for each size of
+    boat in the bom. This has to be done now. When the merge is complete
+    the cabin infomration will not have the hours. We don't know at this
+    point what size the bom will be filted down to, so all sizes must be set.
+    hours will come from size 0
+    """
+    for size in sizes:
+        for labor in sizes[size]:
+            sizes[size][labor] += hours[labor]
+
 def bom_merge(target_bom: Bom, source_bom: Bom) -> Bom:
     """Merge two BOMs creating a new BOM in the process. Does not modify either
     original Bom.
@@ -104,6 +117,9 @@ def bom_merge(target_bom: Bom, source_bom: Bom) -> Bom:
         Bom -- new merged list of both boms combined
     """
     bom: Bom = deepcopy(target_bom)
+    if source_bom and source_bom.sizes["0"]:
+        hours: dict[str, float] = source_bom.sizes["0"]
+        hours_merge(bom.sizes, hours)
     for target, source in zip(bom.sections, source_bom.sections):
         bom_merge_section(target.parts, source.parts)
     return bom
