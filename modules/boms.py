@@ -144,8 +144,6 @@ def get_bom_sections(sheet: Worksheet,
 def bom_hours(sheet: Worksheet,
               sizes: dict[str, dict[str, float]]) -> None:
     """read in labor  hours and update sizes array"""
-    if not sizes:
-        return
     hours: Optional[Union[str, int, float]]
     maximum = len(sizes) * 4 + 11
     for row in sheet.iter_rows(min_row=14,max_col=maximum):
@@ -170,7 +168,7 @@ def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
         0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
     biggest:float  = float(
         0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
-    sizes = {}  if smallest == 0 else get_hull_sizes(sheet)
+    sizes = {"0": {}} if smallest == 0 else get_hull_sizes(sheet)
     sections: list[BomSection] = get_bom_sections(sheet, resources)
     bom_hours(sheet, sizes)
     bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections)
