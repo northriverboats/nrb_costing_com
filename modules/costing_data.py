@@ -53,8 +53,10 @@ class Xlsx():
     Returns:
         None
     """
+    # pylint: disable=too-many-instance-attributes
     workbook: Any
     bom: Bom
+    size: str
     sheet: Any = field(default=None)
     styles: dict = field(init=False, default_factory=dict)
     worksheets: dict = field(init=False, default_factory=dict)
@@ -102,9 +104,10 @@ class Xlsx():
         """apply column formatting"""
         for col in self.columns:
             if col.style:
-                self.sheet.set_column_pixels(col.columns,
-                                             col.width * (100.8/100.8 + .00077),
-                                             self.styles[col.style])
+                self.sheet.set_column_pixels(
+                    col.columns,
+                    col.width * (100.8/100.8 + .00077),
+                    self.styles[col.style])
             else:
                 self.sheet.set_column_pixels(col.columns, col.width)
 
@@ -235,12 +238,30 @@ STYLES = [
         },
     ),
     Format(
+        'decimal',
+        {
+            'font_name': 'arial',
+            'font_size': 10,
+            'num_format': '0.00',
+        },
+    ),
+    Format(
         'decimalBordered',
         {
             'font_name': 'arial',
             'font_size': 10,
             'num_format': '0.00',
             'border': 1,
+        },
+    ),
+    Format(
+        'bgYellowDecimal',
+        {
+            'pattern': 1,
+            'bg_color': '#FCF305',
+            'font_name': 'arial',
+            'font_size': 10,
+            'num_format': '0.00',
         },
     ),
     Format(
