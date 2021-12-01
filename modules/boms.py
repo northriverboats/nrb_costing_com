@@ -46,9 +46,8 @@ class Bom(DataClassJsonMixin):
     beam: str = field(compare=False)
     smallest: float = field(compare=False)
     biggest: float = field(compare=False)
-    sizes: list[float] = field(compare=False)
+    sizes: dict[str, dict[str, float]] = field(compare=False)
     sections: list[BomSection] = field(compare=False)
-    hours: dict[str, float] = field(default_factory=dict, compare=False)
 
 @dataclass(order=True)
 class Boms(DataClassJsonMixin):
@@ -57,10 +56,10 @@ class Boms(DataClassJsonMixin):
 
 HOURTYPES = {
     'Design Hours': 'Design / Drafting',
-	'Fabrication Hours': 'Fabrication',
-	'Paint Hours': 'Paint',
-	'Outfitting Hours': 'Outfitting',
-	'Canvas Hours': 'Canvas',
+    'Fabrication Hours': 'Fabrication',
+    'Paint Hours': 'Paint',
+    'Outfitting Hours': 'Outfitting',
+    'Canvas Hours': 'Canvas',
 }
 
 def find_excel_files_in_dir(base: Path) -> list[Path]:
@@ -113,14 +112,14 @@ def section_add_part(parts: dict[str, BomPart], part: BomPart) -> None:
         parts[part.part] = part
 
 
-def get_hull_sizes(sheet: Worksheet) -> list:
+def get_hull_sizes(sheet: Worksheet) -> dict[str, dict[str, float]]:
     """find all hull sizes listed in sheet"""
-    sizes = []
+    sizes: dict[str, dict[str, float]] = {}
     for values  in sheet.iter_rows(
             min_row=1,max_row=1,min_col=13,values_only=True):
         for value in values:
             if value:
-                sizes.append(float(value))
+                sizes[str(value)] = {}
     return sizes
 
 def get_bom_sections(sheet: Worksheet,
@@ -142,16 +141,22 @@ def get_bom_sections(sheet: Worksheet,
     sections.append(section)
     return sections
 
-def bom_labor(sheet: Worksheet ) -> dict[str, float]:
-    """read in labor """
-    labor: dict[str, float] = {}
-    for row in sheet.iter_rows(min_row=14,max_col=8):
+def bom_hours(sheet: Worksheet,
+              sizes: dict[str, dict[str, float]]) -> None:
+    """read in labor  hours and update sizes array"""
+    if not sizes:
+        return
+    hours: Optional[Union[str, int, float]]
+    maximum = len(sizes) * 4 + 11
+    for row in sheet.iter_rows(min_row=14,max_col=maximum):
         name: Optional[str] = row[6].value
-        hours: Optional[Union[str, int, float]] = row[7].value
-        if isinstance(name, str) and "Hours" in (name or ''):
-            labor[HOURTYPES[(name or '')]] = float(hours or 0.0)
-    return labor
-
+        if not (isinstance(name, str) and "Hours" in (name or '')):
+            continue
+        for index, size in enumerate(sizes):
+            hours = row[14 + index * 4].value
+            if not isinstance(hours, (int, float)):
+                hours = 0.0
+            sizes[size][ HOURTYPES[(name or '')] ] = hours
 
 def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
     """load individual BOM sheet"""
@@ -165,10 +170,10 @@ def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
         0 if sheet["M1"].value == "ANY" else sheet["G13"].value)
     biggest:float  = float(
         0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
-    sizes = [] if smallest == 0 else get_hull_sizes(sheet)
+    sizes = {}  if smallest == 0 else get_hull_sizes(sheet)
     sections: list[BomSection] = get_bom_sections(sheet, resources)
-    hours: dict[str, float]  = bom_labor(sheet)
-    bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections, hours)
+    bom_hours(sheet, sizes)
+    bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections)
     xlsx.close()
     return bom
 
