@@ -20,11 +20,11 @@ from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
 
 # UTILITY FUNCTIONS ===========================================================
 
-def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
+def build_name(size: str, model: Model, folder: str) -> FileNameInfo:
     """build file name for sheet
 
     Arguments:
-        size: float  -- length of boat ending in .0 or .5
+        size: str  -- length of boat ending in .0 or .5 from str(float)
         model: Model -- name of model of boat
 
     Returns:
@@ -35,12 +35,13 @@ def build_name(size: float, model: Model, folder: str) -> FileNameInfo:
                 size_with_options: size + model + option
                 file_name: full absolute path to file
     """
+    sized = normalize_size(float(size))
     option: str = "" if model.sheet2 is None else ' ' + model.sheet2
-    size_with_options: str = normalize_size(size) + ' ' + model.sheet1 + option
-    size_with_folder: str = normalize_size(size) + ' ' + folder
+    size_with_options: str = sized + ' ' + model.sheet1 + option
+    size_with_folder: str = sized + ' ' + folder
     file_name: Path = SHEETS_FOLDER / folder / (size_with_folder + '.xlsx')
     name: FileNameInfo = {
-        'size': normalize_size(size),
+        'size': sized,
         'model': model.sheet1,
         'option': option,
         'folder': folder,
@@ -120,10 +121,10 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
     """
     bom1: Bom = (boms[model.sheet1]
                  if model.sheet1 in boms
-                 else  Bom('', "", 0.0, 0.0, [], []))
+                 else  Bom('', "", 0.0, 0.0, {}, []))
     bom2: Bom = (boms[model.sheet2]
                  if model.sheet2 in boms
-                 else  Bom('', "", 0.0, 0.0, [], []))
+                 else  Bom('', "", 0.0, 0.0, {}, []))
     if bom1.name == "":
         logger.debug("bom1 not found error %s", model.sheet1)
     if bom2.name == "":
@@ -132,7 +133,7 @@ def get_bom(boms: dict[str, Bom], model: Model) -> Bom:
         return bom1
     return bom_merge(bom1, bom2)
 
-def filter_bom(original_bom: Bom, size: float) -> Bom:
+def filter_bom(original_bom: Bom, size: str) -> Bom:
     """fitler out parts based on size if necessary
     also correcting costs as necessary
 
@@ -148,12 +149,12 @@ def filter_bom(original_bom: Bom, size: float) -> Bom:
         section.parts = {
             k:v
             for k, v in section.parts.items()
-            if ((v.smallest or 0) == 0 or size >= (v.smallest or 0)) and
-            ((v.biggest or 0) == 0 or size <= (v.biggest or 0))
+            if ((v.smallest or 0) == 0 or float(size) >= (v.smallest or 0)) and
+            ((v.biggest or 0) == 0 or float(size) <= (v.biggest or 0))
         }
         for v in section.parts.values():
             if v.percent:
-                v.unitprice = size / (v.percent or 8) * (v.unitprice or 0)
+                v.unitprice = float(size) / (v.percent or 8) * (v.unitprice or 0)
     return bom
 
 
@@ -169,7 +170,9 @@ def properties(xlsx):
         'comments': 'Created with Python and XlsxWriter',
     }
 
-def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
+def generate_sheet(filtered_bom: Bom,
+                   file_name_info: FileNameInfo,
+                   size: str) -> None:
     """genereate costing sheet
 
     Arguments:
@@ -188,7 +191,7 @@ def generate_sheet(filtered_bom: Bom, file_name_info: FileNameInfo) -> None:
     section_info: dict[str, SectionInfo] =  {}
     with Workbook(file_name_info['file_name'],
                   {'remove_timezone': True}) as workbook:
-        xlsx: Xlsx = Xlsx(workbook, filtered_bom)
+        xlsx: Xlsx = Xlsx(workbook, filtered_bom, size)
 
         xlsx.file_name_info = file_name_info
         xlsx.workbook.set_properties(properties(xlsx))
@@ -221,10 +224,11 @@ def generate_sheets_for_model(model: Model, bom: Bom) -> None:
     """
     status_msg(f"  {model.folder}", 1)
     for size in bom.sizes:
-        file_name_info: FileNameInfo = build_name(size, model, model.folder)
+        file_name_info: FileNameInfo
+        file_name_info = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
         filtered_bom = filter_bom(bom, size)
-        generate_sheet(filtered_bom, file_name_info)
+        generate_sheet(filtered_bom, file_name_info, str(size))
 
 
 def generate_sheets_for_all_models(models: dict[str, Model],
