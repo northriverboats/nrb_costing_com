@@ -4,8 +4,6 @@
 Generate Costing Sheet Totals Section at bottom of sheet
 """
 from .costing_data import SectionInfo, Xlsx, DEALERS, SALESPERSON, YESNO
-from .utilities import (LABOR_FABRICATION, LABOR_PAINT, LABOR_OUTFITTING,
-                        LABOR_DESIGN)
 
 # WRITING TOTALS FUNCTIONS ====================================================
 def totals_column_b(xlsx: Xlsx,
@@ -147,61 +145,68 @@ def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 14 from the bottom of the sheet"""
     _ = section_info
-    formula1 = f"=F{row + 1}+SUM(L:L)"
-    value1 = xlsx.bom.sizes[xlsx.size]['Fabrication'] or 0.0
+    dept = 'Fabrication'
+    rate = xlsx.hourly_rates['Fabrication Hours'].rate
+    formula1 = f"=F{row + 1}+SUM(M:M)"
+    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
-    value2 = value1 * LABOR_FABRICATION
+    value2 = value1 * rate
 
-    xlsx.write(row, 3, 'Fabrication', xlsx.styles['generic1'])
+    xlsx.write(row, 3, dept, xlsx.styles['generic1'])
     xlsx.write(row, 5, value1, xlsx.styles['decimal'])
     xlsx.write(row, 6, formula1, xlsx.styles['decimal'], value1)
-    xlsx.write(row, 7, LABOR_FABRICATION, xlsx.styles['currency'])
+    xlsx.write(row, 7, rate, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 15 from the bottom of the sheet"""
     _ = section_info
+    dept = 'Paint'
+    rate = xlsx.hourly_rates['Paint Hours'].rate
     formula1 = f"=F{row + 1}+SUM(M:M)"
-    value1 = xlsx.bom.sizes[xlsx.size]['Paint'] or 0.0
+    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
-    value2 = value1 * LABOR_PAINT
+    value2 = value1 * rate
 
-    xlsx.write(row, 3, 'Paint', xlsx.styles['generic1'])
+    xlsx.write(row, 3, dept, xlsx.styles['generic1'])
     xlsx.write(row, 5, value1, xlsx.styles['decimal'])
     xlsx.write(row, 6, formula1, xlsx.styles['decimal'], value1)
-    xlsx.write(row, 7, LABOR_PAINT, xlsx.styles['currency'])
+    xlsx.write(row, 7, rate, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 16 from the bottom of the sheet"""
     _ = section_info
+    dept = 'Outfitting'
+    rate = xlsx.hourly_rates['Outfitting Hours'].rate
     formula1 = f"=F{row + 1}+SUM(N:N)"
-    value1 = xlsx.bom.sizes[xlsx.size]['Outfitting'] or 0.0
+    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
-    value2 = value1 * LABOR_OUTFITTING
+    value2 = value1 * rate
 
-    xlsx.write(row, 3, 'Outfitting', xlsx.styles['generic1'])
+    xlsx.write(row, 3, dept, xlsx.styles['generic1'])
     xlsx.write(row, 5, value1 , xlsx.styles['decimal'])
     xlsx.write(row, 6, formula1, xlsx.styles['decimal'], value1)
-    xlsx.write(row, 7, LABOR_OUTFITTING, xlsx.styles['currency'])
+    xlsx.write(row, 7, rate, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 17 from the bottom of the sheet"""
     _ = section_info
+    dept = 'Design / Drafting'
+    rate = xlsx.hourly_rates['Design Hours'].rate
     formula1 = f"=F{row + 1}+SUM(O:O)"
-    value1 = (xlsx.bom.sizes[xlsx.size]['Design / Drafting']
-              or 0.0)
+    value1 = (xlsx.bom.sizes[xlsx.size][dept] or 0.0)
     formula2 = f"=H{row +1}*G{row + 1}"
-    value2 = value1 * LABOR_DESIGN
+    value2 = value1 * rate
 
-    xlsx.write(row, 3, 'Design / Drafting', xlsx.styles['generic1'])
+    xlsx.write(row, 3, dept, xlsx.styles['generic1'])
     xlsx.write(row, 5, value1, xlsx.styles['decimal'])
     xlsx.write(row, 6, formula1, xlsx.styles['decimal'], value1)
-    xlsx.write(row, 7, LABOR_DESIGN, xlsx.styles['currency'])
+    xlsx.write(row, 7, rate, xlsx.styles['currency'])
     xlsx.write(row, 8, formula2, xlsx.styles['currency'], value2)
 
 def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
@@ -215,10 +220,12 @@ def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     design  = xlsx.bom.sizes[xlsx.size]['Design / Drafting'] or 0.0
     value1 = fabrication + paint + outfitting + design
     formula2 = f"=SUM(I{row - 4}:I{row - 1})"
-    value2 = (fabrication * LABOR_FABRICATION  +
-              paint * LABOR_PAINT +
-              outfitting * LABOR_OUTFITTING  +
-              design * LABOR_DESIGN)
+    value2 = (
+        fabrication *
+        xlsx.hourly_rates['Fabrication Hours'].rate +
+        paint * xlsx.hourly_rates['Paint Hours'].rate +
+        outfitting * xlsx.hourly_rates['Outfitting Hours'].rate +
+        design * xlsx.hourly_rates['Design Hours'].rate)
 
     xlsx.write(row, 4, 'Total Hours', xlsx.styles['rightJust1'])
     xlsx.write(row, 5, formula1, xlsx.styles['bgYellowDecimal'], value1)
