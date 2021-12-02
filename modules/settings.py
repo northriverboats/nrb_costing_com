@@ -11,9 +11,9 @@ from .markups import MarkUp
 
 @dataclass
 class Settings():
-    consumables: Consumable
-    hourly_rates: HourlyRate
-    mark_ups: MarkUp
+    consumables: dict[str, Consumable]
+    hourly_rates: dict[str, HourlyRate]
+    mark_ups: dict[str, MarkUp]
     
 if __name__ == "__main__":
     pass

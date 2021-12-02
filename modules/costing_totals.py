@@ -146,7 +146,7 @@ def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 14 from the bottom of the sheet"""
     _ = section_info
     dept = 'Fabrication'
-    rate = xlsx.hourly_rates['Fabrication Hours'].rate
+    rate = xlsx.settings.hourly_rates['Fabrication Hours'].rate
     formula1 = f"=F{row + 1}+SUM(M:M)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -163,7 +163,7 @@ def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 15 from the bottom of the sheet"""
     _ = section_info
     dept = 'Paint'
-    rate = xlsx.hourly_rates['Paint Hours'].rate
+    rate = xlsx.settings.hourly_rates['Paint Hours'].rate
     formula1 = f"=F{row + 1}+SUM(M:M)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -180,7 +180,7 @@ def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 16 from the bottom of the sheet"""
     _ = section_info
     dept = 'Outfitting'
-    rate = xlsx.hourly_rates['Outfitting Hours'].rate
+    rate = xlsx.settings.hourly_rates['Outfitting Hours'].rate
     formula1 = f"=F{row + 1}+SUM(N:N)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -197,7 +197,7 @@ def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 17 from the bottom of the sheet"""
     _ = section_info
     dept = 'Design / Drafting'
-    rate = xlsx.hourly_rates['Design Hours'].rate
+    rate = xlsx.settings.hourly_rates['Design Hours'].rate
     formula1 = f"=F{row + 1}+SUM(O:O)"
     value1 = (xlsx.bom.sizes[xlsx.size][dept] or 0.0)
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -222,10 +222,10 @@ def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     formula2 = f"=SUM(I{row - 4}:I{row - 1})"
     value2 = (
         fabrication *
-        xlsx.hourly_rates['Fabrication Hours'].rate +
-        paint * xlsx.hourly_rates['Paint Hours'].rate +
-        outfitting * xlsx.hourly_rates['Outfitting Hours'].rate +
-        design * xlsx.hourly_rates['Design Hours'].rate)
+        xlsx.settings.hourly_rates['Fabrication Hours'].rate +
+        paint * xlsx.settings.hourly_rates['Paint Hours'].rate +
+        outfitting * xlsx.settings.hourly_rates['Outfitting Hours'].rate +
+        design * xlsx.settings.hourly_rates['Design Hours'].rate)
 
     xlsx.write(row, 4, 'Total Hours', xlsx.styles['rightJust1'])
     xlsx.write(row, 5, formula1, xlsx.styles['bgYellowDecimal'], value1)
