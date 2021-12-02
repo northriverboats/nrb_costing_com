@@ -143,5 +143,6 @@ cython_debug/
 .*.swp
 *.db
 *.sqlite
+*.sqlite3
 error.*
 test.py
