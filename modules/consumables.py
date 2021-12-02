@@ -14,8 +14,8 @@ from openpyxl.workbook.workbook import Workbook
 from .utilities import status_msg
 
 
-@dataclass(DataClassJsonMixin)
-class Consumable:
+@dataclass
+class Consumable(DataClassJsonMixin):
     """Consumables rate by department"""
     dept: str
     percent: float
