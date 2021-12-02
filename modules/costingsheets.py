@@ -117,7 +117,7 @@ def bom_merge(target_bom: Bom, source_bom: Bom) -> Bom:
         Bom -- new merged list of both boms combined
     """
     bom: Bom = deepcopy(target_bom)
-    if source_bom and source_bom.sizes["0"]:
+    if source_bom and source_bom.sizes.get("0") == "0":
         hours: dict[str, float] = source_bom.sizes["0"]
         hours_merge(bom.sizes, hours)
     for target, source in zip(bom.sections, source_bom.sections):
