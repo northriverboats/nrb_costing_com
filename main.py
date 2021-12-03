@@ -31,8 +31,8 @@ from modules.models import load_models, Models
 from modules.resources import load_resources, Resources
 from modules.settings import Settings
 from modules.utilities import (enable_logging, logger, options, status_msg,
-                               BOATS_FOLDER, CONSUMABLES_FILE, DATABASE, 
-                               HOURLY_RATES_FILE, MARK_UPS_FILE, MODELS_FILE, 
+                               BOATS_FOLDER, CONSUMABLES_FILE, DATABASE,
+                               HOURLY_RATES_FILE, MARK_UPS_FILE, MODELS_FILE,
                                MAIL_SERVER, MAIL_FROM, MAIL_TO,
                                RESOURCES_FOLDER,)
 
@@ -40,6 +40,8 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 # ==================== Main Entry Point
 #
 @click.command()
+@click.option('-b', '--buld', 'build_only', is_flag=False,
+              default="", help="Build database only do not create sheets")
 @click.option('-l', '--load', 'load_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Load data from sqlite database")
@@ -48,10 +50,14 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
               default="", help="Save data to sqlite database")
 @click.option('-v', '--verbose', count=True,
               help="Increase verbosity")
-def main(load_file: Union[Path, str],
+def main(build_only: bool,
+         load_file: Union[Path, str],
          save_file: Union[Path, str],
          verbose: int) -> None:
     """ main program entry point """
+    if build_only:
+        load_file = ""
+        save_file = DATABASE
     options['verbose'] = verbose
     enable_logging(logger, MAIL_SERVER, MAIL_FROM, MAIL_TO)
     boms: Boms
@@ -108,7 +114,8 @@ def main(load_file: Union[Path, str],
             status_msg(f"{len(mark_ups.mark_ups)} mark ups loaded", 0)
 
         settings = Settings(consumables.consumables, hourly_rates.hourly_rates, mark_ups.mark_ups)
-        generate_sheets_for_all_models(models.models, boms.boms, settings)
+        if not build_only:
+            generate_sheets_for_all_models(models.models, boms.boms, settings)
         if save_file:
             save_to_database(save_file, {
                 'boms':  boms.to_json(),
