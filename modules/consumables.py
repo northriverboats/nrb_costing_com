@@ -18,12 +18,10 @@ class Consumable(DataClassJsonMixin):
     """Consumables rate"""
     rate: float
 
-
 @dataclass
 class Consumables(DataClassJsonMixin):
     """Consumables rate by department"""
     consumables: dict[str, Consumable]
-
 
 def load_consumables(xlsx_file: Path) -> Consumables:
     """Read consuables sheet"""

@@ -269,7 +269,7 @@ def generate_sheets_for_all_models(models: dict[str, Model],
     Returns:
         None
     """
-    status_msg("Merging", 1)
+    status_msg("Saving Sheets", 1)
     # for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
     for model in models:  # fww
         bom: Bom = get_bom(boms, models[model])

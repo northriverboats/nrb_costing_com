@@ -42,11 +42,13 @@ def totals_00(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_01(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 01 from the bottom of the sheet"""
+    rate = xlsx.settings.consumables['FABRICATION'].rate
+
     formula1 = f"=I{row}*H{row + 1}"
-    value1 = section_info['FABRICATION'].value * 0.08
+    value1 = section_info['FABRICATION'].value * rate
 
     xlsx.write(row, 3, 'Fab Consumables', xlsx.styles['generic1'])
-    xlsx.write(row, 7, 0.08, xlsx.styles['percent'])
+    xlsx.write(row, 7, rate, xlsx.styles['percent'])
     xlsx.write(row, 8, formula1, xlsx.styles['currency'], value1)
 
 def totals_02(xlsx: Xlsx, section_info: dict[str, SectionInfo],
@@ -61,11 +63,13 @@ def totals_02(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_03(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 03 from the bottom of the sheet"""
+    rate = xlsx.settings.consumables['PAINT'].rate
+
     formula1 = f"=I{row}*H{row+1}"
-    value1 = section_info['PAINT'].value * 0.50
+    value1 = section_info['PAINT'].value * rate
 
     xlsx.write(row, 3, 'Paint Consumables', xlsx.styles['generic1'])
-    xlsx.write(row, 7, 0.50, xlsx.styles['percent'])
+    xlsx.write(row, 7, rate, xlsx.styles['percent'])
     xlsx.write(row, 8, formula1, xlsx.styles['currency'], value1)
 
 def totals_04(xlsx: Xlsx, section_info: dict[str, SectionInfo],
@@ -147,6 +151,7 @@ def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     _ = section_info
     dept = 'Fabrication'
     rate = xlsx.settings.hourly_rates['Fabrication Hours'].rate
+
     formula1 = f"=F{row + 1}+SUM(M:M)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -164,6 +169,7 @@ def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     _ = section_info
     dept = 'Paint'
     rate = xlsx.settings.hourly_rates['Paint Hours'].rate
+
     formula1 = f"=F{row + 1}+SUM(M:M)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -181,6 +187,7 @@ def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     _ = section_info
     dept = 'Outfitting'
     rate = xlsx.settings.hourly_rates['Outfitting Hours'].rate
+
     formula1 = f"=F{row + 1}+SUM(N:N)"
     value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -198,6 +205,7 @@ def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     _ = section_info
     dept = 'Design / Drafting'
     rate = xlsx.settings.hourly_rates['Design Hours'].rate
+
     formula1 = f"=F{row + 1}+SUM(O:O)"
     value1 = (xlsx.bom.sizes[xlsx.size][dept] or 0.0)
     formula2 = f"=H{row +1}*G{row + 1}"
@@ -387,6 +395,10 @@ def totals_42(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
+    markup_1 = xlsx.settings.mark_ups['Boat and options'].markup_1
+    markup_2 = xlsx.settings.mark_ups['Boat and options'].markup_2
+    discount = xlsx.settings.mark_ups['Boat and options'].discount
+
     formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
     # value used in totals_40
@@ -396,7 +408,7 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               section_info['PAINT'].value * 0.50 +
               section_info['OUTFITTING'].value)
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
-    value2 = value1 / 0.61 / 0.7
+    value2 = value1 / markup_1 / markup_2
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
@@ -405,20 +417,24 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 
     xlsx.write(row, 2, 'Boat and options:', xlsx.styles['generic1'])
     xlsx.write(row, 3, formula1, xlsx.styles['currencyBordered'], value1)
-    xlsx.write(row, 4, 0.61, xlsx.styles['bgSilverBorder'])
-    xlsx.write(row, 5, 0.7, xlsx.styles['bgSilverBorder'])
+    xlsx.write(row, 4, markup_1, xlsx.styles['bgSilverBorder'])
+    xlsx.write(row, 5, markup_2, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 6, formula2, xlsx.styles['currencyBordered'], value2)
-    xlsx.write(row, 7, None, xlsx.styles['percentBorderYellow'])
+    xlsx.write(row, 7, discount, xlsx.styles['percentBorderYellow'])
     xlsx.write(row, 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(row, 9, formula4, xlsx.styles['percentBorder'], value4)
 
 def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 44 from the bottom of the sheet"""
+    markup_1 = xlsx.settings.mark_ups['Big Ticket Items'].markup_1
+    markup_2 = xlsx.settings.mark_ups['Big Ticket Items'].markup_2
+    discount = xlsx.settings.mark_ups['Big Ticket Items'].discount
+
     formula1 = f"=I{row - 38}"
     value1 = section_info['BIG TICKET ITEMS'].value
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
-    value2 = value1 / 0.8 / 0.85
+    value2 = value1 / markup_1 / markup_2
     formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
     value3 = value2
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
@@ -427,16 +443,18 @@ def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 
     xlsx.write(row, 2, 'Big Ticket Items', xlsx.styles['generic1'])
     xlsx.write(row, 3, formula1, xlsx.styles['currencyBordered'], value1)
-    xlsx.write(row, 4, 0.8, xlsx.styles['bgSilverBorder'])
-    xlsx.write(row, 5, 0.85, xlsx.styles['bgSilverBorder'])
+    xlsx.write(row, 4, markup_1, xlsx.styles['bgSilverBorder'])
+    xlsx.write(row, 5, markup_2, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 6, formula2, xlsx.styles['currencyBordered'], value2)
-    xlsx.write(row, 7, None, xlsx.styles['percentBorderYellow'])
+    xlsx.write(row, 7, discount, xlsx.styles['percentBorderYellow'])
     xlsx.write(row, 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(row, 9, formula4, xlsx.styles['percentBorder'], value4)
 
 def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 45 from the bottom of the sheet"""
+    discount = xlsx.settings.mark_ups['OB Motors'].discount
+
     formula1 = f"=I{row - 38}"
     value1 = section_info['OUTBOARD MOTORS'].value
     formula2 = f"=Q{section_info['OUTBOARD MOTORS'].subtotal}"
@@ -452,17 +470,21 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.merge_range(row, 4, row, 5, 'See PP',
                      xlsx.styles['bgSilverBorderCetner'])
     xlsx.write(row, 6, formula2, xlsx.styles['currencyBordered'], value2)
-    xlsx.write(row, 7, None, xlsx.styles['percentBorderYellow'])
+    xlsx.write(row, 7, discount, xlsx.styles['percentBorderYellow'])
     xlsx.write(row, 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(row, 9, formula4, xlsx.styles['percentBorder'], value4)
 
 def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 46 from the bottom of the sheet"""
+    markup_1 = xlsx.settings.mark_ups['Inboard Motors & Jets'].markup_1
+    markup_2 = xlsx.settings.mark_ups['Inboard Motors & Jets'].markup_2
+    discount = xlsx.settings.mark_ups['Inboard Motors & Jets'].discount
+
     formula1 = f"=I{row - 38}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
     formula2 = f"=D{row + 1}/E{row +1}/F{row +1}"
-    value2 = value1 / 0.85 / 0.7
+    value2 = value1 / markup_1 / markup_2
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
@@ -474,17 +496,21 @@ def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.write(row, 4, 0.85, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 5, 0.7, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 6, formula2, xlsx.styles['currencyBordered'], value2)
-    xlsx.write(row, 7, None, xlsx.styles['percentBorderYellow'])
+    xlsx.write(row, 7, discount, xlsx.styles['percentBorderYellow'])
     xlsx.write(row, 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(row, 9, formula4, xlsx.styles['percentBorder'], value4)
 
 def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 47 from the bottom of the sheet"""
+    markup_1 = xlsx.settings.mark_ups['Trailer'].markup_1
+    markup_2 = xlsx.settings.mark_ups['Trailer'].markup_2
+    discount = xlsx.settings.mark_ups['Trailer'].discount
+    
     formula1 = f"=I{row - 38}"
     value1 = section_info['TRAILER'].value
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
-    value2 = value1 / 0.8 / 0.7
+    value2 = value1 / markup_1 / markup_2
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
     value3 = value2
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
@@ -496,7 +522,7 @@ def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     xlsx.write(row, 4, 0.8, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 5, 0.7, xlsx.styles['bgSilverBorder'])
     xlsx.write(row, 6, formula2, xlsx.styles['currencyBordered'], value2)
-    xlsx.write(row, 7, None, xlsx.styles['percentBorderYellow'])
+    xlsx.write(row, 7, discount, xlsx.styles['percentBorderYellow'])
     xlsx.write(row, 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(row, 9, formula4, xlsx.styles['percentBorder'], value4)
 
