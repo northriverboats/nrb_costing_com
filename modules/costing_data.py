@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional, TypedDict
 from .boms import Bom
-from .hourlyrates import HourlyRate
+from .settings import Settings
 
 # DATA CLASSES ================================================================
 class FileNameInfo(TypedDict):
@@ -58,7 +58,7 @@ class Xlsx():
     workbook: Any
     bom: Bom
     size: str
-    hourly_rates: dict[str, HourlyRate]
+    settings: Settings
     sheet: Any = field(default=None)
     styles: dict = field(init=False, default_factory=dict)
     worksheets: dict = field(init=False, default_factory=dict)

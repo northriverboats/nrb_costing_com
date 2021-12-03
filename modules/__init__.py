@@ -11,6 +11,7 @@ from .hourlyrates import load_hourly_rates, HourlyRate
 from .markups import load_mark_ups, MarkUp
 from .models import load_models, Model
 from .resources import load_resources, Resource
+from .settings import Settings
 from .utilities import (enable_logging, logging, noop, normalize_size,
                         resource_path, status_msg, NRBError, NRBErrorNotFound,
                         BOATS_FOLDER, CONSUMABLES_FILE, MARK_UPS_FILE,
