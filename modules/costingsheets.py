@@ -171,8 +171,8 @@ def filter_bom(original_bom: Bom, size: str) -> Bom:
         }
         for v in section.parts.values():
             if v.percent:
-                v.unitprice = (
-                    float(size) / (v.percent or 8) * (v.unitprice or 0))
+                v.qty = (
+                    float(size) / (v.percent or 8) * (v.qty or 0))
         ordered_parts(section)
     return bom
 
