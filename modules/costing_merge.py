@@ -8,6 +8,23 @@ from .boms import Bom, BomSection, MergedBom, MergedPart, MergedSection
 from .models import Model
 from .utilities import logger
 
+def ordered_parts(section: MergedSection) -> None:
+    """set correct sort order for parts for each section. Outftting is sorted
+    by vender then part number. All other sections are ordered by part number
+
+    Arguments:
+        section: -- section name and parts
+
+    Returns:
+        list[str] -- Correctly ordered list of keys
+    """
+    if section.name != 'OUTFITTING':
+        section.parts = dict(
+            sorted(section.parts.items(), key=lambda kv: (kv)))
+        return
+    section.parts = dict(sorted(section.parts.items(),
+                           key=lambda kv: (kv[1].vendor, kv[0])))
+
 def merge_sections(boat_sections: list[BomSection],
                    size: str) -> list[MergedSection]:
     """merge all sections by filtering out parts and applying qty
@@ -49,6 +66,7 @@ def merge_sections(boat_sections: list[BomSection],
                 merged_part.total = merged_part.qty * merged_part.unitprice
         merged_section.total = sum([merged_section.parts[key].total
                                     for key in merged_section.parts])
+        ordered_parts(merged_section)
         merged_sections.append(merged_section)
     return merged_sections
 
@@ -111,7 +129,7 @@ def merge_boms(boat_bom: Bom, cabin_bom: Bom, size: str) -> MergedBom:
     labor = merge_labor(boat_bom, cabin_bom, size)
     return MergedBom(boat_bom.name, boat_bom.beam, size, labor, sections)
 
-def get_bom(boms: dict[str, Bom], model: Model, size: str) -> Bom:
+def get_bom(boms: dict[str, Bom], model: Model, size: str) -> MergedBom:
     """Merges sheets if necessary and returns a BOM.
     Assumes if sheet is not None that there will be a match
 
