@@ -40,8 +40,8 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 # ==================== Main Entry Point
 #
 @click.command()
-@click.option('-b', '--buld', 'build_only', is_flag=False,
-              default="", help="Build database only do not create sheets")
+@click.option('-b', '--buld', 'build_only', is_flag=True,
+              help="Build database only do not create sheets")
 @click.option('-l', '--load', 'load_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Load data from sqlite database")
