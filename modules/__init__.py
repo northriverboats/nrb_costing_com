@@ -3,9 +3,11 @@
 """
 Module Load
 """
-from .boms import load_boms, Bom, BomPart, BomSection
+from .boms import (load_boms, Bom, Boms, BomPart, BomSection,
+                   MergedBom, MergedSection)
 from .consumables import load_consumables, Consumable
 from .costingsheets import generate_sheets_for_all_models
+from .costing_merge import get_bom
 from .databases import load_from_database, save_to_database
 from .hourlyrates import load_hourly_rates, HourlyRate
 from .markups import load_mark_ups, MarkUp
