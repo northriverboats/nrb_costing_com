@@ -14,7 +14,6 @@ from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
 from .costing_headers import generate_header
 from .costing_sections import generate_sections
 from .costing_totals import generate_totals
-from .hourlyrates import HourlyRate
 from .models import Model
 from .settings import Settings
 from .utilities import (logger, normalize_size, status_msg, SHEETS_FOLDER,
@@ -270,7 +269,6 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         None
     """
     status_msg("Saving Sheets", 1)
-    # for key in {"SOUNDER 8'6'' OPEN": models["SOUNDER 8'6'' OPEN"]}:  # fww
     for model in models:  # fww
         bom: Bom = get_bom(boms, models[model])
         generate_sheets_for_model(models[model], bom, settings)
