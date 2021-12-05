@@ -104,21 +104,20 @@ def make_bom_part(row, resources: dict[str, Resource]) -> BomPart:
         else float(row[1].value))
     biggest: float = (
         0.0
-        if row[2].value is None or row[1].value == ''
+        if row[2].value is None or row[2].value == ''
         else float(row[2].value))
     percent: float = (
         0.0
-        if row[3].value is None or row[1].value == ''
+        if row[3].value is None or row[3].value == ''
         else float(row[3].value))
     part: str = str(row[5].value)
 
     # fww resolve at later point, we need to throw errors on fail
-    try:
+    if part in resources:
         resource = resources[part]
-    except KeyError:
+    else:
         resource = Resource(part, "Unknown", "EA", 0.0, "Unknown", part,
-                            "Unknown", datetime.now())
-
+                            "Unknown", datetime(1999,12,31))
     return BomPart(part,
                    qty,
                    smallest,
@@ -162,7 +161,7 @@ def get_bom_sections(sheet: Worksheet,
                 sections.append(section)
             section: BomSection = BomSection(qty, {})
         elif isinstance(qty, (float, int)):
-            bom_part: BomPart = make_bom_part(row,  resources)
+            bom_part: BomPart = make_bom_part(row, resources)
             status_msg(f"    {bom_part}",3)
             section_add_part(section.parts, bom_part)
     sections.append(section)
