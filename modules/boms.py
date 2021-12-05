@@ -21,23 +21,23 @@ class BomPart(DataClassJsonMixin):
     """Part Information from Section of a BOM Parts Sheet"""
     # pylint: disable=too-many-instance-attributes
     part: str
-    qty: Optional[float] = field(compare=False)
-    smallest:Optional[float] = field(compare=False)
-    biggest: Optional[float] = field(compare=False)
-    percent: Optional[float] = field(compare=False)  # FT field
-    description: Optional[str] = field(compare=False)
-    uom: Optional[str] = field(compare=False)
-    unitprice: Optional[float] = field(compare=False)
-    oem: Optional[str] = field(compare=False)
-    vendorpart: Optional[str] = field(compare=False)
-    vendor: Optional[str] = field(compare=False)
-    updated: Optional[datetime] = field(compare=False)
+    qty: float = field(compare=False)
+    smallest: float = field(compare=False)
+    biggest: float = field(compare=False)
+    percent: float = field(compare=False)  # FT field
+    description: str = field(compare=False)
+    uom: str = field(compare=False)
+    unitprice: float = field(compare=False)
+    oem: str = field(compare=False)
+    vendorpart: str = field(compare=False)
+    vendor: str = field(compare=False)
+    updated: datetime = field(compare=False)
 
 @dataclass(order=True)
 class BomSection(DataClassJsonMixin):
     """Group of BOM Parts"""
     name: str
-    parts: dict[str, BomPart] = field(compare=False)
+    parts: dict[str, list[BomPart]] = field(compare=False)
 
 @dataclass(order=True)
 class Bom(DataClassJsonMixin):
@@ -53,6 +53,35 @@ class Bom(DataClassJsonMixin):
 class Boms(DataClassJsonMixin):
     """BOM sheets"""
     boms: dict[str, Bom]
+
+@dataclass()
+class MergedPart(DataClassJsonMixin):
+    """Part Information from Section of a BOM Parts Sheet"""
+    # pylint: disable=too-many-instance-attributes
+    qty: float
+    description: str
+    uom: str
+    unitprice: float
+    vendor: str
+    updated: datetime
+    total: float
+
+# Output BOM type
+@dataclass(order=True)
+class MergedSection(DataClassJsonMixin):
+    """Group of BOM Parts"""
+    name: str
+    parts: dict[str, MergedPart] = field(compare=False)
+    total:float = field(compare=False, default=0)
+
+@dataclass(order=True)
+class MergedBom(DataClassJsonMixin):
+    """BOM sheet"""
+    name: str
+    beam: str = field(compare=False)
+    size: str = field(compare=False)
+    labor: dict[str, float] = field(compare=False)
+    sections: list[MergedSection] = field(compare=False)
 
 HOURTYPES = {
     'Design Hours': 'Design / Drafting',
@@ -103,13 +132,11 @@ def make_bom_part(row, resources: dict[str, Resource]) -> BomPart:
                    resource.vendor,
                    resource.updated)
 
-def section_add_part(parts: dict[str, BomPart], part: BomPart) -> None:
+def section_add_part(parts: dict[str, list[BomPart]], part: BomPart) -> None:
     """Insert new part or add qty to existing part"""
-    try:
-        item: BomPart = parts[part.part]
-        item.qty = (item.qty or 0) + (part.qty or 0)
-    except KeyError:
-        parts[part.part] = part
+    if part.part not in parts:
+        parts[part.part] = []
+    parts[part.part].append(part)
 
 
 def get_hull_sizes(sheet: Worksheet) -> dict[str, dict[str, float]]:
