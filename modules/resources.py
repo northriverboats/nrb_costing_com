@@ -22,13 +22,13 @@ class Resource(DataClassJsonMixin):
     # pylint: disable=too-many-instance-attributes
     # Eight is reasonable in this case.
     oempart: str
-    description: Optional[str] = field(compare=False)
+    description: str = field(compare=False)
     uom: str = field(compare=False)
     unitprice: float = field(compare=False)
     oem: str = field(compare=False)
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
-    updated: Optional[datetime] = field(compare=False)
+    updated: datetime = field(compare=False)
 
 @dataclass
 class Resources(DataClassJsonMixin):
