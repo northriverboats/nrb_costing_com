@@ -397,9 +397,6 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
     dept = 'Boat and options'
-    if 'Boat and options: ' in xlsx.settings.mark_ups:
-        dept = 'Boat and options: '
-
     markup_1 = xlsx.settings.mark_ups[dept].markup_1
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
     discount = xlsx.settings.mark_ups[dept].discount
@@ -432,9 +429,10 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 44 from the bottom of the sheet"""
-    markup_1 = xlsx.settings.mark_ups['Big Ticket Items'].markup_1
-    markup_2 = xlsx.settings.mark_ups['Big Ticket Items'].markup_2
-    discount = xlsx.settings.mark_ups['Big Ticket Items'].discount
+    dept = 'Big Ticket Items'
+    markup_1 = xlsx.settings.mark_ups[dept].markup_1
+    markup_2 = xlsx.settings.mark_ups[dept].markup_2
+    discount = xlsx.settings.mark_ups[dept].discount    
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['BIG TICKET ITEMS'].value
@@ -458,7 +456,8 @@ def totals_44(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 45 from the bottom of the sheet"""
-    discount = xlsx.settings.mark_ups['OB Motors'].discount
+    dept = 'OB Motors'
+    discount = xlsx.settings.mark_ups[dept].discount
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['OUTBOARD MOTORS'].value
@@ -482,9 +481,10 @@ def totals_45(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 46 from the bottom of the sheet"""
-    markup_1 = xlsx.settings.mark_ups['Inboard Motors & Jets'].markup_1
-    markup_2 = xlsx.settings.mark_ups['Inboard Motors & Jets'].markup_2
-    discount = xlsx.settings.mark_ups['Inboard Motors & Jets'].discount
+    dept = 'Inboard Motors & Jets'
+    markup_1 = xlsx.settings.mark_ups[dept].markup_1
+    markup_2 = xlsx.settings.mark_ups[dept].markup_2
+    discount = xlsx.settings.mark_ups[dept].discount    
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
@@ -508,9 +508,10 @@ def totals_46(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 47 from the bottom of the sheet"""
-    markup_1 = xlsx.settings.mark_ups['Trailer'].markup_1
-    markup_2 = xlsx.settings.mark_ups['Trailer'].markup_2
-    discount = xlsx.settings.mark_ups['Trailer'].discount
+    dept = 'Trailer'
+    markup_1 = xlsx.settings.mark_ups[dept].markup_1
+    markup_2 = xlsx.settings.mark_ups[dept].markup_2
+    discount = xlsx.settings.mark_ups[dept].discount    
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['TRAILER'].value
