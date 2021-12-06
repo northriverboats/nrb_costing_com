@@ -47,7 +47,7 @@ class Bom(DataClassJsonMixin):
     smallest: float = field(compare=False)
     biggest: float = field(compare=False)
     sizes: dict[str, dict[str, float]] = field(compare=False)
-    sections: list[BomSection] = field(compare=False)
+    sections: dict[str, BomSection] = field(compare=False)
 
 @dataclass(order=True)
 class Boms(DataClassJsonMixin):
@@ -58,6 +58,7 @@ class Boms(DataClassJsonMixin):
 class MergedPart(DataClassJsonMixin):
     """Part Information from Section of a BOM Parts Sheet"""
     # pylint: disable=too-many-instance-attributes
+    part: str
     qty: float
     description: str
     uom: str
@@ -81,7 +82,7 @@ class MergedBom(DataClassJsonMixin):
     beam: str = field(compare=False)
     size: str = field(compare=False)
     labor: dict[str, float] = field(compare=False)
-    sections: list[MergedSection] = field(compare=False)
+    sections: dict[str, MergedSection] = field(compare=False)
 
 HOURTYPES = {
     'Design Hours': 'Design / Drafting',
@@ -149,22 +150,21 @@ def get_hull_sizes(sheet: Worksheet) -> dict[str, dict[str, float]]:
     return sizes
 
 def get_bom_sections(sheet: Worksheet,
-                     resources: dict[str, Resource]) -> list[BomSection]:
+                     resources: dict[str, Resource]) -> dict[str, BomSection]:
     """read in BOM items into sections"""
-    sections: list[BomSection] = []
+    sections: dict[str, BomSection] = {}
     for row in sheet.iter_rows(min_row=18,max_col=8):
         qty: Optional[Union[str, int, float]] = row[0].value
+        # Add new section, skip for Canvas
         if isinstance(qty, str) and qty != "QTY":
             if qty == 'CANVAS':
                 continue
-            if 'section' in locals():
-                sections.append(section)
             section: BomSection = BomSection(qty, {})
+            sections[qty] = section
         elif isinstance(qty, (float, int)):
             bom_part: BomPart = make_bom_part(row, resources)
             status_msg(f"    {bom_part}",3)
             section_add_part(section.parts, bom_part)
-    sections.append(section)
     return sections
 
 def bom_hours(sheet: Worksheet,
@@ -181,6 +181,7 @@ def bom_hours(sheet: Worksheet,
             if not isinstance(hours, (int, float)):
                 hours = 0.0
             sizes[size][ HOURTYPES[(name or '')] ] = hours
+            sizes[size]['Total'] = sizes[size].get('Total', 0.0) + hours
 
 def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
     """load individual BOM sheet"""
@@ -195,7 +196,7 @@ def load_bom(xlsx_file: Path, resources: dict[str, Resource]) -> Bom:
     biggest:float  = float(
         0 if sheet["M1"].value == "ANY" else sheet["G14"].value)
     sizes = {"0": {}} if smallest == 0 else get_hull_sizes(sheet)
-    sections: list[BomSection] = get_bom_sections(sheet, resources)
+    sections: dict[str, BomSection] = get_bom_sections(sheet, resources)
     bom_hours(sheet, sizes)
     bom: Bom = Bom(name, beam, smallest, biggest, sizes, sections)
     xlsx.close()

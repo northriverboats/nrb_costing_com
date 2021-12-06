@@ -152,8 +152,7 @@ GREEN_BLANK_PART = [
 ]
 
 
-BLANK_BOM_PART = MergedPart(0, '', '', 0, '', datetime(1999,12,31), 0)
-EMPTY_BOM_PART = MergedPart(0, '', '', 0, '', datetime(1999,12,31), 0)
+BLANK_BOM_PART = MergedPart('', 0, '', '', 0, '', datetime(1999,12,31), 0)
 
 
 # WRITING SECTION FUNCTIONS ===================================================

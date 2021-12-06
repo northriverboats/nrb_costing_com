@@ -25,8 +25,8 @@ def ordered_parts(section: MergedSection) -> None:
     section.parts = dict(sorted(section.parts.items(),
                            key=lambda kv: (kv[1].vendor, kv[0])))
 
-def merge_sections(boat_sections: list[BomSection],
-                   size: str) -> list[MergedSection]:
+def merge_sections(boat_sections: dict[str, BomSection],
+                   size: str) -> dict[str, MergedSection]:
     """merge all sections by filtering out parts and applying qty
     adujustments
 
@@ -36,15 +36,17 @@ def merge_sections(boat_sections: list[BomSection],
         sections -- list of the resutling merged sections
 
     """
-    merged_sections: list[MergedSection] = []
+    merged_sections: dict[str, MergedSection] = {}
     if not boat_sections:
         return merged_sections
-    for section in boat_sections:
-        merged_section = MergedSection(section.name, {})
+    for section_name, section in boat_sections.items():
+        merged_section = MergedSection(section_name, {})
+        merged_sections[section_name] = merged_section
         for part_number in section.parts:
             bom_parts = section.parts[part_number]
             if part_number not in merged_section.parts:
                 merged_section.parts[part_number] = MergedPart(
+                    bom_parts[0].part,
                     0.0,
                     bom_parts[0].description,
                     bom_parts[0].uom,
@@ -67,7 +69,6 @@ def merge_sections(boat_sections: list[BomSection],
         merged_section.total = sum([merged_section.parts[key].total
                                     for key in merged_section.parts])
         ordered_parts(merged_section)
-        merged_sections.append(merged_section)
     return merged_sections
 
 def merge_labor(boat_bom: Bom, cabin_bom: Bom, size: str) -> dict[str, float]:
@@ -90,13 +91,14 @@ def merge_labor(boat_bom: Bom, cabin_bom: Bom, size: str) -> dict[str, float]:
         boat_labor[dept] += hours
     return boat_labor
 
-def combine_sections(boat_sections: list[MergedSection],
-                     cabin_sections: list[MergedSection]
-                    ) -> list[MergedSection]:
+def combine_sections(boat_sections: dict[str, MergedSection],
+                     cabin_sections: dict[str, MergedSection]
+                    ) -> dict[str, MergedSection]:
     """combine sections"""
     if not cabin_sections:
         return boat_sections
-    for boat_section, cabin_section in zip(boat_sections, cabin_sections):
+    for boat_section, cabin_section in zip(boat_sections.values(),
+                                           cabin_sections.values()):
         boat_parts = boat_section.parts
         cabin_parts = cabin_section.parts
         boat_section.total += cabin_section.total
@@ -120,12 +122,13 @@ def merge_boms(boat_bom: Bom, cabin_bom: Bom, size: str) -> MergedBom:
     Returns:
         MergedBom
     """
-    boat_sections: list[MergedSection]  = merge_sections(boat_bom.sections,
-                                                         size)
-    cabin_sections: list[MergedSection]  = merge_sections(cabin_bom.sections,
-                                                          size)
-    sections: list[MergedSection] = combine_sections(boat_sections,
-                                                     cabin_sections)
+    boat_sections: dict[str, MergedSection]
+    cabin_sections: dict[str, MergedSection]
+    sections: dict[str, MergedSection]
+
+    boat_sections = merge_sections(boat_bom.sections, size)
+    cabin_sections = merge_sections(cabin_bom.sections, size)
+    sections = combine_sections(boat_sections, cabin_sections)
     labor = merge_labor(boat_bom, cabin_bom, size)
     return MergedBom(boat_bom.name, boat_bom.beam, size, labor, sections)
 
@@ -141,12 +144,15 @@ def get_bom(boms: dict[str, Bom], model: Model, size: str) -> MergedBom:
     Returns:
         Bom -- Returns new Bom of combined Bom(s)
     """
-    boat_bom: Bom = (boms[model.sheet1]
-                     if model.sheet1 in boms
-                     else  Bom('', "", 0.0, 0.0, {}, []))
-    cabin_bom: Bom = (boms[model.sheet2]
-                      if model.sheet2 in boms
-                      else  Bom('', "", 0.0, 0.0, {}, []))
+    boat_bom: Bom
+    cabin_bom: Bom
+
+    boat_bom = (boms[model.sheet1]
+                if model.sheet1 in boms
+                else  Bom('', "", 0.0, 0.0, {}, {}))
+    cabin_bom = (boms[model.sheet2]
+                 if model.sheet2 in boms
+                 else  Bom('', "", 0.0, 0.0, {}, {}))
     if boat_bom.name == "":
         logger.debug("boat_bom not found error %s", model.sheet1)
     return merge_boms(boat_bom, cabin_bom, size)
