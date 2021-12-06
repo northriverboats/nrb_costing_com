@@ -153,7 +153,7 @@ def totals_14(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     rate = xlsx.settings.hourly_rates['Fabrication Hours'].rate
 
     formula1 = f"=F{row + 1}+SUM(M:M)"
-    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
+    value1 = xlsx.bom.labor[dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
     value2 = value1 * rate
 
@@ -171,7 +171,7 @@ def totals_15(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     rate = xlsx.settings.hourly_rates['Paint Hours'].rate
 
     formula1 = f"=F{row + 1}+SUM(M:M)"
-    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
+    value1 = xlsx.bom.labor[dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
     value2 = value1 * rate
 
@@ -189,7 +189,7 @@ def totals_16(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     rate = xlsx.settings.hourly_rates['Outfitting Hours'].rate
 
     formula1 = f"=F{row + 1}+SUM(N:N)"
-    value1 = xlsx.bom.sizes[xlsx.size][dept] or 0.0
+    value1 = xlsx.bom.labor[dept] or 0.0
     formula2 = f"=H{row +1}*G{row + 1}"
     value2 = value1 * rate
 
@@ -207,7 +207,7 @@ def totals_17(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     rate = xlsx.settings.hourly_rates['Design Hours'].rate
 
     formula1 = f"=F{row + 1}+SUM(O:O)"
-    value1 = (xlsx.bom.sizes[xlsx.size][dept] or 0.0)
+    value1 = (xlsx.bom.labor[dept] or 0.0)
     formula2 = f"=H{row +1}*G{row + 1}"
     value2 = value1 * rate
 
@@ -222,11 +222,12 @@ def totals_19(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 19 from the bottom of the sheet"""
     _ = section_info
     formula1 = f"=SUM(F{row - 4}:F{row - 1})"
-    fabrication = xlsx.bom.sizes[xlsx.size]['Fabrication'] or 0.0
-    paint = xlsx.bom.sizes[xlsx.size]['Paint'] or 0.0
-    outfitting = xlsx.bom.sizes[xlsx.size]['Outfitting'] or 0.0
-    design  = xlsx.bom.sizes[xlsx.size]['Design / Drafting'] or 0.0
+    fabrication = xlsx.bom.labor['Fabrication'] or 0.0
+    paint = xlsx.bom.labor['Paint'] or 0.0
+    outfitting = xlsx.bom.labor['Outfitting'] or 0.0
+    design  = xlsx.bom.labor['Design / Drafting'] or 0.0
     value1 = fabrication + paint + outfitting + design
+    value1 =  xlsx.bom.labor['Total'] or 0.0
     formula2 = f"=SUM(I{row - 4}:I{row - 1})"
     value2 = (
         fabrication *
@@ -395,9 +396,9 @@ def totals_42(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
-    markup_1 = xlsx.settings.mark_ups['Boat and options'].markup_1
-    markup_2 = xlsx.settings.mark_ups['Boat and options'].markup_2
-    discount = xlsx.settings.mark_ups['Boat and options'].discount
+    markup_1 = xlsx.settings.mark_ups['Boat and options: '].markup_1
+    markup_2 = xlsx.settings.mark_ups['Boat and options: '].markup_2
+    discount = xlsx.settings.mark_ups['Boat and options: '].discount
 
     formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
@@ -506,7 +507,7 @@ def totals_47(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     markup_1 = xlsx.settings.mark_ups['Trailer'].markup_1
     markup_2 = xlsx.settings.mark_ups['Trailer'].markup_2
     discount = xlsx.settings.mark_ups['Trailer'].discount
-    
+
     formula1 = f"=I{row - 38}"
     value1 = section_info['TRAILER'].value
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
@@ -830,7 +831,7 @@ def generate_totals(xlsx: Xlsx, section_info: dict[str, SectionInfo]) -> None:
             39, 41, 49, 51, 53, 55, 57, 58, 77]
     # pylint: disable=unused-variable
     offset = section_info['TRAILER'].subtotal + 2
-    for row in range(0, 79):
+    for row in range(0, 79): # 79
         if row in skip:
             continue
         # pylint: disable=eval-used

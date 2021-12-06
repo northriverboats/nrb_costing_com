@@ -100,7 +100,7 @@ def generate_sheet(merged_bom: MergedBom,
 
         generate_header(xlsx)
         generate_sections(xlsx, section_info)
-        # generate_totals(xlsx, section_info)
+        generate_totals(xlsx, section_info)
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
