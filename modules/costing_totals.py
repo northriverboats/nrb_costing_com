@@ -398,11 +398,11 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     """fill out line at row 43 from the bottom of the sheet"""
     dept = 'Boat and options'
     if 'Boat and options: ' in xlsx.settings.mark_ups:
-        dept = 'Boat and options'
+        dept = 'Boat and options: '
 
-    markup_1 = xlsx.settings.mark_ups['Boat and options: '].markup_1
-    markup_2 = xlsx.settings.mark_ups['Boat and options: '].markup_2
-    discount = xlsx.settings.mark_ups['Boat and options: '].discount
+    markup_1 = xlsx.settings.mark_ups[dept].markup_1
+    markup_2 = xlsx.settings.mark_ups[dept].markup_2
+    discount = xlsx.settings.mark_ups[dept].discount
 
     formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
