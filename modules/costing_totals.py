@@ -396,6 +396,10 @@ def totals_42(xlsx: Xlsx, section_info: dict[str, SectionInfo],
 def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
+    dept = 'Boat and options'
+    if 'Boat and options: ' in xlsx.settings.mark_ups:
+        dept = 'Boat and options'
+
     markup_1 = xlsx.settings.mark_ups['Boat and options: '].markup_1
     markup_2 = xlsx.settings.mark_ups['Boat and options: '].markup_2
     discount = xlsx.settings.mark_ups['Boat and options: '].discount
