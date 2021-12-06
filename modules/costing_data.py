@@ -7,7 +7,7 @@ Generate Costing Sheets
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional, TypedDict
-from .boms import Bom
+from .boms import MergedBom
 from .settings import Settings
 
 # DATA CLASSES ================================================================
@@ -56,7 +56,7 @@ class Xlsx():
     """
     # pylint: disable=too-many-instance-attributes
     workbook: Any
-    bom: Bom
+    bom: MergedBom
     size: str
     settings: Settings
     sheet: Any = field(default=None)
