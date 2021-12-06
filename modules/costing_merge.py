@@ -44,6 +44,8 @@ def merge_sections(boat_sections: dict[str, BomSection],
         merged_sections[section_name] = merged_section
         for part_number in section.parts:
             bom_parts = section.parts[part_number]
+            if not bom_parts:
+                continue
             if part_number not in merged_section.parts:
                 merged_section.parts[part_number] = MergedPart(
                     bom_parts[0].part,
