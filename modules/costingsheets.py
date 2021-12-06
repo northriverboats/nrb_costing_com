@@ -104,7 +104,7 @@ def generate_sheet(merged_bom: MergedBom,
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
-def generate_sheets_for_model(boms: Boms,
+def generate_sheets_for_model(boms: dict[str, Bom],
                               model: Model,
                               settings: Settings) -> None:
     """"cycle through each size to create sheets
@@ -130,8 +130,8 @@ def generate_sheets_for_model(boms: Boms,
         generate_sheet(merged_bom, file_name_info, settings, str(size))
 
 
-def generate_sheets_for_all_models(models: dict[str, Model],
-                                   boms: dict[str, Bom],
+def generate_sheets_for_all_models(boms: dict[str, Bom],
+                                   models: dict[str, Model],
                                    settings: Settings) -> None:
     """" cycle through each sheet/option combo to create sheets
 
@@ -144,7 +144,7 @@ def generate_sheets_for_all_models(models: dict[str, Model],
         None
     """
     status_msg("Saving Sheets", 1)
-    for model in models:  # fww
+    for model in models:
         generate_sheets_for_model(boms, models[model], settings)
 
 if __name__ == "__main__":
