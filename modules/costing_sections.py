@@ -200,6 +200,8 @@ def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
                 value = getattr(part, column_info.name)
             else:
                 value = None
+            if isinstance(value, datetime) and value == datetime(1999, 12, 31):
+                value = None  # remove invalid dates
             xlsx.write(row, column, value, xlsx.styles[column_info.style])
 
 def section_subtotal(xlsx: Xlsx, row: int, section_info: SectionInfo,
@@ -320,7 +322,8 @@ def section_outfitting(xlsx: Xlsx, row: int,
     section_titles(xlsx, row, TITLES)
     row += 1
     section_part(xlsx, row, BLANK_PART, BLANK_BOM_PART)
-    # fww fix blank row
+    xlsx.write(row, 6, None, xlsx.styles['currencyBordered'])
+    xlsx.write(row, 8, None, xlsx.styles['currencyBordered'])
     row += 1
     start = row
     parts = xlsx.bom.sections[dept].parts
