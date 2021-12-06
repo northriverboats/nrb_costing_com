@@ -113,9 +113,13 @@ def main(build_only: bool,
             mark_ups = load_mark_ups(MARK_UPS_FILE)
             status_msg(f"{len(mark_ups.mark_ups)} mark ups loaded", 0)
 
-        settings = Settings(consumables.consumables, hourly_rates.hourly_rates, mark_ups.mark_ups)
+        settings = Settings(consumables.consumables,
+                            hourly_rates.hourly_rates,
+                            mark_ups.mark_ups)
         if not build_only:
-            generate_sheets_for_all_models(models.models, boms.boms, settings)
+            generate_sheets_for_all_models(boms.boms,
+                                           models.models,
+                                           settings)
         if save_file:
             save_to_database(save_file, {
                 'boms':  boms.to_json(),
