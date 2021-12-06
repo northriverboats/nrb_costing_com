@@ -4,9 +4,10 @@
 Generate Costing Sheet Sections in middle of sheet
 """
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 from .costing_data import SectionInfo, Xlsx, YESNO
-from .boms import BomPart
+from .boms import MergedPart
 
 @dataclass
 class Title():
@@ -151,9 +152,8 @@ GREEN_BLANK_PART = [
 ]
 
 
-BLANK_BOM_PART = BomPart('', 0, 0, 0, 0, '', '', 0, '', '', '', None)
-EMPTY_BOM_PART = BomPart('', None, None, None, None, None,
-                         None, None, None, None, None, None)
+BLANK_BOM_PART = MergedPart(0, '', '', 0, '', datetime(1999,12,31), 0)
+EMPTY_BOM_PART = MergedPart(0, '', '', 0, '', datetime(1999,12,31), 0)
 
 
 # WRITING SECTION FUNCTIONS ===================================================
@@ -183,8 +183,9 @@ def section_titles(xlsx: Xlsx, row: int, titles: list[Title]) -> None:
         xlsx.write(row, column, title.text, xlsx.styles[title.style])
 
 def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
-                 part = BomPart) -> None :
+                 part_name: str, part = MergedPart) -> None :
     """write out one part to sheet"""
+    # fww will need work
     for column, column_info in enumerate(columns_info):
         if  isinstance(column_info.name, str) and column_info.name[0] == "=":
             if part.qty is None:
@@ -197,7 +198,7 @@ def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
                        total)
         else:
             if column_info.name:
-                value = getattr(part, column_info.name)
+                value = part_name # getattr(part, column_info.name)
             else:
                 value = None
             xlsx.write(row, column, value, xlsx.styles[column_info.style])
@@ -221,11 +222,11 @@ def section_fabrication(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[0].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PAINTFAB_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PAINTFAB_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PAINTFAB_PART, BLANK_BOM_PART)
+    section_part(xlsx, row, ROW_PAINTFAB_PART, '', BLANK_BOM_PART)
     finish = row
     row += 2
     xlsx.write(row, 2, 'Material sheet provided Y/N',
@@ -256,11 +257,11 @@ def section_paint(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[1].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PAINTFAB_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PAINTFAB_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PAINTFAB_PART, BLANK_BOM_PART)
+    section_part(xlsx, row, ROW_PAINTFAB_PART, '', BLANK_BOM_PART)
     xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
     finish = row
     row += 2
@@ -288,11 +289,13 @@ def section_green(xlsx: Xlsx, row: int,
     row += 1
     section_titles(xlsx, row, TITLES)
     row += 1
-    section_part(xlsx, row, GREEN_BLANK_PART, EMPTY_BOM_PART)
+    section_part(xlsx, row, GREEN_BLANK_PART, '', BLANK_BOM_PART)
+    xlsx.write(row, 6, None, xlsx.styles['bgGreenCurrencyBordered'])
+    xlsx.write(row, 8, None, xlsx.styles['bgGreenCurrencyBordered'])
     row += 1
     start = row
     for row1 in range(row, row + 22):
-        section_part(xlsx, row1, GREEN_BLANK_PART, BLANK_BOM_PART)
+        section_part(xlsx, row1, GREEN_BLANK_PART, '', BLANK_BOM_PART)
     finish = row + 21
     row += 23
     subtotal = row
@@ -314,15 +317,16 @@ def section_outfitting(xlsx: Xlsx, row: int,
     row += 1
     section_titles(xlsx, row, TITLES)
     row += 1
-    section_part(xlsx, row, BLANK_PART, EMPTY_BOM_PART)
+    section_part(xlsx, row, BLANK_PART, '', BLANK_BOM_PART)
+    # fww fix blank row
     row += 1
     start = row
     parts = xlsx.bom.sections[2].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
     xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
     finish = row
     row += 2
@@ -362,16 +366,16 @@ def section_bigticket(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[3].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
     xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
     finish = row
     row += 1
     if not parts:
-        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
         finish = row
         row += 1
@@ -399,13 +403,13 @@ def section_outboard(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[4].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
     for row1 in range(max(3 - len(parts), 1)):
         _ = row1
-        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
         row += 1
     finish = row - 1
@@ -437,13 +441,13 @@ def section_inboard(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[5].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
     for row1 in range(max(4 - len(parts), 1)):
         _ = row1
-        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
         row += 1
     finish = row - 1
@@ -474,16 +478,16 @@ def section_trailer(xlsx: Xlsx, row: int,
     row += 1
     start = row
     parts = xlsx.bom.sections[6].parts
-    for part in parts:
-        section_part(xlsx, row, ROW_PART, parts[part])
-        total += (parts[part].qty or 0) * (parts[part].unitprice or 0)
+    for part_name, part in parts.items():
+        section_part(xlsx, row, ROW_PART, part_name, part)
+        total += (part.qty or 0) * (part.unitprice or 0)
         row += 1
-    section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+    section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
     xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
     finish = row
     row += 1
     if not parts:
-        section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
+        section_part(xlsx, row, ROW_PART, '', BLANK_BOM_PART)
         xlsx.write(row, 5, None, xlsx.styles['normalBordered'])
         finish = row
         row += 1

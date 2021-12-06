@@ -100,7 +100,7 @@ def generate_sheet(merged_bom: MergedBom,
 
         generate_header(xlsx)
         generate_sections(xlsx, section_info)
-        generate_totals(xlsx, section_info)
+        # generate_totals(xlsx, section_info)
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
@@ -143,7 +143,7 @@ def generate_sheets_for_all_models(boms: dict[str, Bom],
     Returns:
         None
     """
-    status_msg("Saving Sheets", 1)
+    status_msg("Generating Sheets", 1)
     for model in models:
         generate_sheets_for_model(boms, models[model], settings)
 

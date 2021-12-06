@@ -56,6 +56,7 @@ def main(build_only: bool,
          verbose: int) -> None:
     """ main program entry point """
     if build_only:
+        click.echo("build only")
         load_file = ""
         save_file = DATABASE
     options['verbose'] = verbose
