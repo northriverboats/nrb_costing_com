@@ -263,6 +263,7 @@ def totals_25(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     _ = section_info
 
     xlsx.write(row, 3, 'Test Fuel', xlsx.styles['generic1'])
+    xlsx.write(row, 5, 'See outfitting materials', xlsx.styles['generic1'])
     xlsx.write(row, 8, 0.0, xlsx.styles['currency'])
 
 def totals_26(xlsx: Xlsx, section_info: dict[str, SectionInfo],
