@@ -473,15 +473,12 @@ def section_trailer(xlsx: Xlsx, row: int,
     """write trailer section"""
     _ = section_info
     dept = 'TRAILER'
-    text1 = ("NOTE: IF EZ LOADER, ADD 12% TO PRICING FROM JULY 2021 PRICE "
-             "LIST. OTHERWISE RE-QUOTE WITH REVISED PRICING")
     total: float = 0
     section_heading_small(
         xlsx,
         row,
         'Trailer',
         'Labor Change add/delete')
-    xlsx.merge_range(row, 16, row + 3, 20, text1, xlsx.styles['redMerged'])
     row += 2
     section_titles(xlsx, row, TITLES)
     row += 1
