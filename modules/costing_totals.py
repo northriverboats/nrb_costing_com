@@ -400,15 +400,19 @@ def totals_43(xlsx: Xlsx, section_info: dict[str, SectionInfo],
     dept = 'Boat and options'
     markup_1 = xlsx.settings.mark_ups[dept].markup_1
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
+    rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
+    rate_paint = xlsx.settings.consumables['PAINT'].rate
     discount = xlsx.settings.mark_ups[dept].discount
+
+
 
     formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
     # value used in totals_40
     value1 = (section_info['FABRICATION'].value +
-              section_info['FABRICATION'].value * 0.08 +
+              section_info['FABRICATION'].value * rate_fabrication +
               section_info['PAINT'].value +
-              section_info['PAINT'].value * 0.50 +
+              section_info['PAINT'].value * rate_paint +
               section_info['OUTFITTING'].value)
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / markup_1 / markup_2
