@@ -48,11 +48,14 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 @click.option('-s', '--save', 'save_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Save data to sqlite database")
+@click.option('--summary', is_flag=True,
+              help="Generate MSRP Summary Report")
 @click.option('-v', '--verbose', count=True,
               help="Increase verbosity")
 def main(build_only: bool,
          load_file: Union[Path, str],
          save_file: Union[Path, str],
+         summary: bool,
          verbose: int) -> None:
     """ main program entry point """
     if build_only:

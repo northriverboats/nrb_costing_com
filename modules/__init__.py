@@ -12,6 +12,7 @@ from .databases import load_from_database, save_to_database
 from .hourlyrates import load_hourly_rates, HourlyRate
 from .markups import load_mark_ups, MarkUp
 from .models import load_models, Model
+from .msrp_summary import generate_msrp_summary
 from .resources import load_resources, Resource
 from .settings import Settings
 from .utilities import (enable_logging, logging, noop, normalize_size,
