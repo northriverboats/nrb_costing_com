@@ -13,7 +13,7 @@ from .costing_data import Columns, FileNameInfo, Format, Xlsx
 from .costing_merge import get_bom
 from .models import Model
 from .settings import Settings
-from .utilities import normalize_size, status_msg, SHEETS_FOLDER, SUBJECT
+from .utilities import normalize_size, status_msg, SHEETS_FOLDER, SUMMARY
 
 @dataclass
 class Msrp():
@@ -24,7 +24,7 @@ class Msrp():
 
 # WORKBOOK LAYOUT ============================================================
 MSRP_PROPERTIES = {
-    'title': 'MY 2021 Commerical MSRP Report',
+    'title': SUMMARY,
     'subject': 'MSRP Report',
     'author': 'Sara Lynn',
     'company': 'North River Boats Inc.',
@@ -65,7 +65,7 @@ MSRP_STYLES = [
         {
             'font_name': 'arial',
             'font_size': 10,
-			'num_format': CURRENCY,
+            'num_format': CURRENCY,
         },
     ),
     Format(
@@ -74,7 +74,7 @@ MSRP_STYLES = [
             'font_name': 'Arial',
             'font_size': 10,
             'bold': True,
-			'num_format': CURRENCY,
+            'num_format': CURRENCY,
         },
     ),
 ]
@@ -83,12 +83,12 @@ MSRP_STYLES = [
 SHADES = [
     '#CCFFFF', '#CCFFCC', '#FFFF99', '#99CCFF',
     '#FF99CC', '#CC99FF', '#FFCC99', '#C0C0C0',
-    '#9999FF', '#993366', '#FFFFCC', '#CCFFFF',
-    '#FF8080', '#0066CC', '#808080', '#CCCCFF',
-    '#3366FF', '#33CCCC', '#99CC00', '#FFCC00',
-    '#FF9900', '#FF6600', '#666699', '#969696',
-    '#FFD8A0', '#C5F19A', '#FEF58A', '#B9D0E8',
-    '#F5DDB7', '#D6BFD4', '#F79494', '#D3D7CF',
+    '#9999FF', '#FFFFCC', '#CCFFFF', '#FF8080',
+    '#CCCCFF', '#33CCCC', '#99CC00', '#FFCC00',
+    '#FF9900', '#FF6600', '#969696', '#FFD8A0',
+    '#C5F19A', '#FEF58A', '#B9D0E8', '#F5DDB7',
+    '#D6BFD4', '#F79494', '#D3D7CF', '#993366',
+    '#0066CC', '#3366FF', '#666699', '#808080',
 ]
 
 
@@ -128,17 +128,6 @@ def build_name(size: str, model: Model, folder: str) -> FileNameInfo:
 
 
 # WRITING SHEET FUNCTIONS =====================================================
-def properties(xlsx):
-    """set sheet properties"""
-    return {
-        'title': xlsx.file_name_info['size_with_options'],
-        'subject': SUBJECT,
-        'author': 'Sara Lynn',
-        'company': 'North River Boats Inc.',
-        'created': date.today(),
-        'comments': 'Created with Python and XlsxWriter',
-    }
-
 def generate_msrp_xlsx(xlsx: Xlsx,
                        msrps: dict[str, Msrp]) -> None:
     """genereate costing msrp sheet
@@ -164,9 +153,9 @@ def generate_msrp_xlsx(xlsx: Xlsx,
         shade: str = msrp[1].shade
         model: Model = msrp[1].model
         new_msrp: float = msrp[1].msrp
-        new_iff: float =  (new_msrp - (new_msrp * 0.3))/0.9925
+        new_iff: float =  round((new_msrp - (new_msrp * 0.3))/0.9925, 2)
         old_iff: float = new_iff
-        old_msrp: float = old_iff * 0.9925 * 1.020304051
+        old_msrp: float = round(old_iff * 0.9925 * 1.020304051, 2)
 
         status_msg(f"{name:35.35}  {new_msrp:9.2f}  {new_iff:9.2f}  "
                    f"{old_msrp:9.2f}  {old_iff:9.2f}", 2)
@@ -188,8 +177,7 @@ def generate_msrp_xlsx(xlsx: Xlsx,
                 'num_format': CURRENCY,
             })
 
-        # link = "external:" + model.folder + '/' + name + ".xlsx"
-        link = "external:N:\\000 Commercial Costing Update 2021\\Costing\\Commercial Costing Sheets\\"
+        link = "external:" + model.folder + '/' + name + ".xlsx"
         xlsx.write(row, 0, link, xlsx.styles[normal], name)
         xlsx.write(row, 1, new_msrp, xlsx.styles[currency])
         xlsx.write(row, 2, new_iff, xlsx.styles[currency])
@@ -270,7 +258,7 @@ def generate_msrp_summary(boms: dict[str, Bom],
             name, msrp = get_msrp(boms, model, settings, size)
             msrps[name] = Msrp(msrp, SHADES[index], model)
 
-    file_name: Path  = Path('/home/fwarren/tofu/Costing/Commercial Costing Sheets/MY 2022 Commercial MSRP Summary.xlsx')
+    file_name = SHEETS_FOLDER / (SUMMARY + '.xlsx')
     with Workbook(file_name, {'remove_timezone': True}) as workbook:
         xlsx: Xlsx = Xlsx(workbook)
         xlsx.setup_workbook(MSRP_STYLES, MSRP_COLUMNS, MSRP_PROPERTIES)
