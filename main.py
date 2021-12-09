@@ -28,6 +28,7 @@ from modules.databases import load_from_database, save_to_database
 from modules.hourlyrates import load_hourly_rates, HourlyRates
 from modules.markups import MarkUp, load_mark_ups, MarkUps
 from modules.models import load_models, Models
+from modules.msrp_summary import generate_msrp_summary
 from modules.resources import load_resources, Resources
 from modules.settings import Settings
 from modules.utilities import (enable_logging, logger, options, status_msg,
@@ -120,10 +121,14 @@ def main(build_only: bool,
         settings = Settings(consumables.consumables,
                             hourly_rates.hourly_rates,
                             mark_ups.mark_ups)
-        if not build_only:
+        if (not build_only) and (not summary):
             generate_sheets_for_all_models(boms.boms,
                                            models.models,
                                            settings)
+        if not build_only and summary:
+            generate_msrp_summary(boms.boms,
+                                  models.models,
+                                  settings)
         if save_file:
             save_to_database(save_file, {
                 'boms':  boms.to_json(),

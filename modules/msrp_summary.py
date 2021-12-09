@@ -128,6 +128,23 @@ def collect_msrp_summary_information(boms: dict[str, Bom],
         status_msg(f"    {file_name_info['file_name']}", 2)
         merged_bom: MergedBom = get_bom(boms, model, size)
         # collect info here
+        dept = 'Boat and options'
+        markup_1 = settings.mark_ups[dept].markup_1
+        markup_2 = settings.mark_ups[dept].markup_2
+        rate_fabrication = settings.consumables['FABRICATION'].rate
+        rate_paint = settings.consumables['PAINT'].rate
+        section_info: dict[str, SectionInfo] =  {}
+
+        value1 = (merged_bom.sections['FABRICATION'].total +
+                  merged_bom.sections['FABRICATION'].total * rate_fabrication +
+                  merged_bom.sections['PAINT'].total +
+                  merged_bom.sections['PAINT'].total * rate_paint +
+                  merged_bom.sections['OUTFITTING'].total)
+        value2: float = value1 / markup_1 / markup_2
+        msrp: float = (int(value2 / 100) * 100.0) + 95
+
+
+
         # generate_report
         
         generate_sheet(merged_bom, file_name_info, settings, str(size))
@@ -148,7 +165,7 @@ def generate_msrp_summary(boms: dict[str, Bom],
     """
     status_msg("Generating Sheets", 1)
     for model in models:
-        generate_msrp_summary_with_model(boms, models[model], settings)
+        collect_msrp_summary_information(boms, models[model], settings)
 
 if __name__ == "__main__":
     pass
