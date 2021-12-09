@@ -7,8 +7,9 @@ Generate Costing Sheets
 from datetime import date
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
-from .boms import Bom, Boms, MergedBom
-from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
+from .boms import Bom, MergedBom
+from .costing_data import (FileNameInfo, SectionInfo, XlsxBom,
+                           BOM_COLUMNS, BOM_STYLES)
 from .costing_headers import generate_header
 from .costing_merge import get_bom
 from .costing_sections import generate_sections
@@ -87,15 +88,15 @@ def generate_sheet(merged_bom: MergedBom,
     section_info: dict[str, SectionInfo] =  {}
     with Workbook(file_name_info['file_name'],
                   {'remove_timezone': True}) as workbook:
-        xlsx: Xlsx = Xlsx(workbook, merged_bom, size, settings)
+        xlsx: XlsxBom = XlsxBom(workbook, merged_bom, size, settings)
 
         xlsx.file_name_info = file_name_info
         xlsx.workbook.set_properties(properties(xlsx))
         xlsx.add_worksheet()
         xlsx.set_active('Sheet1')
         xlsx.sheet.set_default_row(12.75)
-        xlsx.load_formats(STYLES)
-        xlsx.columns = COLUMNS
+        xlsx.load_formats(BOM_STYLES)
+        xlsx.columns = BOM_COLUMNS
         xlsx.apply_columns()
 
         generate_header(xlsx)
