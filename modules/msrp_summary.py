@@ -64,11 +64,8 @@ def properties(xlsx):
         'comments': 'Created with Python and XlsxWriter',
     }
 
-def generate_xlsx_sheet(merged_bom: MergedBom,
-                        file_name_info: FileNameInfo,
-                        settings: Settings,
-                        size: str) -> None:
-    """genereate costing sheet
+def generate_msrp_xlsx(msrps: dict[str, float]) -> None:
+    """genereate costing msrp sheet
 
     Arguments:
         filterd_bom -- bom with only parts from the current size
@@ -80,23 +77,31 @@ def generate_xlsx_sheet(merged_bom: MergedBom,
     Returns:
         None
     """
+    for name, new_msrp in msrps.items():
+        new_msrp = 123495.0
+        new_iff: float =  (new_msrp - (new_msrp * 0.3))/0.9925
+        old_iff: float = new_iff
+        old_msrp: float = old_iff * 0.9925 * 1.020304051
+        print(f"{name:35.35}  {new_msrp:9.2f}  {new_iff:9.2f}  "
+              f"{old_msrp:9.2f}  {old_iff:9.2f}")
+
+
     # create parent folder if necessay
-    file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
+    #file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
 
-    # create new workbook / xlsx file
-    section_info: dict[str, SectionInfo] =  {}
-    with Workbook(file_name_info['file_name'],
-                  {'remove_timezone': True}) as workbook:
-        xlsx: Xlsx = Xlsx(workbook, merged_bom, size, settings)
+    ## create new workbook / xlsx file
+    #with Workbook(file_name_info['file_name'],
+    #              {'remove_timezone': True}) as workbook:
+    #    xlsx: Xlsx = Xlsx(workbook, merged_bom, 99, settings)
 
-        xlsx.file_name_info = file_name_info
-        xlsx.workbook.set_properties(properties(xlsx))
-        xlsx.add_worksheet()
-        xlsx.set_active('Sheet1')
-        xlsx.sheet.set_default_row(12.75)
-        xlsx.load_formats(STYLES)
-        xlsx.columns = COLUMNS
-        xlsx.apply_columns()
+    #    xlsx.file_name_info = file_name_info
+    #    xlsx.workbook.set_properties(properties(xlsx))
+    #    xlsx.add_worksheet()
+    #    xlsx.set_active('Sheet1')
+    #    xlsx.sheet.set_default_row(12.75)
+    #    xlsx.load_formats(STYLES)
+    #    xlsx.columns = COLUMNS
+    #    xlsx.apply_columns()
 
         # generate_header(xlsx)
         # generate_sections(xlsx, section_info)
@@ -104,9 +109,10 @@ def generate_xlsx_sheet(merged_bom: MergedBom,
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
-def collect_msrp_summary_information(boms: dict[str, Bom],
-                                     model: Model,
-                                     settings: Settings) -> None:
+def get_msrp(boms: dict[str, Bom],
+             model: Model,
+             settings: Settings,
+             size: float) -> tuple[str, float]:
     """"cycle through each size to create sheets
     * build the filname and size as as a text name
     * filter out parts that are not needed for this size of boat and correct
@@ -122,32 +128,27 @@ def collect_msrp_summary_information(boms: dict[str, Bom],
         None
     """
     status_msg(f"  {model.folder}", 1)
-    for size in boms[model.sheet1].sizes:
-        file_name_info: FileNameInfo
-        file_name_info = build_name(size, model, model.folder)
-        status_msg(f"    {file_name_info['file_name']}", 2)
-        merged_bom: MergedBom = get_bom(boms, model, size)
-        # collect info here
-        dept = 'Boat and options'
-        markup_1 = settings.mark_ups[dept].markup_1
-        markup_2 = settings.mark_ups[dept].markup_2
-        rate_fabrication = settings.consumables['FABRICATION'].rate
-        rate_paint = settings.consumables['PAINT'].rate
-        section_info: dict[str, SectionInfo] =  {}
+    file_name_info: FileNameInfo
+    file_name_info = build_name(size, model, model.folder)
+    status_msg(f"    {file_name_info['file_name']}", 2)
+    merged_bom: MergedBom = get_bom(boms, model, size)
+    # collect info here
+    dept = 'Boat and options'
+    markup_1 = settings.mark_ups[dept].markup_1
+    markup_2 = settings.mark_ups[dept].markup_2
+    rate_fabrication = settings.consumables['FABRICATION'].rate
+    rate_paint = settings.consumables['PAINT'].rate
 
-        value1 = (merged_bom.sections['FABRICATION'].total +
-                  merged_bom.sections['FABRICATION'].total * rate_fabrication +
-                  merged_bom.sections['PAINT'].total +
-                  merged_bom.sections['PAINT'].total * rate_paint +
-                  merged_bom.sections['OUTFITTING'].total)
-        value2: float = value1 / markup_1 / markup_2
-        msrp: float = (int(value2 / 100) * 100.0) + 95
-
+    value1 = (merged_bom.sections['FABRICATION'].total +
+              merged_bom.sections['FABRICATION'].total * rate_fabrication +
+              merged_bom.sections['PAINT'].total +
+              merged_bom.sections['PAINT'].total * rate_paint +
+              merged_bom.sections['OUTFITTING'].total)
+    value2: float = value1 / markup_1 / markup_2
+    msrp: float = (int(value2 / 100) * 100.0) + 95
+    return file_name_info['size_with_folder'], msrp
 
 
-        # generate_report
-        
-        generate_sheet(merged_bom, file_name_info, settings, str(size))
 
 
 def generate_msrp_summary(boms: dict[str, Bom],
@@ -164,8 +165,14 @@ def generate_msrp_summary(boms: dict[str, Bom],
         None
     """
     status_msg("Generating Sheets", 1)
-    for model in models:
-        collect_msrp_summary_information(boms, models[model], settings)
+    msrps: dict(str, float) = {}
+    models = dict(sorted(models.items()))
+    for model in models.values():
+        status_msg(f"  {model.folder}", 1)
+        for size in boms[model.sheet1].sizes:
+            name, msrp = get_msrp(boms, model, settings, size)
+            msrps[name] = msrp
+    generate_msrp_xlsx(msrps)
 
 if __name__ == "__main__":
     pass
