@@ -43,6 +43,8 @@ MAIL_FROM: str = str(os.environ.get("MAIL_FROM", ''))
 MAIL_TO: str = str(os.environ.get("MAIL_TO", ''))
 SUBJECT: str = str(
     os.environ.get("SUBJECT", 'Current Model Year Costing Sheets'))
+SUMMARY: str = str(
+    os.environ.get("SUMMARY", 'Current Model Year MSRP Report'))
 
 
 def noop() -> None:
