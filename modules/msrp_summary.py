@@ -4,18 +4,93 @@
 """
 Generate Costing Sheets
 """
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
-from .boms import Bom, Boms, MergedBom
-from .costing_data import FileNameInfo, SectionInfo, Xlsx, COLUMNS, STYLES
-from .costing_headers import generate_header
+from .boms import Bom, MergedBom
+from .costing_data import Columns, FileNameInfo, Format, Xlsx
 from .costing_merge import get_bom
-from .costing_sections import generate_sections
-from .costing_totals import generate_totals
 from .models import Model
 from .settings import Settings
 from .utilities import normalize_size, status_msg, SHEETS_FOLDER, SUBJECT
+
+@dataclass
+class Msrp():
+    """track msrp price and shade of cells for row group"""
+    msrp: float
+    shade: str
+    model: Model
+
+# WORKBOOK LAYOUT ============================================================
+MSRP_PROPERTIES = {
+    'title': 'MY 2021 Commerical MSRP Report',
+    'subject': 'MSRP Report',
+    'author': 'Sara Lynn',
+    'company': 'North River Boats Inc.',
+    'created': date.today(),
+    'comments': 'Created with Python and XlsxWriter',
+}
+
+MSRP_COLUMNS = [                   # PIXELS   POINTS
+    Columns('A:A', 250, 'normal'), # 160.00   100.80
+    Columns('B:E', 160, 'normal'), # 120.00   104.75
+]
+
+CURRENCY = (
+    '_("$"* #,##0.00_);_("$"* (#,##0.00);_("$"* "-"??_);_(@_)'
+)
+
+MSRP_STYLES = [
+    Format(
+        'normal',
+        {
+            'font_name': 'arial',
+            'font_size': 10,
+        },
+    ),
+    Format(
+        'normalBold',
+        {
+            'font_name': 'Arial',
+            'font_size': 10,
+            'bold': True,
+            'pattern': 1,
+            'bg_color': '#666666',
+            'color': '#FFFFFF',
+        },
+    ),
+    Format(
+        'currency',
+        {
+            'font_name': 'arial',
+            'font_size': 10,
+			'num_format': CURRENCY,
+        },
+    ),
+    Format(
+        'currencyBold',
+        {
+            'font_name': 'Arial',
+            'font_size': 10,
+            'bold': True,
+			'num_format': CURRENCY,
+        },
+    ),
+]
+
+
+SHADES = [
+    '#CCFFFF', '#CCFFCC', '#FFFF99', '#99CCFF',
+    '#FF99CC', '#CC99FF', '#FFCC99', '#C0C0C0',
+    '#9999FF', '#993366', '#FFFFCC', '#CCFFFF',
+    '#FF8080', '#0066CC', '#808080', '#CCCCFF',
+    '#3366FF', '#33CCCC', '#99CC00', '#FFCC00',
+    '#FF9900', '#FF6600', '#666699', '#969696',
+    '#FFD8A0', '#C5F19A', '#FEF58A', '#B9D0E8',
+    '#F5DDB7', '#D6BFD4', '#F79494', '#D3D7CF',
+]
+
 
 # UTILITY FUNCTIONS ===========================================================
 
@@ -64,7 +139,8 @@ def properties(xlsx):
         'comments': 'Created with Python and XlsxWriter',
     }
 
-def generate_msrp_xlsx(msrps: dict[str, float]) -> None:
+def generate_msrp_xlsx(xlsx: Xlsx,
+                       msrps: dict[str, Msrp]) -> None:
     """genereate costing msrp sheet
 
     Arguments:
@@ -77,35 +153,49 @@ def generate_msrp_xlsx(msrps: dict[str, float]) -> None:
     Returns:
         None
     """
-    for name, new_msrp in msrps.items():
-        new_msrp = 123495.0
+    xlsx.write(0, 0, 'BOAT', xlsx.styles['normalBold'])
+    xlsx.write(0, 1, 'GSA NEW TERMS MSRP', xlsx.styles['normalBold'])
+    xlsx.write(0, 2, 'GSA NEW WITH IFF', xlsx.styles['normalBold'])
+    xlsx.write(0, 3, 'GSA OLD TERMS MSRP', xlsx.styles['normalBold'])
+    xlsx.write(0, 4, 'GSA OLD WITH IFF', xlsx.styles['normalBold'])
+    normal = ''
+    for row, msrp in enumerate(msrps.items(), start=1):
+        name: str = msrp[0]
+        shade: str = msrp[1].shade
+        model: Model = msrp[1].model
+        new_msrp: float = msrp[1].msrp
         new_iff: float =  (new_msrp - (new_msrp * 0.3))/0.9925
         old_iff: float = new_iff
         old_msrp: float = old_iff * 0.9925 * 1.020304051
-        print(f"{name:35.35}  {new_msrp:9.2f}  {new_iff:9.2f}  "
-              f"{old_msrp:9.2f}  {old_iff:9.2f}")
 
+        status_msg(f"{name:35.35}  {new_msrp:9.2f}  {new_iff:9.2f}  "
+                   f"{old_msrp:9.2f}  {old_iff:9.2f}", 2)
 
-    # create parent folder if necessay
-    #file_name_info['file_name'].parent.mkdir(parents=True, exist_ok=True)
+        if shade not in normal:
+            normal:str = 'normal' + shade
+            currency:str = 'currency' + shade
+            xlsx.styles[normal] = xlsx.workbook.add_format({
+                'pattern': 1,
+                'bg_color': shade,
+                'font_name': 'arial',
+                'font_size': 10,
+            })
+            xlsx.styles[currency] = xlsx.workbook.add_format({
+                'pattern': 1,
+                'bg_color': shade,
+                'font_name': 'arial',
+                'font_size': 10,
+                'num_format': CURRENCY,
+            })
 
-    ## create new workbook / xlsx file
-    #with Workbook(file_name_info['file_name'],
-    #              {'remove_timezone': True}) as workbook:
-    #    xlsx: Xlsx = Xlsx(workbook, merged_bom, 99, settings)
-
-    #    xlsx.file_name_info = file_name_info
-    #    xlsx.workbook.set_properties(properties(xlsx))
-    #    xlsx.add_worksheet()
-    #    xlsx.set_active('Sheet1')
-    #    xlsx.sheet.set_default_row(12.75)
-    #    xlsx.load_formats(STYLES)
-    #    xlsx.columns = COLUMNS
-    #    xlsx.apply_columns()
-
-        # generate_header(xlsx)
-        # generate_sections(xlsx, section_info)
-        # generate_totals(xlsx, section_info)
+        # link = "external:" + model.folder + '/' + name + ".xlsx"
+        link = "external:N:\\000 Commercial Costing Update 2021\\Costing\\Commercial Costing Sheets\\"
+        xlsx.write(row, 0, link, xlsx.styles[normal], name)
+        xlsx.write(row, 1, new_msrp, xlsx.styles[currency])
+        xlsx.write(row, 2, new_iff, xlsx.styles[currency])
+        xlsx.write(row, 3, old_msrp, xlsx.styles[currency])
+        xlsx.write(row, 4, old_iff, xlsx.styles[currency])
+    xlsx.sheet.freeze_panes(1,0)
 
 
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
@@ -164,15 +254,27 @@ def generate_msrp_summary(boms: dict[str, Bom],
     Returns:
         None
     """
+    name: str
+    msrp: float
     status_msg("Generating Sheets", 1)
     msrps: dict(str, float) = {}
-    models = dict(sorted(models.items()))
+    models: dict = dict(sorted(models.items()))
+    model_index = set()
+
     for model in models.values():
+        model_index.add(model.sheet1)
+        index: int = len(model_index) - 1
+
         status_msg(f"  {model.folder}", 1)
         for size in boms[model.sheet1].sizes:
             name, msrp = get_msrp(boms, model, settings, size)
-            msrps[name] = msrp
-    generate_msrp_xlsx(msrps)
+            msrps[name] = Msrp(msrp, SHADES[index], model)
+
+    file_name: Path  = Path('/home/fwarren/tofu/Costing/Commercial Costing Sheets/MY 2022 Commercial MSRP Summary.xlsx')
+    with Workbook(file_name, {'remove_timezone': True}) as workbook:
+        xlsx: Xlsx = Xlsx(workbook)
+        xlsx.setup_workbook(MSRP_STYLES, MSRP_COLUMNS, MSRP_PROPERTIES)
+        generate_msrp_xlsx(xlsx, msrps)
 
 if __name__ == "__main__":
     pass
