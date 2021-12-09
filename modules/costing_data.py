@@ -46,24 +46,19 @@ class SectionInfo():
 
 @dataclass
 class Xlsx():
-    """Bundle up xlsxwriter information
+    """Base xlsx writer not dependant on bom/size information
 
     Arguments:
-        workbook: obj -- xlswriter workbook class object
+        workbook -- xlswriter workbook class object
 
     Returns:
-        None
+        Xlsx object
     """
-    # pylint: disable=too-many-instance-attributes
     workbook: Any
-    bom: MergedBom
-    size: str
-    settings: Settings
+    styles: dict = field(default_factory=dict)
+    columns: list[Columns] = field(default_factory=list)
+    worksheets: dict = field(default_factory=dict)
     sheet: Any = field(default=None)
-    styles: dict = field(init=False, default_factory=dict)
-    worksheets: dict = field(init=False, default_factory=dict)
-    file_name_info: FileNameInfo = field(init=False)
-    columns: list[Columns] = field(init=False, default_factory=list)
 
     def add_worksheet(self, name: Optional[str] = None) -> None:
         """add new sheet to workbook
@@ -119,9 +114,43 @@ class Xlsx():
         for style in styles:
             self.add_format(style.name, style.style)
 
+    def setup_workbook(self, styles=None, columns=None, properties=None):
+        """Setup workbook info and add default first sheet"""
+        if properties:
+            self.workbook.set_properties(properties)
+        self.add_worksheet()
+        self.set_active('Sheet1')
+        self.sheet.set_default_row(12.75)
+        if styles:
+            self.load_formats(styles)
+        if columns:
+            self.columns = columns
+            self.apply_columns()
+
+
+@dataclass
+class XlsxBom(Xlsx):
+    """Bundle up xlsxwriter information for bom
+
+    Arguments:
+        workbook -- xlswriter workbook class object
+        bom -- merged bom data to pull part/section info from
+        size -- length of bat
+        settings -- consumable rates, labor rates, and mark ups
+        file_name_info -- info about file name and parts that make up the name
+
+    Returns:
+        Xlsx object
+    """
+    # pylint: disable=too-many-instance-attributes
+    bom: MergedBom = field(init=False)
+    size: str = field(init=False)
+    settings: Settings = field(init=False)
+    file_name_info: FileNameInfo = field(init=False)
+
 
 # SHEET DATA ==================================================================
-COLUMNS = [                             # PIXELS   POINTS
+BOM_COLUMNS = [                             # PIXELS   POINTS
     Columns('A:A', 126.50, 'generic1'), # 126.50   100.80
     Columns('B:B', 132, 'generic1'),    # 132.00   104.75
     Columns('C:C', 314.00, 'generic1'), # 314.00   249.20
@@ -143,7 +172,7 @@ CURRENCY = (
 
 # pylint: disable=anomalous-backslash-in-string
 # pylint: disable=anomalous-backslash-in-string
-STYLES = [
+BOM_STYLES = [
     Format(
         'generic1',
         {
