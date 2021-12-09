@@ -89,9 +89,9 @@ def generate_sheet(merged_bom: MergedBom,
     with Workbook(file_name_info['file_name'],
                   {'remove_timezone': True}) as workbook:
         xlsx: XlsxBom = XlsxBom(workbook)
-        xlsx.bom: MergedBom = merged_bom
-        xlsx.size: str = size
-        xlsx.settings: Settings = settings
+        xlsx.bom = merged_bom
+        xlsx.size = size
+        xlsx.settings = settings
         xlsx.file_name_info = file_name_info
 
         xlsx.workbook.set_properties(properties(xlsx))

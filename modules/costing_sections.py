@@ -6,7 +6,7 @@ Generate Costing Sheet Sections in middle of sheet
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
-from .costing_data import SectionInfo, Xlsx, YESNO
+from .costing_data import SectionInfo, XlsxBom, YESNO
 from .boms import MergedPart
 
 @dataclass
@@ -156,17 +156,17 @@ BLANK_BOM_PART = MergedPart('', 0, '', '', 0, '', datetime(1999,12,31), 0)
 
 
 # WRITING SECTION FUNCTIONS ===================================================
-def section_hr_rule(xlsx: Xlsx, row: int) -> None:
+def section_hr_rule(xlsx: XlsxBom, row: int) -> None:
     """draw thick underline between section"""
     for column in range(11):
         xlsx.write(row, column, None, xlsx.styles['thickBottom'])
 
-def section_heading_large(xlsx: Xlsx, row: int, text: str) -> None:
+def section_heading_large(xlsx: XlsxBom, row: int, text: str) -> None:
     """Large Header"""
     xlsx.sheet.set_row(row, 15.75)
     xlsx.write(row, 2, text, xlsx.styles['bgSilverBold12pt'])
 
-def section_heading_small(xlsx: Xlsx, row: int, text1: str,
+def section_heading_small(xlsx: XlsxBom, row: int, text1: str,
                           text2: str = None) -> None:
     """Small Header"""
     xlsx.write(row, 2, text1, xlsx.styles['bgSilverBold10pt'])
@@ -175,13 +175,13 @@ def section_heading_small(xlsx: Xlsx, row: int, text1: str,
         xlsx.merge_range(row, 11, row, 13, text2,
                          xlsx.styles['bgSilverBold10pt'])
 
-def section_titles(xlsx: Xlsx, row: int, titles: list[Title]) -> None:
+def section_titles(xlsx: XlsxBom, row: int, titles: list[Title]) -> None:
     """Titles for section"""
     xlsx.sheet.set_row(row, 23.85 )
     for column, title in enumerate(titles):
         xlsx.write(row, column, title.text, xlsx.styles[title.style])
 
-def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
+def section_part(xlsx: XlsxBom, row: int, columns_info: list[ColumnInfo],
                  part = MergedPart) -> None :
     """write out one part to sheet"""
     # fww will need work
@@ -204,7 +204,7 @@ def section_part(xlsx: Xlsx, row: int, columns_info: list[ColumnInfo],
                 value = None  # remove invalid dates
             xlsx.write(row, column, value, xlsx.styles[column_info.style])
 
-def section_subtotal(xlsx: Xlsx, row: int, section_info: SectionInfo,
+def section_subtotal(xlsx: XlsxBom, row: int, section_info: SectionInfo,
                      text: str) -> None:
     """write subtoal"""
     formula = (f"=SUM(I{str(section_info.start + 1)}"
@@ -213,7 +213,7 @@ def section_subtotal(xlsx: Xlsx, row: int, section_info: SectionInfo,
     xlsx.write(row, 7, text, xlsx.styles['rightJust2'])
     xlsx.write(row, 8, formula, xlsx.styles['currencyBorderedBold'], value)
 
-def section_fabrication(xlsx: Xlsx, row: int,
+def section_fabrication(xlsx: XlsxBom, row: int,
                         section_info: dict[str, SectionInfo]) -> int:
     """write fabrication section"""
     dept: str = 'FABRICATION'
@@ -249,7 +249,7 @@ def section_fabrication(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_paint(xlsx: Xlsx, row: int,
+def section_paint(xlsx: XlsxBom, row: int,
                         section_info: dict[str, SectionInfo]) -> int:
     """write paint section"""
     dept: str = 'PAINT'
@@ -277,7 +277,7 @@ def section_paint(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_green(xlsx: Xlsx, row: int,
+def section_green(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write green unused section"""
     _ = section_info
@@ -307,7 +307,7 @@ def section_green(xlsx: Xlsx, row: int,
     row += 1
     return row
 
-def section_outfitting(xlsx: Xlsx, row: int,
+def section_outfitting(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write outfitting section"""
     _ = section_info
@@ -356,7 +356,7 @@ def section_outfitting(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_bigticket(xlsx: Xlsx, row: int,
+def section_bigticket(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write big ticket section"""
     _ = section_info
@@ -393,7 +393,7 @@ def section_bigticket(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_outboard(xlsx: Xlsx, row: int,
+def section_outboard(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write outboard motors section"""
     _ = section_info
@@ -433,7 +433,7 @@ def section_outboard(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def section_inboard(xlsx: Xlsx, row: int,
+def section_inboard(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write inborad motors section"""
     _ = section_info
@@ -468,7 +468,7 @@ def section_inboard(xlsx: Xlsx, row: int,
     return row
 
 
-def section_trailer(xlsx: Xlsx, row: int,
+def section_trailer(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write trailer section"""
     _ = section_info
@@ -505,12 +505,12 @@ def section_trailer(xlsx: Xlsx, row: int,
     row += 2
     return row
 
-def generate_sections(xlsx: Xlsx,
+def generate_sections(xlsx: XlsxBom,
                       section_info: dict[str, SectionInfo]) -> None:
     """generate costing sheet sections
 
     Arguments:
-        xlsx: Xlsx -- information about spreadsheet
+        xlsx: XlsxBom -- information about spreadsheet
         sections: SectionInfo -- information about how sections are laid out
 
     Returns:

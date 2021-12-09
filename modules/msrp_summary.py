@@ -147,7 +147,7 @@ def generate_msrp_xlsx(xlsx: Xlsx,
     xlsx.write(0, 2, 'GSA NEW WITH IFF', xlsx.styles['normalBold'])
     xlsx.write(0, 3, 'GSA OLD TERMS MSRP', xlsx.styles['normalBold'])
     xlsx.write(0, 4, 'GSA OLD WITH IFF', xlsx.styles['normalBold'])
-    normal = ''
+    normal: str = ''
     for row, msrp in enumerate(msrps.items(), start=1):
         name: str = msrp[0]
         shade: str = msrp[1].shade
@@ -161,7 +161,7 @@ def generate_msrp_xlsx(xlsx: Xlsx,
                    f"{old_msrp:9.2f}  {old_iff:9.2f}", 2)
 
         if shade not in normal:
-            normal:str = 'normal' + shade
+            normal = 'normal' + shade
             currency:str = 'currency' + shade
             xlsx.styles[normal] = xlsx.workbook.add_format({
                 'pattern': 1,
@@ -190,7 +190,7 @@ def generate_msrp_xlsx(xlsx: Xlsx,
 def get_msrp(boms: dict[str, Bom],
              model: Model,
              settings: Settings,
-             size: float) -> tuple[str, float]:
+             size: str) -> tuple[str, float]:
     """"cycle through each size to create sheets
     * build the filname and size as as a text name
     * filter out parts that are not needed for this size of boat and correct
@@ -245,8 +245,8 @@ def generate_msrp_summary(boms: dict[str, Bom],
     name: str
     msrp: float
     status_msg("Generating Sheets", 1)
-    msrps: dict(str, float) = {}
-    models: dict = dict(sorted(models.items()))
+    msrps: dict[str, Msrp] = {}
+    models = dict(sorted(models.items()))
     model_index = set()
 
     for model in models.values():

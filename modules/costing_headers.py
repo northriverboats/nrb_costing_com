@@ -3,11 +3,11 @@
 """
 Generate Costing Sheet Headers at top of sheet
 """
-from .costing_data import Xlsx
+from .costing_data import XlsxBom
 
 # WRITING HEADING FUNCTIONS ===================================================
 
-def generate_header(xlsx: Xlsx) -> None:
+def generate_header(xlsx: XlsxBom) -> None:
     """generate header on costing sheet"""
 
     xlsx.sheet.set_row(1, 26.25)
