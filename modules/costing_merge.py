@@ -4,6 +4,7 @@
 """
 Costing Sheets Merge Boat and Cabin BOMs
 """
+from copy import deepcopy
 from .boms import Bom, BomSection, MergedBom, MergedPart, MergedSection
 from .models import Model
 from .utilities import logger
@@ -149,10 +150,10 @@ def get_bom(boms: dict[str, Bom], model: Model, size: str) -> MergedBom:
     boat_bom: Bom
     cabin_bom: Bom
 
-    boat_bom = (boms[model.sheet1]
+    boat_bom = (deepcopy(boms[model.sheet1])
                 if model.sheet1 in boms
                 else  Bom('', "", 0.0, 0.0, {}, {}))
-    cabin_bom = (boms[model.sheet2]
+    cabin_bom = (deepcopy(boms[model.sheet2])
                  if model.sheet2 in boms
                  else  Bom('', "", 0.0, 0.0, {}, {}))
     if boat_bom.name == "":

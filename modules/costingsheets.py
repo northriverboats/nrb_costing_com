@@ -4,7 +4,6 @@
 """
 Generate Costing Sheets
 """
-from copy import copy
 from datetime import date
 from pathlib import Path
 from xlsxwriter import Workbook # type: ignore
@@ -131,10 +130,8 @@ def generate_sheets_for_model(boms: dict[str, Bom],
         file_name_info: FileNameInfo
         file_name_info = build_name(size, model, model.folder)
         status_msg(f"    {file_name_info['file_name']}", 2)
-        backup_sizes = copy(boms[model.sheet1].sizes[size])
         merged_bom: MergedBom = get_bom(boms, model, size)
         generate_sheet(merged_bom, file_name_info, settings, str(size))
-        boms[model.sheet1].sizes[size] = copy(backup_sizes)
 
 
 def generate_sheets_for_all_models(boms: dict[str, Bom],
