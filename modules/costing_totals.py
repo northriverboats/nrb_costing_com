@@ -864,7 +864,8 @@ def totals_78(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
                'schedule', style1)
 
 
-def generate_totals(xlsx: XlsxBom, section_info: dict[str, SectionInfo]) -> None:
+def generate_totals(xlsx: XlsxBom,
+                    section_info: dict[str, SectionInfo]) -> None:
     """generate header on costing sheet"""
     skip = [10, 11, 18, 21, 22, 24, 31, 33,
             39, 41, 49, 51, 53, 55, 57, 58, 77]
