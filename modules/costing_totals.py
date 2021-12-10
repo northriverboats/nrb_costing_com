@@ -386,10 +386,15 @@ def totals_40(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 40 from the bottom of the sheet"""
     formula1 = f"=I{row -30}+I{row - 20}+I{row - 9}+I{row - 1}"
+
     # value used in totals_40 and totals_43
+    rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
+    rate_paint = xlsx.settings.consumables['PAINT'].rate
+    labor = get_labor(xlsx)
     value1 = (sum([section_info[section].value for section in section_info]) +
-                   section_info['FABRICATION'].value * 0.08 +
-                   section_info['PAINT'].value * 0.50)
+                  section_info['FABRICATION'].value * rate_fabrication +
+                  section_info['PAINT'].value * rate_paint +
+                  labor)
 
     xlsx.write(row, 6, 'TOTAL COST OF PROJECT', xlsx.styles['rightJust2'])
     xlsx.write(row, 8, formula1, xlsx.styles['currencyBoldYellow'], value1)
