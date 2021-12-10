@@ -186,6 +186,61 @@ def generate_msrp_xlsx(xlsx: Xlsx,
     xlsx.sheet.freeze_panes(1,0)
 
 
+
+def get_boat_and_options(merged_bom: MergedBom, settings: Settings) -> float:
+    """get boat and options msrp
+
+    Arguments:
+        merged_bom -- bom to caculate msrp for
+        settings -- consumables, labor rates, mark ups
+
+    Returns:
+        float -- msrp
+    """
+    dept = 'Boat and options'
+    markup_1 = settings.mark_ups[dept].markup_1
+    markup_2 = settings.mark_ups[dept].markup_2
+    rate_fabrication = settings.consumables['FABRICATION'].rate
+    rate_paint = settings.consumables['PAINT'].rate
+
+    fabrication = merged_bom.labor['Fabrication'] or 0.0
+    paint = merged_bom.labor['Paint'] or 0.0
+    outfitting = merged_bom.labor['Outfitting'] or 0.0
+    design  = merged_bom.labor['Design / Drafting'] or 0.0
+    labor = (
+        fabrication *
+        settings.hourly_rates['Fabrication Hours'].rate +
+        paint * settings.hourly_rates['Paint Hours'].rate +
+        outfitting * settings.hourly_rates['Outfitting Hours'].rate +
+        design * settings.hourly_rates['Design Hours'].rate)
+
+    value1 = (merged_bom.sections['FABRICATION'].total +
+              merged_bom.sections['FABRICATION'].total * rate_fabrication +
+              merged_bom.sections['PAINT'].total +
+              merged_bom.sections['PAINT'].total * rate_paint +
+              merged_bom.sections['OUTFITTING'].total +
+              labor)
+    return value1 / markup_1 / markup_2
+
+
+def get_big_ticket_items(merged_bom: MergedBom, settings: Settings) -> float:
+    """get big ticket items msrp
+
+    Arguments:
+        merged_bom -- bom to caculate msrp for
+        settings -- consumables, labor rates, mark ups
+
+    Returns:
+        float -- msrp
+    """
+    dept = 'Big Ticket Items'
+    markup_1: float = settings.mark_ups[dept].markup_1
+    markup_2: float = settings.mark_ups[dept].markup_2
+
+    value1: float = merged_bom.sections['BIG TICKET ITEMS'].total
+    return value1 / markup_1 / markup_2
+
+
 # MODEL/SIZE IETERATION FUNCTIONS =============================================
 def get_msrp(boms: dict[str, Bom],
              model: Model,
@@ -211,32 +266,12 @@ def get_msrp(boms: dict[str, Bom],
     file_name_info = build_name(size, model, model.folder)
     status_msg(f"    {file_name_info['file_name']}", 2)
     merged_bom: MergedBom = get_bom(boms, model, size)
-    # collect info here
-    dept = 'Boat and options'
-    markup_1 = settings.mark_ups[dept].markup_1
-    markup_2 = settings.mark_ups[dept].markup_2
-    rate_fabrication = settings.consumables['FABRICATION'].rate
-    rate_paint = settings.consumables['PAINT'].rate
+    msrp: float = (
+        get_boat_and_options(merged_bom, settings) +
+        get_big_ticket_items(merged_bom, settings)
 
-    fabrication = merged_bom.labor['Fabrication'] or 0.0
-    paint = merged_bom.labor['Paint'] or 0.0
-    outfitting = merged_bom.labor['Outfitting'] or 0.0
-    design  = merged_bom.labor['Design / Drafting'] or 0.0
-    labor = (
-        fabrication *
-        settings.hourly_rates['Fabrication Hours'].rate +
-        paint * settings.hourly_rates['Paint Hours'].rate +
-        outfitting * settings.hourly_rates['Outfitting Hours'].rate +
-        design * settings.hourly_rates['Design Hours'].rate)
-
-    value1 = (merged_bom.sections['FABRICATION'].total +
-              merged_bom.sections['FABRICATION'].total * rate_fabrication +
-              merged_bom.sections['PAINT'].total +
-              merged_bom.sections['PAINT'].total * rate_paint +
-              merged_bom.sections['OUTFITTING'].total +
-              labor)
-    value2: float = value1 / markup_1 / markup_2
-    msrp: float = (int(value2 / 100) * 100.0) + 95
+    )
+    msrp = (int(msrp / 100) * 100.0) + 95
     return file_name_info['size_with_folder'], msrp
 
 
