@@ -620,9 +620,13 @@ def totals_54(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 54 from the bottom of the sheet"""
     text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
     formula1 = f"=I{row - 1}-I{row - 13}"
+    rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
+    rate_paint = xlsx.settings.consumables['PAINT'].rate
+    labor = get_labor(xlsx)
     value1 = -(sum([section_info[section].value for section in section_info]) +
-                    section_info['FABRICATION'].value * 0.08 +
-                    section_info['PAINT'].value * 0.50)
+                    section_info['FABRICATION'].value * rate_fabrication +
+                    section_info['PAINT'].value * rate_paint +
+                    labor)
 
     xlsx.write(row, 6, text1, xlsx.styles['rightJust2'])
     xlsx.write(row, 8, formula1, xlsx.styles['currencyBold'], value1)
