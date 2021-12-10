@@ -205,6 +205,7 @@ def get_msrp(boms: dict[str, Bom],
     Returns:
         None
     """
+    # pylint: disable=too-many-locals
     status_msg(f"  {model.folder}", 1)
     file_name_info: FileNameInfo
     file_name_info = build_name(size, model, model.folder)
@@ -217,11 +218,23 @@ def get_msrp(boms: dict[str, Bom],
     rate_fabrication = settings.consumables['FABRICATION'].rate
     rate_paint = settings.consumables['PAINT'].rate
 
+    fabrication = merged_bom.labor['Fabrication'] or 0.0
+    paint = merged_bom.labor['Paint'] or 0.0
+    outfitting = merged_bom.labor['Outfitting'] or 0.0
+    design  = merged_bom.labor['Design / Drafting'] or 0.0
+    labor = (
+        fabrication *
+        settings.hourly_rates['Fabrication Hours'].rate +
+        paint * settings.hourly_rates['Paint Hours'].rate +
+        outfitting * settings.hourly_rates['Outfitting Hours'].rate +
+        design * settings.hourly_rates['Design Hours'].rate)
+
     value1 = (merged_bom.sections['FABRICATION'].total +
               merged_bom.sections['FABRICATION'].total * rate_fabrication +
               merged_bom.sections['PAINT'].total +
               merged_bom.sections['PAINT'].total * rate_paint +
-              merged_bom.sections['OUTFITTING'].total)
+              merged_bom.sections['OUTFITTING'].total +
+              labor)
     value2: float = value1 / markup_1 / markup_2
     msrp: float = (int(value2 / 100) * 100.0) + 95
     return file_name_info['size_with_folder'], msrp
