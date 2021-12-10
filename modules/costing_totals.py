@@ -425,20 +425,20 @@ def totals_43(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     discount = xlsx.settings.mark_ups[dept].discount
 
-
-
     formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
     # value used in totals_40
+    labor = get_labor(xlsx)
     value1 = (section_info['FABRICATION'].value +
               section_info['FABRICATION'].value * rate_fabrication +
               section_info['PAINT'].value +
               section_info['PAINT'].value * rate_paint +
-              section_info['OUTFITTING'].value)
+              section_info['OUTFITTING'].value +
+              labor)
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / markup_1 / markup_2
     formula3 = f"=G{row + 1}*(1-H{row + 1})"
-    value3 = value2
+    value3 = value2  * (1 - discount)
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals = value3
