@@ -111,6 +111,7 @@ def combine_sections(boat_sections: dict[str, MergedSection],
                 boat_parts[part_number].total += cabin_parts[part_number].total
             else:
                 boat_parts[part_number] = cabin_parts[part_number]
+        ordered_parts(boat_section)
     return boat_sections
 
 
