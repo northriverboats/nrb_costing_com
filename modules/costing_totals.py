@@ -139,9 +139,11 @@ def totals_09(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 09 from the bottom of the sheet"""
     formula1 = f"=SUM(I{row - 8}:I{row})"
     # value used in totals_40
+    rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
+    rate_paint = xlsx.settings.consumables['PAINT'].rate
     value1 = (sum([section_info[section].value for section in section_info]) +
-                   section_info['FABRICATION'].value * 0.08 +
-                   section_info['PAINT'].value * 0.50)
+                   section_info['FABRICATION'].value * rate_fabrication +
+                   section_info['PAINT'].value * rate_paint)
 
     xlsx.write(row, 7, 'Total All Materials', xlsx.styles['rightJust2'])
     xlsx.write(row, 8, formula1, xlsx.styles['currencyBoldYellow'], value1)
