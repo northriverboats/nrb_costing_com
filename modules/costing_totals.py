@@ -417,6 +417,7 @@ def totals_42(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 def totals_43(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 43 from the bottom of the sheet"""
+    # pylint: disable=too-many-locals
     dept = 'Boat and options'
     markup_1 = xlsx.settings.mark_ups[dept].markup_1
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
