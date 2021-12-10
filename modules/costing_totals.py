@@ -458,14 +458,14 @@ def totals_44(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Big Ticket Items'
     markup_1 = xlsx.settings.mark_ups[dept].markup_1
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
-    discount = xlsx.settings.mark_ups[dept].discount    
+    discount = xlsx.settings.mark_ups[dept].discount
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['BIG TICKET ITEMS'].value
     formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
     value2 = value1 / markup_1 / markup_2
     formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
-    value3 = value2
+    value3 = value2  * (1 - discount)
     formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
