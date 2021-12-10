@@ -586,15 +586,19 @@ def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 50 from the bottom of the sheet"""
     text1 = "Total Cost (equals total cost of project box)"
     formula1 = f"=SUM(D{row - 6}:D{row -1})"
+    rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
+    rate_paint = xlsx.settings.consumables['PAINT'].rate
+    labor = get_labor(xlsx)
     value1 = (section_info['FABRICATION'].value +
-              section_info['FABRICATION'].value * 0.08 +
+              section_info['FABRICATION'].value * rate_fabrication +
               section_info['PAINT'].value +
-              section_info['PAINT'].value * 0.50 +
+              section_info['PAINT'].value * rate_paint +
               section_info['OUTFITTING'].value +
               section_info['BIG TICKET ITEMS'].value +
               section_info['OUTBOARD MOTORS'].value +
               section_info['INBOARD MOTORS & JETS'].value +
-              section_info['TRAILER'].value)
+              section_info['TRAILER'].value +
+              labor)
     formula2 = f"=SUM(I{row - 6}:I{row - 1})"
     value2 = section_info['TOTALS'].totals
 
