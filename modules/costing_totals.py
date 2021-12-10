@@ -510,7 +510,7 @@ def totals_46(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Inboard Motors & Jets'
     markup_1 = xlsx.settings.mark_ups[dept].markup_1
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
-    discount = xlsx.settings.mark_ups[dept].discount    
+    discount = xlsx.settings.mark_ups[dept].discount
 
     formula1 = f"=I{row - 38}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
