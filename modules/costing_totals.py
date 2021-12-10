@@ -5,6 +5,23 @@ Generate Costing Sheet Totals Section at bottom of sheet
 """
 from .costing_data import SectionInfo, XlsxBom, DEALERS, SALESPERSON, YESNO
 
+
+# UTILITY FUNCTIONS =========================================================+=
+def get_labor(xlsx: XlsxBom)-> float:
+    """compute labor totals"""
+    fabrication = xlsx.bom.labor['Fabrication'] or 0.0
+    paint = xlsx.bom.labor['Paint'] or 0.0
+    outfitting = xlsx.bom.labor['Outfitting'] or 0.0
+    design  = xlsx.bom.labor['Design / Drafting'] or 0.0
+    labor = (
+        fabrication *
+        xlsx.settings.hourly_rates['Fabrication Hours'].rate +
+        paint * xlsx.settings.hourly_rates['Paint Hours'].rate +
+        outfitting * xlsx.settings.hourly_rates['Outfitting Hours'].rate +
+        design * xlsx.settings.hourly_rates['Design Hours'].rate)
+    return labor
+
+
 # WRITING TOTALS FUNCTIONS ====================================================
 def totals_column_b(xlsx: XlsxBom,
                       section_info: dict[str, SectionInfo]) -> None:
