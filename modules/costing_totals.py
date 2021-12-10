@@ -247,13 +247,9 @@ def totals_19(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     design  = xlsx.bom.labor['Design / Drafting'] or 0.0
     value1 = fabrication + paint + outfitting + design
     value1 =  xlsx.bom.labor['Total'] or 0.0
+
     formula2 = f"=SUM(I{row - 4}:I{row - 1})"
-    value2 = (
-        fabrication *
-        xlsx.settings.hourly_rates['Fabrication Hours'].rate +
-        paint * xlsx.settings.hourly_rates['Paint Hours'].rate +
-        outfitting * xlsx.settings.hourly_rates['Outfitting Hours'].rate +
-        design * xlsx.settings.hourly_rates['Design Hours'].rate)
+    value2 = get_labor(xlsx)
 
     xlsx.write(row, 4, 'Total Hours', xlsx.styles['rightJust1'])
     xlsx.write(row, 5, formula1, xlsx.styles['bgYellowDecimal'], value1)
