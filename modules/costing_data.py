@@ -698,6 +698,16 @@ BOM_STYLES = [
         }
     ),
     Format(
+        'redRight',
+        {
+            'font_name': 'Arial',
+            'font_size': 10,
+            'font_color': '#FF0000',
+            'bold': True,
+            'align': 'right',
+        },
+    ),
+    Format(
         'heading1',
         {
             'font_name': 'Arial',
