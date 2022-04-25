@@ -231,6 +231,19 @@ def section_fabrication(xlsx: XlsxBom, row: int,
     section_part(xlsx, row, ROW_PAINTFAB_PART, BLANK_BOM_PART)
     finish = row
     row += 2
+    xlsx.write(row, 0, 'ATTENTION:', xlsx.styles['redRight'])
+    xlsx.write(row, 1, 'NON-CONTRACT metal must be quoted on case-by-case '
+               'basis. Add $0.50 lb to quoted price', xlsx.styles['red'])
+    row += 1
+    xlsx.write(row, 1, 'Plate over 60” wide is non-contract and must be '
+               'quoted.', xlsx.styles['red'])
+    row += 1
+    xlsx.write(row, 1, 'Any 5086 extrusion is non-contract and must be '
+               'quoted.', xlsx.styles['red'])
+    row += 1
+    xlsx.write(row, 1, 'Pipe greater than 3” schedule 80 is non-contract and '
+               'must be quoted.', xlsx.styles['red'])
+    row += 2
     xlsx.write(row, 2, 'Material sheet provided Y/N',
                xlsx.styles['bgYellowRight'])
     xlsx.write(row, 3,  None, xlsx.styles['bgYellow4'])
