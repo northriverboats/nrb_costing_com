@@ -37,6 +37,8 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
                                MAIL_SERVER, MAIL_FROM, MAIL_TO,
                                RESOURCES_FOLDER,)
 
+ghrc = False
+
 #
 # ==================== Main Entry Point
 #
@@ -49,6 +51,8 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 @click.option('-s', '--save', 'save_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Save data to sqlite database")
+@click.option('--hgac', is_flag=True,
+              help="Sheet has commision/hgac totals")
 @click.option('--summary', is_flag=True,
               help="Generate MSRP Summary Report")
 @click.option('-v', '--verbose', count=True,
@@ -56,9 +60,12 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
 def main(build_only: bool,
          load_file: Union[Path, str],
          save_file: Union[Path, str],
+         _hgac: bool,
          summary: bool,
          verbose: int) -> None:
     """ main program entry point """
+    global hgac
+    hgac = _hgac
     if build_only:
         click.echo("build only")
         load_file = ""
