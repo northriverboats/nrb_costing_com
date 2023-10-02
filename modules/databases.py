@@ -8,6 +8,7 @@ Will save/restore a dictionary of name/json_representation of objects
 Can be called multiple times. There is less overhead with fewer calls and
 larger dictionaries
 """
+from pickle import dump, load
 from sqlite3 import connect, Connection, Cursor
 from pathlib import Path
 from typing import Optional, Union
@@ -108,7 +109,7 @@ def deserialized(cursor: Cursor, names: list[str]) -> dict[str, str]:
 
 
 # High Level FunctionsA =======================================================
-def load_from_database(db_file: Union[Path, str],
+def _load_from_database(db_file: Union[Path, str],
                        names: list[str])-> dict[str, str]:
     """read data from database into objects
 
@@ -126,7 +127,7 @@ def load_from_database(db_file: Union[Path, str],
         create_schema(cursor)
         return deserialized(cursor, names)
 
-def save_to_database(db_file: Union[Path, str],
+def _save_to_database(db_file: Union[Path, str],
                      objects: dict[str, str])-> None:
     """jsonify and save save objects to database
 
@@ -141,6 +142,20 @@ def save_to_database(db_file: Union[Path, str],
     with dbopen(db_file) as cursor:
         create_schema(cursor)
         serialize(cursor, objects)
+
+
+def load_from_database(db_file):
+    """read data from pickle"""
+    file_message("Reading Data from {file_name}", db_file)
+    with open(db_file, 'rb') as pickler:
+        return load(pickler)
+
+def save_to_database(db_file, boms, consumables, hourly_rates, mark_ups, models, resources):
+    """save to pickle"""
+    file_message("Saving Data to {file_name}", db_file)
+    with open(db_file, 'wb') as pickler:
+        dump((boms, consumables, hourly_rates, mark_ups, models, resources), pickler)
+
 
 
 if __name__ == "__main__":
