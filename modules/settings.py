@@ -14,6 +14,7 @@ class Settings():
     consumables: dict[str, Consumable]
     hourly_rates: dict[str, HourlyRate]
     mark_ups: dict[str, MarkUp]
+    flags: dict
     
 if __name__ == "__main__":
     pass

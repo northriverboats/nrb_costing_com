@@ -37,8 +37,6 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
                                MAIL_SERVER, MAIL_FROM, MAIL_TO,
                                RESOURCES_FOLDER,)
 
-ghrc = False
-
 #
 # ==================== Main Entry Point
 #
@@ -51,7 +49,7 @@ ghrc = False
 @click.option('-s', '--save', 'save_file', is_flag=False,
               flag_value="DATABASE",
               default="", help="Save data to sqlite database")
-@click.option('--hgac', is_flag=True,
+@click.option('--hgac', 'hgac', is_flag=True,
               help="Sheet has commision/hgac totals")
 @click.option('--summary', is_flag=True,
               help="Generate MSRP Summary Report")
@@ -60,12 +58,11 @@ ghrc = False
 def main(build_only: bool,
          load_file: Union[Path, str],
          save_file: Union[Path, str],
-         _hgac: bool,
+         hgac: bool,
          summary: bool,
          verbose: int) -> None:
     """ main program entry point """
-    global hgac
-    hgac = _hgac
+    flags = {'hgac': hgac }
     if build_only:
         click.echo("build only")
         load_file = ""
@@ -85,20 +82,7 @@ def main(build_only: bool,
         save_file = DATABASE
     try:
         if load_file:
-            json = load_from_database(load_file, [
-                'boms',
-                'consumables',
-                'hourly_rates',
-                'mark_ups',
-                'models',
-                'resources',
-                ])
-            boms = Boms.from_json(json['boms'])
-            consumables = Consumables.from_json(json['consumables'])
-            hourly_rates = HourlyRates.from_json(json['hourly_rates'])
-            mark_ups = MarkUps.from_json(json['mark_ups'])
-            models = Models.from_json(json['models'])
-            resources = Resources.from_json(json['resources'])
+            boms, consumables, hourly_rates, mark_ups, models, resources = load_from_database(load_file)
         else:
             # load information from spreadsheets
             models = load_models(MODELS_FILE)
@@ -127,7 +111,8 @@ def main(build_only: bool,
 
         settings = Settings(consumables.consumables,
                             hourly_rates.hourly_rates,
-                            mark_ups.mark_ups)
+                            mark_ups.mark_ups,
+                            flags)
         if (not build_only) and (not summary):
             generate_sheets_for_all_models(boms.boms,
                                            models.models,
@@ -137,14 +122,14 @@ def main(build_only: bool,
                                   models.models,
                                   settings)
         if save_file:
-            save_to_database(save_file, {
-                'boms':  boms.to_json(),
-                'consumables': consumables.to_json(),
-                'hourly_rates': hourly_rates.to_json(),
-                'mark_ups': mark_ups.to_json(),
-                'models': models.to_json(),
-                'resources': resources.to_json(),
-            })
+            save_to_database(save_file, 
+                boms,
+                consumables,
+                hourly_rates,
+                mark_ups,
+                models,
+                resources
+            )
     except Exception:
         logger.critical(traceback.format_exc())
         raise
