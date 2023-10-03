@@ -112,8 +112,7 @@ def main(build_only: bool,
 
         settings = Settings(consumables.consumables,
                             hourly_rates.hourly_rates,
-                            mark_ups.mark_ups,
-                            flags)
+                            mark_ups.mark_ups)
         if (not build_only) and (not summary):
             generate_sheets_for_all_models(boms.boms,
                                            models.models,
