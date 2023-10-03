@@ -5,6 +5,7 @@ Module Load
 """
 from .boms import (load_boms, Bom, Boms, BomPart, BomSection,
                    MergedBom, MergedPart, MergedSection)
+from .config import hgac
 from .consumables import load_consumables, Consumable
 from .costingsheets import generate_sheets_for_all_models
 from .costing_merge import get_bom

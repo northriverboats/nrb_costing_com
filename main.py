@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Union
 import click
 from modules.boms import load_boms, Boms
+from  modules import config
 from modules.consumables import load_consumables, Consumables
 from modules.costingsheets import generate_sheets_for_all_models
 from modules.databases import load_from_database, save_to_database
@@ -62,7 +63,7 @@ def main(build_only: bool,
          summary: bool,
          verbose: int) -> None:
     """ main program entry point """
-    flags = {'hgac': hgac }
+    config.hgac = hgac
     if build_only:
         click.echo("build only")
         load_file = ""

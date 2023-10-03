@@ -4,7 +4,7 @@
 Generate Costing Sheet Totals Section at bottom of sheet
 """
 from .costing_data import SectionInfo, XlsxBom, DEALERS, SALESPERSON, YESNO
-
+from . import config
 
 # UTILITY FUNCTIONS =========================================================+=
 def get_labor(xlsx: XlsxBom)-> float:
@@ -21,6 +21,19 @@ def get_labor(xlsx: XlsxBom)-> float:
         design * xlsx.settings.hourly_rates['Design Hours'].rate)
     return labor
 
+def adjust(row: int, offset: int)-> int:
+    """adjusting for commision/hmac lines as neccessary
+    threshold is based on line 49 is where we start inserting things
+    """
+    adjusted = row + offset
+    if not config.hgac:
+        return adjusted
+    
+    # if not hgac and adjusted < 51 and offset < 0
+    #   return adjusted -2 
+    # if not hgac and adjusted > 50
+    #   return adjusted - 2
+    return adjusted
 
 # WRITING TOTALS FUNCTIONS ====================================================
 def totals_column_b(xlsx: XlsxBom,
@@ -425,7 +438,7 @@ def totals_43(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = (f"=I{row- 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
+    formula1 = (f"=I{row - 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
                 f"-I{row - 34}")
     # value used in totals_40
     labor = get_labor(xlsx)
