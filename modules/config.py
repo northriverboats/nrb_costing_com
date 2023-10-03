@@ -1,2 +1,3 @@
 
-hgac = "boogers and cheese!!!!"
+hgac = False
+offset = 0

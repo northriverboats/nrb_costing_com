@@ -17,6 +17,7 @@ from .costing_totals import generate_totals
 from .models import Model
 from .settings import Settings
 from .utilities import normalize_size, status_msg, SHEETS_FOLDER, SUBJECT
+from . import config
 
 # UTILITY FUNCTIONS ===========================================================
 
@@ -148,6 +149,8 @@ def generate_sheets_for_all_models(boms: dict[str, Bom],
         None
     """
     status_msg("Generating Sheets", 1)
+    if config.hgac:
+        status_msg("Generating HGAC Sheets", 0)
     for model in models:
         generate_sheets_for_model(boms, models[model], settings)
 
