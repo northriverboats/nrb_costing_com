@@ -27,8 +27,8 @@ def adjust(row: int, offset: int)-> int:
     """
     adjusted = row + offset
 
-    if config.hgac and offset < 0 and adjusted  < (config.offset + 51):
-        return adjusted - 2
+    # if config.hgac and offset < 0 and adjusted  < (config.offset + 51):
+    #   return adjusted - 2
 
     if config.hgac:
         return adjusted
@@ -661,13 +661,11 @@ def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     xlsx.write(adjust(row, 0), 8, formula3, xlsx.styles['currencyBordered'], value3)
     xlsx.write(adjust(row, 0), 9, formula4, xlsx.styles['percentBorder'], value4)
 
-
-
 def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 50 from the bottom of the sheet"""
     text1 = "Total Cost (equals total cost of project box)"
-    formula1 = f"=SUM(D{adjust(row, -6)}:D{adjust(row, -1)})"
+    formula1 = f"=SUM(D{adjust(row, -8)}:D{adjust(row, -1)})"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     labor = get_labor(xlsx)
@@ -681,7 +679,7 @@ def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               section_info['INBOARD MOTORS & JETS'].value +
               section_info['TRAILER'].value +
               labor)
-    formula2 = f"=SUM(I{adjust(row, -6)}:I{adjust(row, -1)})"
+    formula2 = f"=SUM(I{adjust(row, -8)}:I{adjust(row, -1)})"
     value2 = section_info['TOTALS'].totals
 
     xlsx.write(adjust(row, 0), 2, text1, xlsx.styles['rightJust2'])
@@ -701,7 +699,7 @@ def totals_56(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 54 from the bottom of the sheet"""
     text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
-    formula1 = f"=I{adjust(row, -1)}-I{adjust(row, -13)}"
+    formula1 = f"=I{adjust(row, -1)}-I{adjust(row, -15)}"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     labor = get_labor(xlsx)
@@ -719,7 +717,7 @@ def totals_58(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     _ = section_info
     text1 = "CONTRIBUTION MARGIN"
     formula1 = (f"=IF(I{adjust(row, -3)}=0,0,SUM(I{adjust(row, -3)}"
-                f"-I{adjust(row, -15)})/I{adjust(row, -3)})")
+                f"-I{adjust(row, -17)})/I{adjust(row, -3)})")
 
     value1 =  0.0
 
