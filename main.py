@@ -52,6 +52,8 @@ from modules.utilities import (enable_logging, logger, options, status_msg,
               default="", help="Save data to sqlite database")
 @click.option('--hgac', 'hgac', is_flag=True,
               help="Sheet has commision/hgac totals")
+@click.option('--net', 'net', is_flag=True,
+              help="Show Dealer Net Price")
 @click.option('--summary', is_flag=True,
               help="Generate MSRP Summary Report")
 @click.option('-v', '--verbose', count=True,
@@ -60,10 +62,12 @@ def main(build_only: bool,
          load_file: Union[Path, str],
          save_file: Union[Path, str],
          hgac: bool,
+         net: bool,
          summary: bool,
          verbose: int) -> None:
     """ main program entry point """
     config.hgac = hgac
+    config.net = net
     if build_only:
         click.echo("build only")
         load_file = ""
