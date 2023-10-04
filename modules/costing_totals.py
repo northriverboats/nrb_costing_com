@@ -26,11 +26,19 @@ def adjust(row: int, offset: int)-> int:
     threshold is based on line 49 is where we start inserting things
     """
     adjusted = row + offset
+
+    if config.hgac and offset < 0 and adjusted  < (config.offset + 51):
+        return adjusted - 2
+
     if config.hgac:
         return adjusted
-    
+
     if adjusted > (config.offset + 50):
         adjusted = adjusted - 2
+
+    if offset < 0 and (adjusted < (config.offset + 48)):
+        adjusted = adjusted -2
+        
 
     return adjusted
 
@@ -75,7 +83,7 @@ def totals_01(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 01 from the bottom of the sheet"""
     rate = xlsx.settings.consumables['FABRICATION'].rate
 
-    formula1 = f"=I{row}*H{row + 1}"
+    formula1 = f"=I{adjust(row, 0)}*H{adjust(row, 1)}"
     value1 = section_info['FABRICATION'].value * rate
 
     xlsx.write(adjust(row, 0), 3, 'Fab Consumables', xlsx.styles['generic1'])
@@ -96,7 +104,7 @@ def totals_03(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 03 from the bottom of the sheet"""
     rate = xlsx.settings.consumables['PAINT'].rate
 
-    formula1 = f"=I{row}*H{row+1}"
+    formula1 = f"=I{adjust(row, 0)}*H{adjust(row, 1)}"
     value1 = section_info['PAINT'].value * rate
 
     xlsx.write(adjust(row, 0), 3, 'Paint Consumables', xlsx.styles['generic1'])
@@ -185,9 +193,9 @@ def totals_14(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Fabrication'
     rate = xlsx.settings.hourly_rates['Fabrication Hours'].rate
 
-    formula1 = f"=F{row + 1}+SUM(M:M)"
+    formula1 = f"=F{adjust(row, 1)}+SUM(M:M)"
     value1 = xlsx.bom.labor[dept] or 0.0
-    formula2 = f"=H{row +1}*G{row + 1}"
+    formula2 = f"=H{adjust(row, 1)}*G{adjust(row, 1)}"
     value2 = value1 * rate
 
     xlsx.write(adjust(row, 0), 3, dept, xlsx.styles['generic1'])
@@ -203,9 +211,9 @@ def totals_15(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Paint'
     rate = xlsx.settings.hourly_rates['Paint Hours'].rate
 
-    formula1 = f"=F{row + 1}+SUM(M:M)"
+    formula1 = f"=F{adjust(row, 1)}+SUM(M:M)"
     value1 = xlsx.bom.labor[dept] or 0.0
-    formula2 = f"=H{row +1}*G{row + 1}"
+    formula2 = f"=H{adjust(row, 1)}*G{adjust(row, 1)}"
     value2 = value1 * rate
 
     xlsx.write(adjust(row, 0), 3, dept, xlsx.styles['generic1'])
@@ -221,9 +229,9 @@ def totals_16(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Outfitting'
     rate = xlsx.settings.hourly_rates['Outfitting Hours'].rate
 
-    formula1 = f"=F{row + 1}+SUM(N:N)"
+    formula1 = f"=F{adjust(row, 1)}+SUM(N:N)"
     value1 = xlsx.bom.labor[dept] or 0.0
-    formula2 = f"=H{row +1}*G{row + 1}"
+    formula2 = f"=H{adjust(row, 1)}*G{adjust(row, 1)}"
     value2 = value1 * rate
 
     xlsx.write(adjust(row, 0), 3, dept, xlsx.styles['generic1'])
@@ -239,9 +247,9 @@ def totals_17(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'Design / Drafting'
     rate = xlsx.settings.hourly_rates['Design Hours'].rate
 
-    formula1 = f"=F{row + 1}+SUM(O:O)"
+    formula1 = f"=F{adjust(row, 1)}+SUM(O:O)"
     value1 = (xlsx.bom.labor[dept] or 0.0)
-    formula2 = f"=H{row +1}*G{row + 1}"
+    formula2 = f"=H{adjust(row, 1)}*G{adjust(row, 1)}"
     value2 = value1 * rate
 
     xlsx.write(adjust(row, 0), 3, dept, xlsx.styles['generic1'])
@@ -254,7 +262,7 @@ def totals_19(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 19 from the bottom of the sheet"""
     _ = section_info
-    formula1 = f"=SUM(F{row - 4}:F{row - 1})"
+    formula1 = f"=SUM(F{adjust(row, -4)}:F{adjust(row, -1)})"
     fabrication = xlsx.bom.labor['Fabrication'] or 0.0
     paint = xlsx.bom.labor['Paint'] or 0.0
     outfitting = xlsx.bom.labor['Outfitting'] or 0.0
@@ -262,7 +270,7 @@ def totals_19(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     value1 = fabrication + paint + outfitting + design
     value1 =  xlsx.bom.labor['Total'] or 0.0
 
-    formula2 = f"=SUM(I{row - 4}:I{row - 1})"
+    formula2 = f"=SUM(I{adjust(row, -4)}:I{adjust(row, -1)})"
     value2 = get_labor(xlsx)
 
     xlsx.write(adjust(row, 0), 4, 'Total Hours', xlsx.styles['rightJust1'])
@@ -332,7 +340,7 @@ def totals_30(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 30 from the bottom of the sheet"""
     _ = section_info
 
-    formula1 = f"=SUM(I{row - 5}:I{row})"
+    formula1 = f"=SUM(I{adjust(row, -5)}:I{adjust(row, 0)})"
     value1 = 0
 
     xlsx.write(adjust(row, 0), 7, 'Total Other Costs', xlsx.styles['rightJust2'])
@@ -390,7 +398,7 @@ def totals_38(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 38 from the bottom of the sheet"""
     _ = section_info
 
-    formula1 = f"=SUM(I{row - 3}:I{row})"
+    formula1 = f"=SUM(I{adjust(row, -3)}:I{adjust(row, 0)})"
     value1 = 0
 
     xlsx.write(adjust(row, 0), 7, 'Total No Margin Items', xlsx.styles['rightJust2'])
@@ -439,8 +447,9 @@ def totals_43(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = (f"=I{row - 2}-I{row - 4}-I{row - 37}-I{row - 36}-I{row - 35}"
-                f"-I{row - 34}")
+    formula1 = (f"=I{adjust(row, -2)}-I{adjust(row, -4)}-I{adjust(row, -37)}"
+                f"-I{adjust(row, -36)}-I{adjust(row, -35)}-I{adjust(row, -34)}"
+                )
     # value used in totals_40
     labor = get_labor(xlsx)
     value1 = (section_info['FABRICATION'].value +
@@ -449,11 +458,12 @@ def totals_43(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               section_info['PAINT'].value * rate_paint +
               section_info['OUTFITTING'].value +
               labor)
-    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}/E{adjust(row, 1)}/F{adjust(row, 1)}"
     value2 = value1 / markup_1 / markup_2
-    formula3 = f"=G{row + 1}*(1-H{row + 1})"
+    formula3 = f"=G{adjust(row, 1)}*(1-H{adjust(row, 1)})"
     value3 = value2  * (1 - discount)
-    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals = value3
 
@@ -474,13 +484,14 @@ def totals_44(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = f"=I{row - 38}"
+    formula1 = f"=I{adjust(row, 38)}"
     value1 = section_info['BIG TICKET ITEMS'].value
-    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}/E{adjust(row, 1)}/F{adjust(row, 1)}"
     value2 = value1 / markup_1 / markup_2
-    formula3 = "=G" + str(row + 1) + "*(1-H" + str(row + 1 ) + ')'
+    formula3 = "=G" + str(adjust(row, 1)) + "*(1-H" + str(adjust(row, 1)) + ')'
     value3 = value2  * (1 - discount)
-    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}" 
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -499,13 +510,14 @@ def totals_45(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     dept = 'OB Motors'
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = f"=I{row - 38}"
+    formula1 = f"=I{adjust(row, -38)}"
     value1 = section_info['OUTBOARD MOTORS'].value
     formula2 = f"=Q{section_info['OUTBOARD MOTORS'].subtotal}"
     value2 = 0.0
-    formula3 = f"=G{row + 1}*(1-H{row + 1})"
+    formula3 = f"=G{adjust(row, 1)}*(1-H{adjust(row, 1)})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -526,13 +538,14 @@ def totals_46(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = f"=I{row - 38}"
+    formula1 = f"=I{adjust(row, -38)}"
     value1 = section_info['INBOARD MOTORS & JETS'].value
-    formula2 = f"=D{row + 1}/E{row +1}/F{row +1}"
+    formula2 = f"=D{adjust(row, 1)}/E{adjust(row, 1)}/F{adjust(row, 1)}"
     value2 = value1 / markup_1 / markup_2
-    formula3 = f"=G{row + 1}*(1-H{row + 1})"
+    formula3 = f"=G{adjust(row, 1)}*(1-H{adjust(row, 1)})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -553,13 +566,14 @@ def totals_47(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     markup_2 = xlsx.settings.mark_ups[dept].markup_2
     discount = xlsx.settings.mark_ups[dept].discount
 
-    formula1 = f"=I{row - 38}"
+    formula1 = f"=I{adjust(row, -38)}"
     value1 = section_info['TRAILER'].value
-    formula2 = f"=D{row + 1}/E{row + 1}/F{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}/E{adjust(row, 1)}/F{adjust(row, 1)}"
     value2 = value1 / markup_1 / markup_2
-    formula3 = f"=G{row + 1}*(1-H{row + 1})"
+    formula3 = f"=G{adjust(row, 1)}*(1-H{adjust(row, 1)})"
     value3 = value2
-    formula4 = f"=IF(I{row + 1}=0,0,(I{row + 1}-D{row + 1})/I{row + 1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{row + 1})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -576,13 +590,14 @@ def totals_48(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 48 from the bottom of the sheet"""
     _ = section_info
-    formula1 = f"=I{row - 9}"
+    formula1 = f"=I{adjust(row, 9)}"
     value1 = 0.0
-    formula2 = f"=D{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}"
     value2 = 0.0
-    formula3 = f"=G{row + 1}"
+    formula3 = f"=G{adjust(row, 1)}"
     value3 = value2
-    formula4 = f"=IF(I{row +1}=0,0,(I{row + 1}-D{row + 1})/I{row +1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -600,13 +615,14 @@ def totals_49(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     if not config.hgac:
         return
     
-    formula1 = f"=SUM(D{row - 5}:D{row - 1})*0.05"
+    formula1 = f"=SUM(D{adjust(row, -5)}:D{adjust(row, -1)})*0.05"
     value1 = 0.0
-    formula2 = f"=D{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}"
     value2 = 0.0
-    formula3 = f"=G{row + 1}"
+    formula3 = f"=G{adjust(row, 1)}"
     value3 = value2
-    formula4 = f"=IF(I{row +1}=0,0,(I{row + 1}-D{row + 1})/I{row +1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -624,13 +640,15 @@ def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     if not config.hgac:
         return
 
-    formula1 = f"=(SUM(D{row - 6}:D{row - 2})+D{row + 0})*0.02"
+    formula1 = (f"=(SUM(D{adjust(row, -6)}:D{adjust(row, -2)})"
+                f"+D{adjust(row, 0)})*0.02")
     value1 = 0.0
-    formula2 = f"=D{row + 1}"
+    formula2 = f"=D{adjust(row, 1)}"
     value2 = 0.0
-    formula3 = f"=G{row + 1}"
+    formula3 = f"=G{adjust(row, 1)}"
     value3 = value2
-    formula4 = f"=IF(I{row +1}=0,0,(I{row + 1}-D{row + 1})/I{row +1})"
+    formula4 = (f"=IF(I{adjust(row, 1)}=0,0,(I{adjust(row, 1)}"
+                f"-D{adjust(row, 1)})/I{adjust(row, 1)})")
     value4 = (value3 - value1) / value3 if value3 else 0
     section_info['TOTALS'].totals += value3
 
@@ -644,11 +662,12 @@ def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     xlsx.write(adjust(row, 0), 9, formula4, xlsx.styles['percentBorder'], value4)
 
 
+
 def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 50 from the bottom of the sheet"""
     text1 = "Total Cost (equals total cost of project box)"
-    formula1 = f"=SUM(D{row - 6}:D{row -1})"
+    formula1 = f"=SUM(D{adjust(row, -6)}:D{adjust(row, -1)})"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     labor = get_labor(xlsx)
@@ -662,7 +681,7 @@ def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               section_info['INBOARD MOTORS & JETS'].value +
               section_info['TRAILER'].value +
               labor)
-    formula2 = f"=SUM(I{row - 6}:I{row - 1})"
+    formula2 = f"=SUM(I{adjust(row, -6)}:I{adjust(row, -1)})"
     value2 = section_info['TOTALS'].totals
 
     xlsx.write(adjust(row, 0), 2, text1, xlsx.styles['rightJust2'])
@@ -682,7 +701,7 @@ def totals_56(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
     """fill out line at row 54 from the bottom of the sheet"""
     text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
-    formula1 = f"=I{row - 1}-I{row - 13}"
+    formula1 = f"=I{adjust(row, -1)}-I{adjust(row, -13)}"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
     rate_paint = xlsx.settings.consumables['PAINT'].rate
     labor = get_labor(xlsx)
@@ -699,7 +718,8 @@ def totals_58(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     """fill out line at row 56 from the bottom of the sheet"""
     _ = section_info
     text1 = "CONTRIBUTION MARGIN"
-    formula1 = f"=IF(I{row - 3}=0,0,SUM(I{row - 3}-I{row - 15})/I{row - 3})"
+    formula1 = (f"=IF(I{adjust(row, -3)}=0,0,SUM(I{adjust(row, -3)}"
+                f"-I{adjust(row, -15)})/I{adjust(row, -3)})")
 
     value1 =  0.0
 
