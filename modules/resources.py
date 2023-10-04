@@ -29,6 +29,7 @@ class Resource(DataClassJsonMixin):
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
     updated: datetime = field(compare=False)
+    dealer_net: float = field(compare=False)
 
 @dataclass
 class Resources(DataClassJsonMixin):
@@ -44,10 +45,14 @@ def load_resource_file(xlsx_file: Path) -> Resources:
     status_msg(f'  {xlsx_file.name}', 2)
     xlsx: Workbook = load_workbook(xlsx_file.as_posix(), data_only=True)
     sheet: Worksheet = xlsx.active
+    net_price: bool = sheet['I1'].value == "Dealer Net Price"
     all_resources: Resources = Resources({})
-    for row in sheet.iter_rows(min_row=2, max_col=8):
+    for row in sheet.iter_rows(min_row=2, max_col=9):
         if not isinstance(row[0].value, str):
             continue
+        net_value = 0.0
+        if net_price:
+            net_value = float(row[8].value)
         resource: Resource = Resource(
             row[0].value,
             row[1].value,
@@ -56,7 +61,8 @@ def load_resource_file(xlsx_file: Path) -> Resources:
             row[4].value,
             row[5].value,
             row[6].value,
-            row[7].value)
+            row[7].value,
+            net_price)
         all_resources.resources[row[0].value] = resource
         status_msg(f"    {resource}",3)
     xlsx.close()
