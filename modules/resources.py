@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # vim expandtab shiftwidth=2 softtabstop=2
 """
-Load model data from sheet
+Load resource data from sheet
 
-Pass in master_file return data structure
+If I1 has "Dealer Net Price" then there is net pricing to capture
 """
 from datetime import datetime
 from dataclasses import dataclass, field
