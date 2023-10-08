@@ -916,32 +916,32 @@ def totals_80(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
     style1 = xlsx.styles['generic1']
     style2 = xlsx.styles['generic2']
 
-    xlsx.write(row + 0, 2,
+    xlsx.write(adjust(row, 0), 2,
                'Cost estimate check list - complete prior to sending quote i'
                'or submitting bid', style2)
-    xlsx.write(row + 1, 2,
+    xlsx.write(adjust(row, 1), 2,
                'Verify all formulas are correct and all items are included '
                'in cost total', style1)
-    xlsx.write(row + 2, 2,
+    xlsx.write(adjust(row, 2), 2,
                'Verify aluminum calculated with total lbs included. Include '
                'metal costing sheet separate if completed', style1)
-    xlsx.write(row + 3, 2,
+    xlsx.write(adjust(row, 3), 2,
                'Verify paint costing equals paint description', style1)
-    xlsx.write(row + 4, 2,
+    xlsx.write(adjust(row, 4), 2,
                'Cost estimate includes all components on sales quote', style1)
-    xlsx.write(row + 5, 2,
+    xlsx.write(adjust(row, 5), 2,
                'Pricing policy discounts and minimum margins are met', style1)
-    xlsx.write(row + 6, 2,
+    xlsx.write(adjust(row, 6), 2,
                'Vendor quotes received and included in costing folder', style1)
-    xlsx.write(row + 7, 2,
+    xlsx.write(adjust(row, 7), 2,
                'Labor hours reviewed and correct to best knowledge of project',
                style1)
-    xlsx.write(row + 8, 2,
+    xlsx.write(adjust(row, 8), 2,
                'Name of peer who reviewed prior to submission to customer',
                style1)
-    xlsx.write(row + 9, 2,
+    xlsx.write(adjust(row, 9), 2,
                'Customer signed sales quotation', style1)
-    xlsx.write(row + 10, 2,
+    xlsx.write(adjust(row, 10), 2,
                'Customer provided terms and conditions, including payment '
                'schedule', style1)
 
