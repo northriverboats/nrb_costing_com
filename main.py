@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Union
 import click
 from modules.boms import load_boms, Boms
-from  modules import config
+from modules import config
 from modules.consumables import load_consumables, Consumables
 from modules.costingsheets import generate_sheets_for_all_models
 from modules.databases import load_from_database, save_to_database
