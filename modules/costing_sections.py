@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional
 from .costing_data import SectionInfo, XlsxBom, YESNO
 from .boms import MergedPart
+from . import config
 
 @dataclass
 class Title():
@@ -152,7 +153,7 @@ GREEN_BLANK_PART = [
 ]
 
 
-BLANK_BOM_PART = MergedPart('', 0, '', '', 0, '', datetime(1999,12,31), 0)
+BLANK_BOM_PART = MergedPart('', 0, '', '', 0, '', datetime(1999,12,31), 0, 0)
 
 
 # WRITING SECTION FUNCTIONS ===================================================
@@ -409,24 +410,44 @@ def section_bigticket(xlsx: XlsxBom, row: int,
 def section_outboard(xlsx: XlsxBom, row: int,
                    section_info: dict[str, SectionInfo]) -> int:
     """write outboard motors section"""
+    # section info not needed, drop
     _ = section_info
+
+    # Initalize values needed
     dept = 'OUTBOARD MOTORS'
-    total: float = 0
+    parts = xlsx.bom.sections[dept].parts
+    total: float = 0.0
+    net_total: float = 0.0
+
+    # Write Heading and skip a line
     section_heading_small(
         xlsx,
         row,
         'OB Motors',
         'Labor Change add/delete')
     row += 2
+
+    # write titles
     section_titles(xlsx, row, TITLES)
     xlsx.write(row, 16, 'Dealer Net Price', xlsx.styles['heading1'])
     row += 1
+
+    # save row where parts go as start
     start = row
-    parts = xlsx.bom.sections[dept].parts
+
+    # 
     for part in parts.values():
         section_part(xlsx, row, ROW_PART, part)
         total += (part.qty or 0) * (part.unitprice or 0)
+        if config.net:
+            formula = f"=F{row + 1}*{part.dealer_net}"
+            xlsx.write(row, 16, formula, xlsx.styles['currencyYellowBorder'])
+            net_total += part.dealer_net * part.qty
         row += 1
+    if config.net:
+        formula = f"=F{row + 1}*0.00"
+        xlsx.write(row, 16, formula, xlsx.styles['currencyYellowBorder'])
+
     for row1 in range(max(3 - len(parts), 1)):
         _ = row1
         section_part(xlsx, row, ROW_PART, BLANK_BOM_PART)
@@ -438,8 +459,9 @@ def section_outboard(xlsx: XlsxBom, row: int,
     section = SectionInfo(start, finish, subtotal + 1, total)
     section_subtotal(xlsx, row, section, 'OB MOTORS TOTAL')
     section_info[dept] = section
-    for row1 in range(start, finish + 1):
-        xlsx.write(row1, 16, None, xlsx.styles['currencyYellowBorder'])
+    if not config.net:
+        for row1 in range(start, finish + 1):
+            xlsx.write(row1, 16, None, xlsx.styles['currencyYellowBorder'])
     formula = f"=SUM(Q{start + 1}:Q{finish +1})"
     xlsx.write(row, 15, 'Dealer Net Total', xlsx.styles['rightJust2'])
     xlsx.write(row, 16, formula, xlsx.styles['currencyBorderedBold'], 0)
