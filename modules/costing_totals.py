@@ -39,7 +39,6 @@ def adjust(row: int, offset: int)-> int:
     if offset < 0 and (adjusted < (config.offset + 48)):
         adjusted = adjusted -2
         
-
     return adjusted
 
 # WRITING TOTALS FUNCTIONS ====================================================
@@ -612,6 +611,7 @@ def totals_48(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_49(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
+    """fill out line at row 49 from the bottom of the sheet"""
     if not config.hgac:
         return
     
@@ -637,6 +637,7 @@ def totals_49(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
+    """fill out line at row 50 from the bottom of the sheet"""
     if not config.hgac:
         return
 
@@ -663,7 +664,7 @@ def totals_50(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 50 from the bottom of the sheet"""
+    """fill out line at row 52 from the bottom of the sheet"""
     text1 = "Total Cost (equals total cost of project box)"
     formula1 = f"=SUM(D{adjust(row, -8)}:D{adjust(row, -1)})"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
@@ -689,7 +690,7 @@ def totals_52(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_54(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 52 from the bottom of the sheet"""
+    """fill out line at row 54 from the bottom of the sheet"""
     _ = section_info
 
     xlsx.write(adjust(row, 0), 6, 'SELLING PRICE', xlsx.styles['rightJust2'])
@@ -697,7 +698,7 @@ def totals_54(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_56(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 54 from the bottom of the sheet"""
+    """fill out line at row 56 from the bottom of the sheet"""
     text1 = "CONTRIBUTION TO PROFIT AND OVERHEAD"
     formula1 = f"=I{adjust(row, -1)}-I{adjust(row, -15)}"
     rate_fabrication = xlsx.settings.consumables['FABRICATION'].rate
@@ -713,7 +714,7 @@ def totals_56(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_58(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 56 from the bottom of the sheet"""
+    """fill out line at row 58 from the bottom of the sheet"""
     _ = section_info
     text1 = "CONTRIBUTION MARGIN"
     formula1 = (f"=IF(I{adjust(row, -3)}=0,0,SUM(I{adjust(row, -3)}"
@@ -727,7 +728,7 @@ def totals_58(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_61(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 59 from the bottom of the sheet"""
+    """fill out line at row 61 from the bottom of the sheet"""
     _ = section_info
     text1 = "Pricing Policy References: "
     text2 = "Discounts / Minimum contribution margins: "
@@ -737,7 +738,7 @@ def totals_61(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_62(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 60 from the bottom of the sheet"""
+    """fill out line at row 62 from the bottom of the sheet"""
     _ = section_info
     text1 = "Boat MSRP = C / .61 / 0.7"
     text2 = ("Government/Commercial Discounts - Max discount 30% / "
@@ -748,7 +749,7 @@ def totals_62(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_63(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 61 from the bottom of the sheet"""
+    """fill out line at row 63 from the bottom of the sheet"""
     _ = section_info
     text1 = "Options MSRP = C / .8046 / .48"
     text2 = ("Guide / Lodge Program - Commercial Markup- Max discount "
@@ -759,7 +760,7 @@ def totals_63(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_64(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 62 from the bottom of the sheet"""
+    """fill out line at row 64 from the bottom of the sheet"""
     _ = section_info
     text1 = "Trailers MSRP = C / 0.80 / 0.7"
     text2 = ("Guide / Lodge Program - Recreational Retail Price list- "
@@ -770,7 +771,7 @@ def totals_64(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_65(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 63 from the bottom of the sheet"""
+    """fill out line at row 65 from the bottom of the sheet"""
     _ = section_info
     text1 = "Inboard Motors MSRP = C / 0.85 / 0.7"
     text2 = ("Non-Commercial Direct Sales - Max discount 26% / Minimum "
@@ -781,7 +782,7 @@ def totals_65(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_66(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 64 from the bottom of the sheet"""
+    """fill out line at row 66 from the bottom of the sheet"""
     _ = section_info
     text1 = "Big Ticket Items MSRP = C / (range from 0.80 – 0.85) / 0.7"
 
@@ -793,7 +794,7 @@ def totals_66(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_67(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 60 from the bottom of the sheet"""
+    """fill out line at row 67 from the bottom of the sheet"""
     _ = section_info
     text1 = "GSA Pricing"
     text2 = "1 - 2 boats"
@@ -805,7 +806,7 @@ def totals_67(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_68(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 66 from the bottom of the sheet"""
+    """fill out line at row 68 from the bottom of the sheet"""
     _ = section_info
     text1 = "3 boats"
     text2 = "30.5% discount"
@@ -815,7 +816,7 @@ def totals_68(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_69(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 67 from the bottom of the sheet"""
+    """fill out line at row 69 from the bottom of the sheet"""
     _ = section_info
     text1 = "4 boats"
     text2 = "31% discount"
@@ -825,7 +826,7 @@ def totals_69(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_70(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 68 from the bottom of the sheet"""
+    """fill out line at row 70 from the bottom of the sheet"""
     _ = section_info
     text1 = "5 boats"
     text2 = "31.5% discount"
@@ -835,7 +836,7 @@ def totals_70(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_71(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 69 from the bottom of the sheet"""
+    """fill out line at row 71 from the bottom of the sheet"""
     _ = section_info
     text1 = "6 - 10 bts"
     text2 = "32% discount"
@@ -845,7 +846,7 @@ def totals_71(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_72(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 70 from the bottom of the sheet"""
+    """fill out line at row 72 from the bottom of the sheet"""
     _ = section_info
     text1 = "11 - 20 bts"
     text2 = "32.25% discount"
@@ -855,7 +856,7 @@ def totals_72(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_73(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 71 from the bottom of the sheet"""
+    """fill out line at row 73 from the bottom of the sheet"""
     _ = section_info
     text1 = "20+ boats"
     text2 = "32.5% discount"
@@ -866,7 +867,7 @@ def totals_73(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_74(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 72 from the bottom of the sheet"""
+    """fill out line at row 74 from the bottom of the sheet"""
     _ = section_info
     text1 = "Outboard motors"
     text2 = "Government agencies - 15% discount"
@@ -876,7 +877,7 @@ def totals_74(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_75(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 73 from the bottom of the sheet"""
+    """fill out line at row 75 from the bottom of the sheet"""
     _ = section_info
     text1 = "(approval req. for greater discount, no more than addl. 3%)"
     text2 = "GSA Pricing - 18% discount"
@@ -886,7 +887,7 @@ def totals_75(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_76(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 74 from the bottom of the sheet"""
+    """fill out line at row 76 from the bottom of the sheet"""
     _ = section_info
     text1 = "Guides / Lodges - 10% discount"
 
@@ -894,7 +895,7 @@ def totals_76(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_77(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 75 from the bottom of the sheet"""
+    """fill out line at row 77 from the bottom of the sheet"""
     _ = section_info
     text1 = "Commercial sales - 5% discount"
 
@@ -902,7 +903,7 @@ def totals_77(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_78(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 76 from the bottom of the sheet"""
+    """fill out line at row 78 from the bottom of the sheet"""
     _ = section_info
     text1 = "Voyager - 5% discount"
 
@@ -910,7 +911,7 @@ def totals_78(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
 
 def totals_80(xlsx: XlsxBom, section_info: dict[str, SectionInfo],
               row: int)-> None:
-    """fill out line at row 78 from the bottom of the sheet"""
+    """fill out line at row 80 from the bottom of the sheet"""
     _ = section_info
     style1 = xlsx.styles['generic1']
     style2 = xlsx.styles['generic2']
