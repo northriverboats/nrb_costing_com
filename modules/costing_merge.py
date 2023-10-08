@@ -56,7 +56,8 @@ def merge_sections(boat_sections: dict[str, BomSection],
                     bom_parts[0].unitprice,
                     bom_parts[0].vendor,
                     bom_parts[0].updated,
-                    0.0
+                    0.0,
+                    bom_parts[0].dealer_net
                 )
             merged_part = merged_section.parts[part_number]
             for bom_part in bom_parts:

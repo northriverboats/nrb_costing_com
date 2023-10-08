@@ -62,7 +62,7 @@ def load_resource_file(xlsx_file: Path) -> Resources:
             row[5].value,
             row[6].value,
             row[7].value,
-            net_price)
+            net_value)
         all_resources.resources[row[0].value] = resource
         status_msg(f"    {resource}",3)
     xlsx.close()
@@ -78,6 +78,10 @@ def load_resources(resource_folder: Path) -> Resources:
 
     all_resources: Resources = Resources({})
     for resource_file in resource_files:
+        if resource_file == "K:\2024 HGAC - TEST\RESOURCE\BOM OUTBOARD MOTORS.xlsx":
+            _ = 1 + 1
+            pass
+            _ = 1 + 1
         all_resources.resources.update(
             load_resource_file(resource_file).resources)
     return all_resources

@@ -32,6 +32,7 @@ class BomPart(DataClassJsonMixin):
     vendorpart: str = field(compare=False)
     vendor: str = field(compare=False)
     updated: datetime = field(compare=False)
+    dealer_net: float = field(compare=False)
 
 @dataclass(order=True)
 class BomSection(DataClassJsonMixin):
@@ -66,6 +67,7 @@ class MergedPart(DataClassJsonMixin):
     vendor: str
     updated: datetime
     total: float
+    dealer_net: float
 
 # Output BOM type
 @dataclass(order=True)
@@ -130,7 +132,8 @@ def make_bom_part(row, resources: dict[str, Resource]) -> BomPart:
                    resource.oem,
                    resource.vendorpart,
                    resource.vendor,
-                   resource.updated)
+                   resource.updated,
+                   resource.dealer_net)
 
 def section_add_part(parts: dict[str, list[BomPart]], part: BomPart) -> None:
     """Insert new part or add qty to existing part"""
